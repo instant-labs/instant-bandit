@@ -32,3 +32,11 @@ describe("conversions", () => {
     expect(data).toEqual({ name: "conversions" })
   })
 })
+
+describe("_database", () => {
+  test("returns", async () => {
+    const res = await fetch("http://localhost:3000/api/_database")
+    const data = await res.json()
+    expect(data).toEqual({ _testKey: true })
+  })
+})
