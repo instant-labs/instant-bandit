@@ -2,35 +2,38 @@
 
 import { useLayoutEffect, useEffect, useState } from "react"
 
-type HasVariants = {
-  // TODO: generic types
-  variant: any // to be determined by author
+type WithInstantBanditProps = {
+  variant: string // designed to be overriden by author
 }
 
 // NOTE: this will return defaultVariant during SSR
-export function WithInstantBandit(
-  Component: React.ReactElement<HasVariants>,
+export function WithInstantBandit<
+  T extends WithInstantBanditProps = WithInstantBanditProps
+>(
+  Component: React.ComponentType<T>,
   experimentId: string,
-  defaultVariant: string
+  defaultVariant: T["variant"]
+  // IDEA: use dependency injection of fetchVariant
 ) {
-  const [variant, setVariant] = useState(defaultVariant)
-  // useLayoutEffect to block on server and avoid flicker
-  useIsomorphicLayoutEffect(() => {
-    const effect = async () => {
-      const serverVariant = await fetchVariant(experimentId)
-      // TODO: make transaction
-      // Set the variant and trigger a render
-      setVariant(serverVariant)
-      // Keep the rendered variant in sessionStorage for conversions
-      window.sessionStorage.setItem(experimentId, serverVariant)
-      // TODO: Set list of all experiments exposed
-    }
-    effect()
-  }, []) // empty deps means fire only once after initial render (and before screen paint)
-
   // Return the wrapped component with variant set
-  // @ts-ignore: // FIXME: react types
-  return (props) => <Component variant={variant} {...props} />
+  return (props) => {
+    const [variant, setVariant] = useState(defaultVariant)
+    // useLayoutEffect to block on server and avoid flicker
+    useIsomorphicLayoutEffect(() => {
+      const effect = async () => {
+        const fetchedVariant = await fetchVariant(experimentId)
+        // TODO: make transaction
+        // Set the variant and trigger a render
+        setVariant(fetchedVariant)
+        // Keep the rendered variant in sessionStorage for conversions
+        window.sessionStorage.setItem(experimentId, fetchedVariant)
+        // TODO: Set list of all experiments exposed
+      }
+      effect()
+    }, []) // empty deps means fire only once after initial render (and before screen paint)
+
+    return <Component variant={variant} {...props} />
+  }
 }
 
 // To avoid SSR breakage.

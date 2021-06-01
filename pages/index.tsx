@@ -1,18 +1,9 @@
 import Head from "next/head"
+import { DemoComponent } from "../components/DemoComponent"
 // TODO: fix vscode lint
 // import styles from "../styles/Home.module.css"
+
 export default function Home() {
-  // TODO:
-  // function PresentationalComponent(props: HasVariants) {
-  //   return <div>I'm showing variant {props.variant}</div>
-  // }
-
-  // const BanditPresentationalComponent = WithInstantBandit(
-  //   PresentationalComponent,
-  //   "my_experiment_id",
-  //   "a"
-  // )
-
   return (
     <div
     // className={styles.container}
@@ -34,6 +25,7 @@ export default function Home() {
         <a href="/api/hello" target="_blank">
           test api
         </a>
+        <DemoComponent />
       </main>
 
       <footer
