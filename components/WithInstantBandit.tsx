@@ -6,7 +6,7 @@ type WithInstantBanditProps = {
   variant: string // designed to be overriden by author
 }
 
-// NOTE: this will return defaultVariant during SSR
+// NOTE: returns defaultVariant during SSR
 export function WithInstantBandit<
   T extends WithInstantBanditProps = WithInstantBanditProps
 >(

@@ -1,7 +1,7 @@
 import { WithInstantBandit } from "./WithInstantBandit"
 
 type DemoComponentProps = {
-  variant: "a" | "b"
+  variant: "A" | "B"
   extra: "test"
 }
 
@@ -16,5 +16,5 @@ function Component(props: DemoComponentProps) {
 export const DemoComponent = WithInstantBandit<DemoComponentProps>(
   Component,
   "demo_experiment_id",
-  "a"
+  "A"
 )
