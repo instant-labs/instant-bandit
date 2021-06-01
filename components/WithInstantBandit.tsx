@@ -7,6 +7,7 @@ type HasVariants = {
   variant: any // to be determined by author
 }
 
+// NOTE: this will return defaultVariant during SSR
 export function WithInstantBandit(
   Component: React.ReactElement<HasVariants>,
   experimentId: string,
