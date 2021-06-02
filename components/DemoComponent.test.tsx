@@ -5,7 +5,7 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import { useEffect } from "react"
 import { DemoComponent, experimentId } from "./DemoComponent"
-// import * as IB from "./WithInstantBandit"
+import * as IB from "./WithInstantBandit"
 
 describe("DemoComponent", () => {
   beforeEach(() => {
