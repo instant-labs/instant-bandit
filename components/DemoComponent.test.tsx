@@ -7,11 +7,15 @@ import { useEffect } from "react"
 import { DemoComponent, experimentId } from "./DemoComponent"
 import * as IB from "./WithInstantBandit"
 
-describe("DemoComponent", () => {
-  beforeEach(() => {
-    sessionStorage.clear()
-  })
+afterAll(() => {
+  jest.restoreAllMocks()
+})
 
+beforeEach(() => {
+  sessionStorage.clear()
+})
+
+describe("DemoComponent", () => {
   it("should render the default variant A", () => {
     const component = render(<DemoComponent />)
     const variant = component.getByText(/variant a/i)
@@ -32,7 +36,7 @@ describe("DemoComponent", () => {
 
   it("should set the session storage on render", async () => {
     const before = sessionStorage.getItem(experimentId)
-    expect(before).toEqual(null)
+    expect(before).toBe(null)
     render(<DemoComponent />)
     await waitFor(() => {
       const after = sessionStorage.getItem(experimentId)
@@ -81,22 +85,46 @@ describe("DemoComponent", () => {
     const variant = component.getByText(/variant a/i)
     expect(variant).toBeInTheDocument()
     expect(useIsomorphicLayoutEffect).toHaveBeenCalled()
-    useIsomorphicLayoutEffect.mockRestore()
   })
 })
 
 describe("fetchProbabilities", () => {
-  it("should gracefully handle any fetch error", async () => {
-    const error = jest.spyOn(console, "error").mockImplementation(() => {})
+  // TODO: enable when api actually looks up experimentId
+  it.skip("should gracefully handle any fetch error", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {})
     const probabilities = await IB.fetchProbabilities("DOES_NOT_EXIST", "A")
     expect(probabilities).toEqual({ A: 1.0 })
-    error.mockReset()
   })
 
   it("should return default when timeout", async () => {
-    const error = jest.spyOn(console, "error").mockImplementation(() => {})
+    jest.spyOn(console, "error").mockImplementation(() => {})
     const probabilities = await IB.fetchProbabilities(experimentId, "A", 0)
     expect(probabilities).toEqual({ A: 1.0 })
-    error.mockReset()
+  })
+})
+
+describe("selectVariant", () => {
+  it("should always select 1.0", async () => {
+    jest.spyOn(global.Math, "random").mockReturnValue(0.123)
+    const variant = IB.selectVariant({ A: 1.0, B: 0.0 }, "C")
+    expect(variant).toEqual("A")
+  })
+
+  it("should select in order 1", async () => {
+    jest.spyOn(global.Math, "random").mockReturnValue(0.123)
+    const variant = IB.selectVariant({ A: 0.5, B: 0.5 }, "C")
+    expect(variant).toEqual("A")
+  })
+
+  it("should select in order 2", async () => {
+    jest.spyOn(global.Math, "random").mockReturnValue(0.567)
+    const variant = IB.selectVariant({ A: 0.5, B: 0.5 }, "C")
+    expect(variant).toEqual("B")
+  })
+
+  it("should gracefully handle bad probabilities", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    const variant = IB.selectVariant({ A: 0.0, B: 0.0 }, "C")
+    expect(variant).toEqual("C")
   })
 })

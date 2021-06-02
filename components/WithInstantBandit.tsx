@@ -41,7 +41,7 @@ export function WithInstantBandit<
           props.probabilities ||
           (seenVariant && { [seenVariant]: 1.0 }) ||
           (await fetchProbabilities(experimentId, defaultVariant))
-        const selectedVariant = selectVariant(probabilities)
+        const selectedVariant = selectVariant(probabilities, defaultVariant)
         // Send fact of exposure to server via sendBeacon API
         sendExposure(experimentId, selectedVariant)
         // Set the variant and trigger a render
@@ -117,10 +117,31 @@ export const sendExposure = (experimentId: string, variant: string): void => {
   }
 }
 
-// TODO: make proper
-function selectVariant(probabilities: ProbabilityDistribution) {
-  const variant = Object.keys(probabilities)[0]
-  return variant
+export function selectVariant(
+  probabilities: ProbabilityDistribution,
+  defaultVariant: string
+) {
+  try {
+    const rand = Math.random()
+    let cumulativeProb = 0.0
+    for (const variant in probabilities) {
+      const prob = probabilities[variant]
+      cumulativeProb += prob
+      if (rand <= cumulativeProb) {
+        return variant
+      }
+    }
+    if (cumulativeProb !== 1.0) {
+      throw new Error("Bad probabilities: " + JSON.stringify(probabilities))
+    }
+    throw new Error("Unknown error.")
+  } catch (error) {
+    console.error(
+      `No variant selected. Reverting to default: ${defaultVariant}. Details: `,
+      error
+    )
+    return defaultVariant
+  }
 }
 
 function storeInSession(experimentId: string, selectedVariant: string) {
