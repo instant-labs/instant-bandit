@@ -17,7 +17,6 @@ function Component(props: DemoComponentProps) {
 export const experimentId = "demo_experiment_id"
 
 export const DemoComponent = WithInstantBandit<DemoComponentProps>(
-  // TODO: clone component
   Component,
   experimentId,
   "A"

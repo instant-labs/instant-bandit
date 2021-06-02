@@ -30,18 +30,6 @@ describe("DemoComponent", () => {
     expect(variant).toBeInTheDocument()
   })
 
-  // TODO: finish me so that DemoComponent is re-wrapped
-  // it("should render the default variant A when SSR", () => {
-  //   const useIsomorphicLayoutEffect = jest
-  //     .spyOn(IB, "useIsomorphicLayoutEffect")
-  //     .mockImplementation(() => useEffect) // simulate SSR
-  //   const component = render(<DemoComponent probabilities={{ b: 1.0 }} />)
-  //   const variant = component.getByText(/variant a/i)
-  //   expect(variant).toBeInTheDocument()
-  //   expect(useIsomorphicLayoutEffect).toHaveBeenCalled()
-  //   useIsomorphicLayoutEffect.mockRestore()
-  // })
-
   it("should set the session storage on render", async () => {
     const before = sessionStorage.getItem(experimentId)
     expect(before).toEqual(null)
@@ -52,36 +40,63 @@ describe("DemoComponent", () => {
     })
   })
 
-  // it("should maintain the same variant within a session", () => {
-  //   // TODO: before and after check session storage, recreate different DemoComponent with same experiement ID, try again
-  //   render(<DemoComponent />)
-  // })
+  it("should maintain the same variant within a session", async () => {
+    sessionStorage.setItem(experimentId, "c")
+    const component = render(<DemoComponent />)
+    const variant = component.getByText(/variant c/i)
+    expect(variant).toBeInTheDocument()
+  })
 
   it("should set all experiments exposed in session storage", async () => {
-    // TODO: before and after check session storage, recreate different DemoComponent with different experiement ID, try again
     const before = sessionStorage.getItem("__all__")
     expect(before).toEqual(null)
-    render(
-      // TODO: fix this bad bug
-      <>
-        <DemoComponent />
-        <DemoComponent />
-      </>
-    )
+    // TODO: fix so we can render twice
+    // render(
+    //   <>
+    //     <DemoComponent />
+    //     <DemoComponent />
+    //   </>
+    // )
+    render(<DemoComponent />)
     await waitFor(() => {
       const after = JSON.parse(sessionStorage.getItem("__all__"))
       return expect(after).toEqual([experimentId])
     })
   })
 
-  it("should gracefully handle any fetch error", () => {
-    // TODO: mock server response
-    // // TODO: test fetchProbabilities direct?
-    // render(<DemoComponent />)
+  // TODO: why is spy not working here?
+  it.skip("should send an exposure on render", async () => {
+    const sendExposure = jest.spyOn(IB, "sendExposure")
+    render(<DemoComponent probabilities={{ A: 1.0 }} />)
+    expect(sendExposure).toBeCalled()
   })
 
-  // it("should record an exposure on render", () => {
-  //   // TODO: mock server response
-  //   render(<DemoComponent />)
-  // })
+  // TODO: why is spy not working here?
+  // see https://github.com/facebook/jest/issues/936#issuecomment-545080082
+  it.skip("should render the default variant A when SSR", () => {
+    const useIsomorphicLayoutEffect = jest
+      .spyOn(IB, "useIsomorphicLayoutEffect")
+      .mockImplementation(() => useEffect) // simulate SSR
+    const component = render(<DemoComponent probabilities={{ b: 1.0 }} />)
+    const variant = component.getByText(/variant a/i)
+    expect(variant).toBeInTheDocument()
+    expect(useIsomorphicLayoutEffect).toHaveBeenCalled()
+    useIsomorphicLayoutEffect.mockRestore()
+  })
+})
+
+describe("fetchProbabilities", () => {
+  it("should gracefully handle any fetch error", async () => {
+    const error = jest.spyOn(console, "error").mockImplementation(() => {})
+    const probabilities = await IB.fetchProbabilities("DOES_NOT_EXIST", "A")
+    expect(probabilities).toEqual({ A: 1.0 })
+    error.mockReset()
+  })
+
+  it("should return default when timeout", async () => {
+    const error = jest.spyOn(console, "error").mockImplementation(() => {})
+    const probabilities = await IB.fetchProbabilities(experimentId, "A", 0)
+    expect(probabilities).toEqual({ A: 1.0 })
+    error.mockReset()
+  })
 })
