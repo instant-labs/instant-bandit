@@ -1,5 +1,6 @@
 import Head from "next/head"
-import { DemoComponent } from "../components/DemoComponent"
+import { DemoComponent, experimentId } from "../components/DemoComponent"
+import { sendConversion } from "../components/InstantBanditConversion"
 import styles from "../styles/Home.module.css"
 
 export default function Home() {
@@ -26,6 +27,9 @@ export default function Home() {
                 style={{ background: props.variant === "A" ? "red" : "green" }}
                 onClick={() => {
                   alert(`Your click will be recorded`)
+                  sendConversion()
+                  // also try:
+                  // sendConversion({ experimentIds: [experimentId], value: 99.99 })
                 }}
               >
                 👉 Click me 👈

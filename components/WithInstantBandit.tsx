@@ -176,8 +176,7 @@ export function setSessionVariant(
     )
     return
   }
-  const experiments =
-    JSON.parse(sessionStorage.getItem("__experiments__")) || {}
+  const experiments = getSessionExperiments()
   experiments[experimentId] = selectedVariant
   sessionStorage.setItem("__experiments__", JSON.stringify(experiments))
 
@@ -190,4 +189,8 @@ export function setSessionVariant(
 export function getSessionVariant(experimentId: string): string | null {
   const json = sessionStorage.getItem("__experiments__")
   return json ? JSON.parse(json)[experimentId] : null
+}
+
+export function getSessionExperiments() {
+  return JSON.parse(sessionStorage.getItem("__experiments__")) || {}
 }
