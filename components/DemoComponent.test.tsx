@@ -12,11 +12,6 @@ describe("DemoComponent", () => {
     sessionStorage.clear()
   })
 
-
-  it("should pass", () => {
-    expect('wow').toEqual('wow')
-  })
-
   it("should render the default variant A", () => {
     const component = render(<DemoComponent />)
     const variant = component.getByText(/variant a/i)
