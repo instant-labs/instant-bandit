@@ -13,7 +13,7 @@ describe("probabilities", () => {
   test("returns", async () => {
     const res = await fetch("http://localhost:3000/api/probabilities")
     const data = await res.json()
-    expect(data).toEqual({ name: "probabilities" })
+    expect(data).toEqual({ name: "probabilities", probabilities: {a: 1, b: 0} })
   })
 })
 

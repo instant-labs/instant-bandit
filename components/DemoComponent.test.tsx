@@ -5,11 +5,16 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import { useEffect } from "react"
 import { DemoComponent, experimentId } from "./DemoComponent"
-import * as IB from "./WithInstantBandit"
+// import * as IB from "./WithInstantBandit"
 
 describe("DemoComponent", () => {
   beforeEach(() => {
     sessionStorage.clear()
+  })
+
+
+  it("should pass", () => {
+    expect('wow').toEqual('wow')
   })
 
   it("should render the default variant A", () => {
@@ -46,6 +51,7 @@ describe("DemoComponent", () => {
     const before = sessionStorage.getItem(experimentId)
     expect(before).toEqual(null)
     render(<DemoComponent />)
+
     await waitFor(() => {
       const after = sessionStorage.getItem(experimentId)
       return expect(after).toEqual("a")
@@ -68,6 +74,7 @@ describe("DemoComponent", () => {
         <DemoComponent />
       </>
     )
+
     await waitFor(() => {
       const after = JSON.parse(sessionStorage.getItem("__all__"))
       return expect(after).toEqual([experimentId])
@@ -80,8 +87,8 @@ describe("DemoComponent", () => {
     // render(<DemoComponent />)
   })
 
-  // it("should record an exposure on render", () => {
-  //   // TODO: mock server response
-  //   render(<DemoComponent />)
-  // })
+  it("should record an exposure on render", () => {
+    // TODO: mock server response
+    render(<DemoComponent />)
+  })
 })

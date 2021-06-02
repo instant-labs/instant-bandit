@@ -28,18 +28,28 @@ export function WithInstantBandit<
     const [variant, setVariant] = useState(defaultVariant)
     // useLayoutEffect to block on server and avoid flicker
     useIsomorphicLayoutEffect(() => {
+      let mounted = true;
+
       const effect = async () => {
         const probabilities =
           props.probabilities ||
           (await fetchProbabilities(experimentId, defaultVariant))
         const selectedVariant = selectVariant(probabilities)
+
         // TODO: make transaction
         // Set the variant and trigger a render
-        setVariant(selectedVariant)
-        // Keep the rendered variant in sessionStorage for conversions
-        storeInSession(experimentId, selectedVariant)
+        if (mounted) {
+          setVariant(selectedVariant)
+          // Keep the rendered variant in sessionStorage for conversions
+          storeInSession(experimentId, selectedVariant)
+        }
       }
+
       effect()
+
+      return () => {
+        mounted = false;
+      }
     }, []) // empty deps means fire only once after initial render (and before screen paint)
 
     // @ts-ignore: ignore variant TS error... TODO: a better way?

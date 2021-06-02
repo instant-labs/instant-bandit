@@ -6,10 +6,9 @@ import { render } from "@testing-library/react"
 import Home from "."
 
 describe("Home", () => {
-  it("should render the heading", () => {
+  it("should render the heading", async () => {
     const home = render(<Home />)
 
-    const heading = home.getByText(/Welcome/i)
-    expect(heading).toBeInTheDocument()
+    expect(await home.findByText(/Welcome/i)).toBeInTheDocument()
   })
 })
