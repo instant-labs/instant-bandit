@@ -9,8 +9,9 @@ export type WithInstantBanditProps = {
 
 type ProbabilityDistribution = Record<string, number>
 
-export type WithProbabilityDistribution = {
+export type InstantBanditOptions = {
   probabilities?: ProbabilityDistribution // for overriding locally
+  preserveSession?: boolean // for overriding locally
 }
 
 type WithoutVariant<T> = Omit<T, "variant">
@@ -20,8 +21,12 @@ type WithoutVariant<T> = Omit<T, "variant">
  * the variant set according to the probability distribution associated with
  * `experimentId`. In case of no data, or any error, `defaultVariant` is used.
  * The probabilities may be overridden with the `probabilities` prop of the
- * wrapped component.
+ * wrapped component. Likewise, `preserveSession` controls whether to force the
+ * same variant for all renders in a browser session. The default is true.
  *
+ * NOTE: All component instances that share an `experimentId` also share session
+ * storage. Alternating `preserveSession` across instances may result in
+ * unexpected behavior.
  * NOTE: `defaultVariant` is always used during server-side rendering (SSR).
  */
 export function WithInstantBandit<
@@ -30,19 +35,25 @@ export function WithInstantBandit<
   Component: React.ComponentType<T>,
   experimentId: string,
   defaultVariant: T["variant"]
-): React.ComponentType<WithoutVariant<T> & WithProbabilityDistribution> {
+): React.ComponentType<WithoutVariant<T> & InstantBanditOptions> {
   // Return the wrapped component with variant set
   return (props) => {
     const [variant, setVariant] = useState(defaultVariant)
-    const seenVariant = sessionStorage.getItem(experimentId)
 
     // useLayoutEffect to block paint and avoid flicker
     useIsomorphicLayoutEffect(() => {
       let mounted = true
+      const preserveSession =
+        typeof props.preserveSession !== "undefined"
+          ? props.preserveSession
+          : true
+      const seenVariant = sessionStorage.getItem(experimentId)
+
       const effect = async () => {
+        // Get probabilities by priority: props then session then server
         const probabilities =
           props.probabilities ||
-          (seenVariant && { [seenVariant]: 1.0 }) ||
+          (preserveSession && seenVariant && { [seenVariant]: 1.0 }) ||
           (await fetchProbabilities(experimentId, defaultVariant))
         const selectedVariant = selectVariant(probabilities, defaultVariant)
         if (mounted) {
@@ -155,6 +166,14 @@ export function selectVariant(
 
 // IDEA: namespace all keys with a prefix
 function storeInSession(experimentId: string, selectedVariant: string) {
+  if (!selectedVariant) {
+    console.error(
+      "Variant value must be truthy for sessionStorage: ",
+      experimentId,
+      selectedVariant
+    )
+    return
+  }
   sessionStorage.setItem(experimentId, selectedVariant)
   // store frequency map
   const all = JSON.parse(sessionStorage.getItem("__all__")) || {}

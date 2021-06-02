@@ -1,16 +1,16 @@
 import { WithInstantBandit } from "./WithInstantBandit"
 
-// TODO: make types of wrapped component work
 type DemoComponentProps = {
   variant: "A" | "B"
-  otherProps?: unknown
+  // TODO: better typing... want to pass in a function
+  children?: any
 }
 
 function Component(props: DemoComponentProps) {
-  return (
-    <div>
-      I'm showing variant {props.variant} and extra {props.otherProps}
-    </div>
+  return props.children ? (
+    props.children(props)
+  ) : (
+    <div>I'm showing variant {props.variant}</div>
   )
 }
 
