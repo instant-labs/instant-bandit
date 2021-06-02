@@ -40,6 +40,7 @@ export function WithInstantBandit<
   return (props) => {
     const [variant, setVariant] = useState(defaultVariant)
 
+    // TODO: IMPORTANT: this blocking is apparently not working because we see flicker
     // useLayoutEffect to block paint and avoid flicker
     useIsomorphicLayoutEffect(() => {
       let mounted = true
