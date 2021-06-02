@@ -22,8 +22,10 @@ describe("DemoComponent", () => {
     expect(variant).toBeInTheDocument()
   })
 
-  it("should render other props", async () => {
-    const component = render(<DemoComponent otherProps="other stuff" />)
+  it("should render a child function", async () => {
+    const component = render(
+      <DemoComponent>{() => "other stuff"}</DemoComponent>
+    )
     const other = await component.findByText(/other stuff/i)
     expect(other).toBeInTheDocument()
   })
@@ -35,18 +37,18 @@ describe("DemoComponent", () => {
   })
 
   it("should set the session storage on render", async () => {
-    const before = sessionStorage.getItem(experimentId)
+    const before = IB.getSessionVariant(experimentId)
     expect(before).toBe(null)
     render(<DemoComponent />)
     await waitFor(() => {
-      const after = sessionStorage.getItem(experimentId)
+      const after = IB.getSessionVariant(experimentId)
       return expect(after).toEqual("A")
     })
   })
 
   it("should maintain the same variant within a session", async () => {
-    sessionStorage.setItem(experimentId, "c")
-    const component = render(<DemoComponent />)
+    IB.setSessionVariant(experimentId, "C")
+    const component = render(<DemoComponent preserveSession={true} />)
     const variant = await component.findByText(/variant c/i)
     expect(variant).toBeInTheDocument()
   })
@@ -124,5 +126,13 @@ describe("selectVariant", () => {
     jest.spyOn(console, "error").mockImplementation(() => {})
     const variant = IB.selectVariant({ A: 0.0, B: 0.0 }, "C")
     expect(variant).toEqual("C")
+  })
+})
+
+describe("storeInSession and getSessionVariant", () => {
+  it("should store", () => {
+    IB.setSessionVariant(experimentId, "A")
+    const seen = IB.getSessionVariant(experimentId)
+    expect(seen).toEqual("A")
   })
 })

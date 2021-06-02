@@ -47,7 +47,7 @@ export function WithInstantBandit<
         typeof props.preserveSession !== "undefined"
           ? props.preserveSession
           : true
-      const seenVariant = sessionStorage.getItem(experimentId)
+      const seenVariant = getSessionVariant(experimentId)
 
       const effect = async () => {
         // Get probabilities by priority: props then session then server
@@ -62,7 +62,7 @@ export function WithInstantBandit<
             // Send fact of exposure to server via sendBeacon API
             sendExposure(experimentId, selectedVariant)
             // Keep the rendered variant in sessionStorage for conversions
-            storeInSession(experimentId, selectedVariant)
+            setSessionVariant(experimentId, selectedVariant)
             return selectedVariant
           })
         }
@@ -164,8 +164,10 @@ export function selectVariant(
   }
 }
 
-// IDEA: namespace all keys with a prefix
-function storeInSession(experimentId: string, selectedVariant: string) {
+export function setSessionVariant(
+  experimentId: string,
+  selectedVariant: string
+) {
   if (!selectedVariant) {
     console.error(
       "Variant value must be truthy for sessionStorage: ",
@@ -174,9 +176,18 @@ function storeInSession(experimentId: string, selectedVariant: string) {
     )
     return
   }
-  sessionStorage.setItem(experimentId, selectedVariant)
+  const experiments =
+    JSON.parse(sessionStorage.getItem("__experiments__")) || {}
+  experiments[experimentId] = selectedVariant
+  sessionStorage.setItem("__experiments__", JSON.stringify(experiments))
+
   // store frequency map
   const all = JSON.parse(sessionStorage.getItem("__all__")) || {}
   all[experimentId] = all[experimentId] ? all[experimentId] + 1 : 1
   sessionStorage.setItem("__all__", JSON.stringify(all))
+}
+
+export function getSessionVariant(experimentId: string): string | null {
+  const json = sessionStorage.getItem("__experiments__")
+  return json ? JSON.parse(json)[experimentId] : null
 }
