@@ -16,21 +16,21 @@ beforeEach(() => {
 })
 
 describe("DemoComponent", () => {
-  it("should render the default variant A", () => {
+  it("should render the default variant A", async () => {
     const component = render(<DemoComponent />)
-    const variant = component.getByText(/variant a/i)
+    const variant = await component.findByText(/variant a/i)
     expect(variant).toBeInTheDocument()
   })
 
-  it("should render other props", () => {
+  it("should render other props", async () => {
     const component = render(<DemoComponent otherProps="other stuff" />)
-    const other = component.getByText(/other stuff/i)
+    const other = await component.findByText(/other stuff/i)
     expect(other).toBeInTheDocument()
   })
 
-  it("should render the variant B when told to", () => {
-    const component = render(<DemoComponent probabilities={{ b: 1.0 }} />)
-    const variant = component.getByText(/variant b/i)
+  it("should render the variant B when told to", async () => {
+    const component = render(<DemoComponent probabilities={{ B: 1.0 }} />)
+    const variant = await component.findByText(/variant b/i)
     expect(variant).toBeInTheDocument()
   })
 
@@ -40,31 +40,29 @@ describe("DemoComponent", () => {
     render(<DemoComponent />)
     await waitFor(() => {
       const after = sessionStorage.getItem(experimentId)
-      return expect(after).toEqual("a")
+      return expect(after).toEqual("A")
     })
   })
 
   it("should maintain the same variant within a session", async () => {
     sessionStorage.setItem(experimentId, "c")
     const component = render(<DemoComponent />)
-    const variant = component.getByText(/variant c/i)
+    const variant = await component.findByText(/variant c/i)
     expect(variant).toBeInTheDocument()
   })
 
   it("should set all experiments exposed in session storage", async () => {
     const before = sessionStorage.getItem("__all__")
     expect(before).toEqual(null)
-    // TODO: fix so we can render twice
-    // render(
-    //   <>
-    //     <DemoComponent />
-    //     <DemoComponent />
-    //   </>
-    // )
-    render(<DemoComponent />)
+    render(
+      <>
+        <DemoComponent />
+        <DemoComponent />
+      </>
+    )
     await waitFor(() => {
       const after = JSON.parse(sessionStorage.getItem("__all__"))
-      return expect(after).toEqual([experimentId])
+      return expect(after).toEqual({ [experimentId]: 2 })
     })
   })
 
@@ -77,19 +75,19 @@ describe("DemoComponent", () => {
 
   // TODO: why is spy not working here?
   // see https://github.com/facebook/jest/issues/936#issuecomment-545080082
-  it.skip("should render the default variant A when SSR", () => {
+  it.skip("should render the default variant A when SSR", async () => {
     const useIsomorphicLayoutEffect = jest
       .spyOn(IB, "useIsomorphicLayoutEffect")
       .mockImplementation(() => useEffect) // simulate SSR
-    const component = render(<DemoComponent probabilities={{ b: 1.0 }} />)
-    const variant = component.getByText(/variant a/i)
+    const component = render(<DemoComponent probabilities={{ B: 1.0 }} />)
+    const variant = await component.findByText(/variant a/i)
     expect(variant).toBeInTheDocument()
     expect(useIsomorphicLayoutEffect).toHaveBeenCalled()
   })
 })
 
 describe("fetchProbabilities", () => {
-  // TODO: enable when api actually looks up experimentId
+  // NOTE: enable when api is running
   it.skip("should gracefully handle any fetch error", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {})
     const probabilities = await IB.fetchProbabilities("DOES_NOT_EXIST", "A")
@@ -104,25 +102,25 @@ describe("fetchProbabilities", () => {
 })
 
 describe("selectVariant", () => {
-  it("should always select 1.0", async () => {
+  it("should always select 1.0", () => {
     jest.spyOn(global.Math, "random").mockReturnValue(0.123)
     const variant = IB.selectVariant({ A: 1.0, B: 0.0 }, "C")
     expect(variant).toEqual("A")
   })
 
-  it("should select in order 1", async () => {
+  it("should select in order 1", () => {
     jest.spyOn(global.Math, "random").mockReturnValue(0.123)
     const variant = IB.selectVariant({ A: 0.5, B: 0.5 }, "C")
     expect(variant).toEqual("A")
   })
 
-  it("should select in order 2", async () => {
+  it("should select in order 2", () => {
     jest.spyOn(global.Math, "random").mockReturnValue(0.567)
     const variant = IB.selectVariant({ A: 0.5, B: 0.5 }, "C")
     expect(variant).toEqual("B")
   })
 
-  it("should gracefully handle bad probabilities", async () => {
+  it("should gracefully handle bad probabilities", () => {
     jest.spyOn(console, "error").mockImplementation(() => {})
     const variant = IB.selectVariant({ A: 0.0, B: 0.0 }, "C")
     expect(variant).toEqual("C")

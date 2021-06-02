@@ -6,8 +6,8 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
   res.status(200).json({
     name: "probabilities",
     probabilities: {
-      a: 1.0,
-      b: 0.0,
+      A: 1.0,
+      B: 0.0,
     },
     experimentId,
   })

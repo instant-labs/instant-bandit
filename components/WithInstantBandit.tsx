@@ -21,6 +21,8 @@ type WithoutVariant<T> = Omit<T, "variant">
  * `experimentId`. In case of no data, or any error, `defaultVariant` is used.
  * The probabilities may be overridden with the `probabilities` prop of the
  * wrapped component.
+ *
+ * NOTE: `defaultVariant` is always used during server-side rendering (SSR).
  */
 export function WithInstantBandit<
   T extends WithInstantBanditProps = WithInstantBanditProps
@@ -34,25 +36,32 @@ export function WithInstantBandit<
     const [variant, setVariant] = useState(defaultVariant)
     const seenVariant = sessionStorage.getItem(experimentId)
 
-    // useLayoutEffect to block on server and avoid flicker
+    // useLayoutEffect to block paint and avoid flicker
     useIsomorphicLayoutEffect(() => {
+      let mounted = true
       const effect = async () => {
         const probabilities =
           props.probabilities ||
           (seenVariant && { [seenVariant]: 1.0 }) ||
           (await fetchProbabilities(experimentId, defaultVariant))
         const selectedVariant = selectVariant(probabilities, defaultVariant)
-        // Send fact of exposure to server via sendBeacon API
-        sendExposure(experimentId, selectedVariant)
-        // Set the variant and trigger a render
-        setVariant((prevVariant) => {
-          if (prevVariant === selectedVariant) return
-          // Keep the rendered variant in sessionStorage for conversions
-          storeInSession(experimentId, selectedVariant)
-          return selectedVariant
-        })
+        if (mounted) {
+          // Set the variant and trigger a render
+          setVariant(() => {
+            // Send fact of exposure to server via sendBeacon API
+            sendExposure(experimentId, selectedVariant)
+            // Keep the rendered variant in sessionStorage for conversions
+            storeInSession(experimentId, selectedVariant)
+            return selectedVariant
+          })
+        }
       }
       effect()
+      // This can execute before effect returns, meaning mounted can be
+      // false before we attempt to use setVariant.
+      return () => {
+        mounted = false
+      }
     }, []) // empty deps means fire only once after initial render (and before screen paint)
 
     // @ts-ignore: ignore variant TS error... TODO: a better way?
@@ -68,7 +77,7 @@ export const useIsomorphicLayoutEffect =
 export async function fetchProbabilities(
   experimentId: string,
   defaultVariant: string,
-  timeout = 50
+  timeout = 200 // NOTE: 100ms is needed to pass unit tests
 ): Promise<ProbabilityDistribution> {
   try {
     // See https://stackoverflow.com/a/50101022/200312
@@ -144,11 +153,11 @@ export function selectVariant(
   }
 }
 
+// IDEA: namespace all keys with a prefix
 function storeInSession(experimentId: string, selectedVariant: string) {
   sessionStorage.setItem(experimentId, selectedVariant)
-  const all = JSON.parse(sessionStorage.getItem("__all__"))
-  sessionStorage.setItem(
-    "__all__",
-    JSON.stringify((all || []).concat(experimentId))
-  )
+  // store frequency map
+  const all = JSON.parse(sessionStorage.getItem("__all__")) || {}
+  all[experimentId] = all[experimentId] ? all[experimentId] + 1 : 1
+  sessionStorage.setItem("__all__", JSON.stringify(all))
 }

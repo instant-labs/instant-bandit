@@ -3,7 +3,7 @@ import { WithInstantBandit } from "./WithInstantBandit"
 // TODO: make types of wrapped component work
 type DemoComponentProps = {
   variant: "A" | "B"
-  otherProps?: any
+  otherProps?: unknown
 }
 
 function Component(props: DemoComponentProps) {
