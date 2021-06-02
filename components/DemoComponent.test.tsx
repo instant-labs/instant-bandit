@@ -82,8 +82,8 @@ describe("DemoComponent", () => {
     // render(<DemoComponent />)
   })
 
-  it("should record an exposure on render", () => {
-    // TODO: mock server response
-    render(<DemoComponent />)
-  })
+  // it("should record an exposure on render", () => {
+  //   // TODO: mock server response
+  //   render(<DemoComponent />)
+  // })
 })
