@@ -1,9 +1,11 @@
+import { GetServerSideProps } from 'next'
 import Head from "next/head"
 import { DemoComponent, experimentId } from "../components/DemoComponent"
 import { sendConversion } from "../components/InstantBanditConversion"
 import styles from "../styles/Home.module.css"
+import { ProbabilityMap } from './api/probabilities'
 
-export default function Home() {
+export default function Home(serverSideProps: ProbabilityMap) {
   return (
     <div className={styles.container}>
       <Head>
@@ -19,9 +21,10 @@ export default function Home() {
       <main className={styles.main}>
         <h1 className={styles.description}>Welcome to Instant Bandit</h1>
         <p>
-          <DemoComponent preserveSession={false}>
-            {(props) => (
-              <button
+          <DemoComponent preserveSession={false} probabilities={serverSideProps}>
+            {(props) => {
+              console.table(props);
+              return <button
                 className={styles.title}
                 // AB test logic here
                 style={{ background: props.variant === "A" ? "red" : "green" }}
@@ -34,7 +37,7 @@ export default function Home() {
               >
                 👉 Click me 👈
               </button>
-            )}
+            }}
           </DemoComponent>
         </p>
       </main>
@@ -47,3 +50,12 @@ export default function Home() {
     </div>
   )
 }
+
+export const getServerSideProps: GetServerSideProps<ProbabilityMap> = async () => {
+  return {
+    props: {
+      A: 0.5,
+      B: 0.5,
+    },
+  };
+};
