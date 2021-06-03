@@ -37,9 +37,12 @@ export function WithInstantBandit<
   defaultVariant: T["variant"]
 ): React.ComponentType<WithoutVariant<T> & InstantBanditOptions> {
   // Return the wrapped component with variant set
+  // console.time("wrap")
+
   return (props) => {
     const [variant, setVariant] = useState(defaultVariant)
-
+    // console.timeEnd("wrap") // 30ms in local testing
+    // console.time("layout")
     // TODO: IMPORTANT: this blocking is apparently not working because we see flicker
     // useLayoutEffect to block paint and avoid flicker
     useIsomorphicLayoutEffect(() => {
@@ -52,11 +55,15 @@ export function WithInstantBandit<
 
       const effect = async () => {
         // Get probabilities by priority: props then session then server
+        // console.timeEnd("layout") // 5ms in local testing
+        // console.time("fetch")
         const probabilities =
           props.probabilities ||
           (preserveSession && seenVariant && { [seenVariant]: 1.0 }) ||
           (await fetchProbabilities(experimentId, defaultVariant))
         const selectedVariant = selectVariant(probabilities, defaultVariant)
+
+        // console.timeEnd("fetch") // 20ms in local testing
         if (mounted) {
           // Set the variant and trigger a render
           setVariant(() => {
