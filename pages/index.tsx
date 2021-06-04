@@ -23,7 +23,6 @@ export default function Home(serverSideProps: ProbabilityMap) {
         <p>
           <DemoComponent preserveSession={false} probabilities={serverSideProps}>
             {(props) => {
-              console.table(props);
               return <button
                 className={styles.title}
                 // AB test logic here
