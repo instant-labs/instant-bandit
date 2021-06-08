@@ -108,6 +108,7 @@ export async function fetchProbabilities(
       { signal: controller.signal }
     )
     const data = await res.json()
+
     if (!data.probabilities) throw new Error("Bad response data: " + res.text())
     return data.probabilities
   } catch (error) {
