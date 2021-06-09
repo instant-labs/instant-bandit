@@ -14,11 +14,11 @@ function Component(props: DemoComponentProps) {
   )
 }
 
-export const experimentId = "demo_experiment_id"
+export const demoExperimentId = "demo_experiment_id"
 
 export const DemoComponent = WithInstantBandit<DemoComponentProps>(
   Component,
-  experimentId,
-  "A",
-  ["A", "B"]
+  demoExperimentId,
+  ["A", "B"],
+  "A"
 )

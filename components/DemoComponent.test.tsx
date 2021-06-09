@@ -5,7 +5,7 @@
 import { render, waitFor } from "@testing-library/react"
 import { getSessionVariant, setSessionVariant } from "../lib/lib"
 import * as lib from "../lib/lib"
-import { DemoComponent, experimentId } from "./DemoComponent"
+import { DemoComponent, demoExperimentId } from "./DemoComponent"
 
 beforeEach(() => {
   sessionStorage.clear()
@@ -33,24 +33,24 @@ describe("DemoComponent", () => {
   })
 
   it("should set the session storage on render", async () => {
-    const before = getSessionVariant(experimentId)
+    const before = getSessionVariant(demoExperimentId)
     expect(before).toBeNull()
     render(<DemoComponent />)
     await waitFor(() => {
-      const after = getSessionVariant(experimentId)
+      const after = getSessionVariant(demoExperimentId)
       return expect(after).not.toBeNull()
     })
   })
 
   it("should maintain the same variant within a session", async () => {
-    setSessionVariant(experimentId, "C")
+    setSessionVariant(demoExperimentId, "C")
     const component = render(<DemoComponent preserveSession={true} />)
     const variant = await component.findByText(/variant c/i)
     expect(variant).toBeInTheDocument()
   })
 
   it("should vary when preserveSession is false", async () => {
-    setSessionVariant(experimentId, "C")
+    setSessionVariant(demoExperimentId, "C")
     const component = render(<DemoComponent preserveSession={false} />)
     try {
       const variantA = await component.findByText(/variant a/i)
@@ -72,7 +72,7 @@ describe("DemoComponent", () => {
     )
     await waitFor(() => {
       const after = JSON.parse(sessionStorage.getItem("__all__"))
-      return expect(after).toEqual({ [experimentId]: 2 })
+      return expect(after).toEqual({ [demoExperimentId]: 2 })
     })
   })
 

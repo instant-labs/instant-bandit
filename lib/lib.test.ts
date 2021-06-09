@@ -1,9 +1,10 @@
-import { experimentId } from "../components/DemoComponent"
+import { demoExperimentId } from "../components/DemoComponent"
 import {
   fetchProbabilities,
   selectVariant,
   setSessionVariant,
   getSessionVariant,
+  incrementCounts,
 } from "./lib"
 
 beforeEach(() => {
@@ -20,7 +21,7 @@ describe("fetchProbabilities", () => {
 
   it("should return default when timeout", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {})
-    const probabilities = await fetchProbabilities(experimentId, "A", 0)
+    const probabilities = await fetchProbabilities(demoExperimentId, "A", 0)
     expect(probabilities).toEqual({ A: 1.0 })
   })
 })
@@ -53,8 +54,25 @@ describe("selectVariant", () => {
 
 describe("storeInSession and getSessionVariant", () => {
   it("should store", () => {
-    setSessionVariant(experimentId, "A")
-    const seen = getSessionVariant(experimentId)
+    setSessionVariant(demoExperimentId, "A")
+    const seen = getSessionVariant(demoExperimentId)
     expect(seen).toEqual("A")
+  })
+})
+
+describe("incrementCounts", () => {
+  it("should set all variants in counts", () => {
+    const counts = incrementCounts(["A", "B"], "C", {})
+    expect(counts).toEqual({ A: 0, B: 0 })
+  })
+
+  it("should increment the selected variant from zero", () => {
+    const counts = incrementCounts(["A"], "A", {})
+    expect(counts).toEqual({ A: 1 })
+  })
+
+  it("should increment the selected variant", () => {
+    const counts = incrementCounts(["A"], "A", { A: 1 })
+    expect(counts).toEqual({ A: 2 })
   })
 })

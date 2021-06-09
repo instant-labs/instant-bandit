@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next"
-import { computeProbabilities } from "../../lib/lib"
+import { computeProbabilities } from "../../lib/db"
 import { ProbabilityDistribution } from "../../lib/types"
 
 type ProbabilityResponse = {

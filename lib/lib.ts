@@ -1,15 +1,5 @@
-import Keyv from "keyv"
 import fetch from "node-fetch"
 import { ConversionOptions, ProbabilityDistribution, Variant } from "./types"
-
-export const db = new Keyv("sqlite://database.sqlite")
-
-export async function computeProbabilities(
-  experimentId: string
-): Promise<ProbabilityDistribution> {
-  const vals = await db.get(experimentId)
-  return { A: 0.5, B: 0.5 }
-}
 
 export async function fetchProbabilities(
   experimentId: string,
@@ -146,4 +136,20 @@ export async function sendConversion(options?: ConversionOptions) {
   )
   if (!success) console.error("sendConversion failed")
   return success
+}
+
+/**
+ * Get new counts from old counts.
+ */
+export function incrementCounts(
+  variants: Variant[],
+  variant: Variant,
+  oldCounts: { [v: string]: number }
+) {
+  return Object.fromEntries(
+    variants.map((v) => [
+      v,
+      v === variant ? (oldCounts[v] || 0) + 1 : oldCounts[v] || 0,
+    ])
+  )
 }

@@ -1,8 +1,9 @@
 import { GetServerSideProps } from "next"
 import Head from "next/head"
 
-import { DemoComponent, experimentId } from "../components/DemoComponent"
-import { computeProbabilities, sendConversion } from "../lib/lib"
+import { DemoComponent, demoExperimentId } from "../components/DemoComponent"
+import { computeProbabilities } from "../lib/db"
+import { sendConversion } from "../lib/lib"
 import { ProbabilityDistribution } from "../lib/types"
 import styles from "../styles/Home.module.css"
 
@@ -62,9 +63,9 @@ export default function Home(serverSideProps: ProbabilityDistribution) {
   )
 }
 
-export const getServerSideProps: GetServerSideProps<ProbabilityDistribution> =
+export const getStaticProps: GetServerSideProps<ProbabilityDistribution> =
   async () => {
-    const probabilities = await computeProbabilities(experimentId)
+    const probabilities = await computeProbabilities(demoExperimentId)
     return {
       props: probabilities,
     }
