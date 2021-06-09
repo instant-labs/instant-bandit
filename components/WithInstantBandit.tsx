@@ -35,6 +35,7 @@ export function WithInstantBandit<
 >(
   Component: React.ComponentType<T>,
   experimentId: string,
+  variants: T["variant"][],
   defaultVariant: T["variant"]
 ): React.ComponentType<WithoutVariant<T> & InstantBanditOptions> {
   // Return the wrapped component with variant set
@@ -69,7 +70,7 @@ export function WithInstantBandit<
           // Set the variant and trigger a render
           setVariant(() => {
             // Send fact of exposure to server via sendBeacon API
-            sendExposure(experimentId, selectedVariant)
+            sendExposure(experimentId, selectedVariant, variants)
             // Keep the rendered variant in sessionStorage for conversions
             setSessionVariant(experimentId, selectedVariant)
             return selectedVariant

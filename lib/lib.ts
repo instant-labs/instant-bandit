@@ -1,9 +1,14 @@
 import fetch from "node-fetch"
-import { ConversionOptions, ProbabilityDistribution } from "./types"
+import { ConversionOptions, ProbabilityDistribution, Variant } from "./types"
+
+export async function computeProbabilities(
+  experimentId: string,
+  defaultVariant: Variant
+): Promise<ProbabilityDistribution> {}
 
 export async function fetchProbabilities(
   experimentId: string,
-  defaultVariant: string,
+  defaultVariant: Variant,
   timeout = 200 // NOTE: 100ms is needed to pass unit tests
 ): Promise<ProbabilityDistribution> {
   try {
@@ -29,12 +34,16 @@ export async function fetchProbabilities(
 }
 
 // TODO: somehow make sendBeacon testable in node
-export const sendExposure = (experimentId: string, variant: string): void => {
+export const sendExposure = (
+  experimentId: string,
+  variant: Variant, // selected
+  variants: Variant[] // all
+): void => {
   try {
     if (navigator && navigator.sendBeacon) {
       const success = navigator.sendBeacon(
         "http://localhost:3000/api/exposures",
-        JSON.stringify({ experimentId, variant })
+        JSON.stringify({ experimentId, variant, variants })
       )
       if (!success) throw new Error("Bad request: " + experimentId)
     } else {
@@ -43,7 +52,7 @@ export const sendExposure = (experimentId: string, variant: string): void => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ experimentId, variant }),
+        body: JSON.stringify({ experimentId, variant, variants }),
       })
     }
   } catch (error) {
@@ -56,7 +65,7 @@ export const sendExposure = (experimentId: string, variant: string): void => {
 
 export function selectVariant(
   probabilities: ProbabilityDistribution,
-  defaultVariant: string
+  defaultVariant: Variant
 ) {
   try {
     const rand = Math.random()
@@ -83,7 +92,7 @@ export function selectVariant(
 
 export function setSessionVariant(
   experimentId: string,
-  selectedVariant: string
+  selectedVariant: Variant
 ) {
   if (!selectedVariant) {
     console.error(
