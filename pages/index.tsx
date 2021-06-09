@@ -3,11 +3,10 @@ import Head from "next/head"
 
 import { DemoComponent } from "../components/DemoComponent"
 import { sendConversion } from "../lib/lib"
+import { ProbabilityDistribution } from "../lib/types"
 import styles from "../styles/Home.module.css"
 
-import { ProbabilityMap } from "./api/probabilities"
-
-export default function Home(serverSideProps: ProbabilityMap) {
+export default function Home(serverSideProps: ProbabilityDistribution) {
   return (
     <div className={styles.container}>
       <Head>
@@ -60,7 +59,7 @@ export default function Home(serverSideProps: ProbabilityMap) {
   )
 }
 
-export const getServerSideProps: GetServerSideProps<ProbabilityMap> =
+export const getServerSideProps: GetServerSideProps<ProbabilityDistribution> =
   async () => {
     return {
       props: {

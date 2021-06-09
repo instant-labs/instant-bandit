@@ -1,15 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next"
-
-// Defining Variant and Probability here in case they're intended to become
-// more strongly typed
-type Variant = string
-type Probability = number
-export type ProbabilityMap = Record<Variant, Probability>
+import { ProbabilityDistribution } from "../../lib/types"
 
 interface ProbabilityResponse {
   experimentId: string
   name: string
-  probabilities: ProbabilityMap
+  probabilities: ProbabilityDistribution
 }
 
 export default (
