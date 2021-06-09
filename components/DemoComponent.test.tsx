@@ -4,8 +4,9 @@
 
 import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import { useEffect } from "react"
+import { getSessionVariant, setSessionVariant } from "../lib/lib"
+import * as lib from "../lib/lib"
 import { DemoComponent, experimentId } from "./DemoComponent"
-import * as IB from "./WithInstantBandit"
 
 afterAll(() => {
   jest.restoreAllMocks()
@@ -37,20 +38,32 @@ describe("DemoComponent", () => {
   })
 
   it("should set the session storage on render", async () => {
-    const before = IB.getSessionVariant(experimentId)
+    const before = getSessionVariant(experimentId)
     expect(before).toBe(null)
     render(<DemoComponent />)
     await waitFor(() => {
-      const after = IB.getSessionVariant(experimentId)
+      const after = getSessionVariant(experimentId)
       return expect(after).toEqual("A")
     })
   })
 
   it("should maintain the same variant within a session", async () => {
-    IB.setSessionVariant(experimentId, "C")
+    setSessionVariant(experimentId, "C")
     const component = render(<DemoComponent preserveSession={true} />)
     const variant = await component.findByText(/variant c/i)
     expect(variant).toBeInTheDocument()
+  })
+
+  it("should vary when preserveSession is false", async () => {
+    setSessionVariant(experimentId, "C")
+    const component = render(<DemoComponent preserveSession={false} />)
+    try {
+      const variantA = await component.findByText(/variant a/i)
+      expect(variantA).toBeInTheDocument()
+    } catch (_) {
+      const variantB = await component.findByText(/variant b/i)
+      expect(variantB).toBeInTheDocument()
+    }
   })
 
   it("should set all experiments exposed in session storage", async () => {
@@ -68,71 +81,9 @@ describe("DemoComponent", () => {
     })
   })
 
-  // TODO: why is spy not working here?
-  it.skip("should send an exposure on render", async () => {
-    const sendExposure = jest.spyOn(IB, "sendExposure")
+  it("should send an exposure on render", async () => {
+    const sendExposure = jest.spyOn(lib, "sendExposure")
     render(<DemoComponent probabilities={{ A: 1.0 }} />)
     expect(sendExposure).toBeCalled()
-  })
-
-  // TODO: why is spy not working here?
-  // see https://github.com/facebook/jest/issues/936#issuecomment-545080082
-  it.skip("should render the default variant A when SSR", async () => {
-    const useIsomorphicLayoutEffect = jest
-      .spyOn(IB, "useIsomorphicLayoutEffect")
-      .mockImplementation(() => useEffect) // simulate SSR
-    const component = render(<DemoComponent probabilities={{ B: 1.0 }} />)
-    const variant = await component.findByText(/variant a/i)
-    expect(variant).toBeInTheDocument()
-    expect(useIsomorphicLayoutEffect).toHaveBeenCalled()
-  })
-})
-
-describe("fetchProbabilities", () => {
-  // NOTE: enable when api is running
-  it.skip("should gracefully handle any fetch error", async () => {
-    jest.spyOn(console, "error").mockImplementation(() => {})
-    const probabilities = await IB.fetchProbabilities("DOES_NOT_EXIST", "A")
-    expect(probabilities).toEqual({ A: 1.0 })
-  })
-
-  it("should return default when timeout", async () => {
-    jest.spyOn(console, "error").mockImplementation(() => {})
-    const probabilities = await IB.fetchProbabilities(experimentId, "A", 0)
-    expect(probabilities).toEqual({ A: 1.0 })
-  })
-})
-
-describe("selectVariant", () => {
-  it("should always select 1.0", () => {
-    jest.spyOn(global.Math, "random").mockReturnValue(0.123)
-    const variant = IB.selectVariant({ A: 1.0, B: 0.0 }, "C")
-    expect(variant).toEqual("A")
-  })
-
-  it("should select in order 1", () => {
-    jest.spyOn(global.Math, "random").mockReturnValue(0.123)
-    const variant = IB.selectVariant({ A: 0.5, B: 0.5 }, "C")
-    expect(variant).toEqual("A")
-  })
-
-  it("should select in order 2", () => {
-    jest.spyOn(global.Math, "random").mockReturnValue(0.567)
-    const variant = IB.selectVariant({ A: 0.5, B: 0.5 }, "C")
-    expect(variant).toEqual("B")
-  })
-
-  it("should gracefully handle bad probabilities", () => {
-    jest.spyOn(console, "error").mockImplementation(() => {})
-    const variant = IB.selectVariant({ A: 0.0, B: 0.0 }, "C")
-    expect(variant).toEqual("C")
-  })
-})
-
-describe("storeInSession and getSessionVariant", () => {
-  it("should store", () => {
-    IB.setSessionVariant(experimentId, "A")
-    const seen = IB.getSessionVariant(experimentId)
-    expect(seen).toEqual("A")
   })
 })

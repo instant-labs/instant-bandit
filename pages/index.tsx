@@ -1,8 +1,10 @@
 import { GetServerSideProps } from "next"
 import Head from "next/head"
-import { DemoComponent, experimentId } from "../components/DemoComponent"
-import { sendConversion } from "../components/InstantBanditConversion"
+
+import { DemoComponent } from "../components/DemoComponent"
+import { sendConversion } from "../lib/lib"
 import styles from "../styles/Home.module.css"
+
 import { ProbabilityMap } from "./api/probabilities"
 
 export default function Home(serverSideProps: ProbabilityMap) {
