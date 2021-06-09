@@ -1,24 +1,22 @@
 import { NextApiRequest, NextApiResponse } from "next"
+import { computeProbabilities } from "../../lib/lib"
 import { ProbabilityDistribution } from "../../lib/types"
 
-interface ProbabilityResponse {
+type ProbabilityResponse = {
   experimentId: string
   name: string
   probabilities: ProbabilityDistribution
 }
 
-export default (
+export default async (
   req: NextApiRequest,
   res: NextApiResponse<ProbabilityResponse>
 ) => {
-  // TODO: finish API
   const experimentId = req.query.experimentId as string
+  const probabilities = await computeProbabilities(experimentId)
   res.status(200).json({
     experimentId,
     name: "probabilities",
-    probabilities: {
-      A: 0.5,
-      B: 0.5,
-    },
+    probabilities,
   })
 }

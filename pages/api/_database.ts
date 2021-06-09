@@ -1,9 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next"
-import Keyv from "keyv"
+import { db } from "../../lib/lib"
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const keyv = new Keyv("sqlite://database.sqlite")
-  await keyv.set("_testKey", true)
-  const _testKey = await keyv.get("_testKey")
+  await db.set("_testKey", true)
+  const _testKey = await db.get("_testKey")
   res.status(200).json({ _testKey })
 }

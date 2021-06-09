@@ -1,8 +1,8 @@
 import { GetServerSideProps } from "next"
 import Head from "next/head"
 
-import { DemoComponent } from "../components/DemoComponent"
-import { sendConversion } from "../lib/lib"
+import { DemoComponent, experimentId } from "../components/DemoComponent"
+import { computeProbabilities, sendConversion } from "../lib/lib"
 import { ProbabilityDistribution } from "../lib/types"
 import styles from "../styles/Home.module.css"
 
@@ -54,6 +54,9 @@ export default function Home(serverSideProps: ProbabilityDistribution) {
         <a href="/api/hello" target="_blank">
           Is the server running?
         </a>
+        <a href="/api/_database" target="_blank">
+          Is the database running?
+        </a>
       </footer>
     </div>
   )
@@ -61,10 +64,8 @@ export default function Home(serverSideProps: ProbabilityDistribution) {
 
 export const getServerSideProps: GetServerSideProps<ProbabilityDistribution> =
   async () => {
+    const probabilities = await computeProbabilities(experimentId)
     return {
-      props: {
-        A: 0.5,
-        B: 0.5,
-      },
+      props: probabilities,
     }
   }

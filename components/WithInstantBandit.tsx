@@ -24,11 +24,15 @@ type WithoutVariant<T> = Omit<T, "variant">
  * The probabilities may be overridden with the `probabilities` prop of the
  * wrapped component. Likewise, `preserveSession` controls whether to force the
  * same variant for all renders in a browser session. The default is true.
+ * `variants` is taken to define the set of all possible variants.
+ *
+ * NOTE: For server-side rendering (SSR), we recommend setting the
+ * `probabilities` of the wrapped component with the result of
+ * `computeProbabilities`. Otherwise, `defaultVariant` will always rendered.
  *
  * NOTE: All component instances that share an `experimentId` also share session
  * storage. Alternating `preserveSession` across instances may result in
  * unexpected behavior.
- * NOTE: `defaultVariant` is always used during server-side rendering (SSR).
  */
 export function WithInstantBandit<
   T extends WithInstantBanditProps = WithInstantBanditProps

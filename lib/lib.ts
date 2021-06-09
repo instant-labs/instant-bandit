@@ -1,10 +1,15 @@
+import Keyv from "keyv"
 import fetch from "node-fetch"
 import { ConversionOptions, ProbabilityDistribution, Variant } from "./types"
 
+export const db = new Keyv("sqlite://database.sqlite")
+
 export async function computeProbabilities(
-  experimentId: string,
-  defaultVariant: Variant
-): Promise<ProbabilityDistribution> {}
+  experimentId: string
+): Promise<ProbabilityDistribution> {
+  const vals = await db.get(experimentId)
+  return { A: 0.5, B: 0.5 }
+}
 
 export async function fetchProbabilities(
   experimentId: string,
