@@ -1,9 +1,9 @@
-import { GetServerSideProps } from 'next'
+import { GetServerSideProps } from "next"
 import Head from "next/head"
 import { DemoComponent, experimentId } from "../components/DemoComponent"
 import { sendConversion } from "../components/InstantBanditConversion"
 import styles from "../styles/Home.module.css"
-import { ProbabilityMap } from './api/probabilities'
+import { ProbabilityMap } from "./api/probabilities"
 
 export default function Home(serverSideProps: ProbabilityMap) {
   return (
@@ -21,21 +21,29 @@ export default function Home(serverSideProps: ProbabilityMap) {
       <main className={styles.main}>
         <h1 className={styles.description}>Welcome to Instant Bandit</h1>
         <p>
-          <DemoComponent preserveSession={false} probabilities={serverSideProps}>
+          <DemoComponent
+            preserveSession={false}
+            // NOTE: comment out this line if you want to switch to fetch probabilities client-side
+            probabilities={serverSideProps}
+          >
             {(props) => {
-              return <button
-                className={styles.title}
-                // AB test logic here
-                style={{ background: props.variant === "A" ? "red" : "green" }}
-                onClick={() => {
-                  alert(`Your click will be recorded`)
-                  sendConversion()
-                  // also try:
-                  // sendConversion({ experimentIds: [experimentId], value: 99.99 })
-                }}
-              >
-                👉 Click me 👈
-              </button>
+              return (
+                <button
+                  className={styles.title}
+                  // AB test logic here
+                  style={{
+                    background: props.variant === "A" ? "red" : "green",
+                  }}
+                  onClick={() => {
+                    alert(`Your click will be recorded`)
+                    sendConversion()
+                    // also try:
+                    // sendConversion({ experimentIds: [experimentId], value: 99.99 })
+                  }}
+                >
+                  👉 Click me 👈
+                </button>
+              )
             }}
           </DemoComponent>
         </p>
@@ -50,11 +58,12 @@ export default function Home(serverSideProps: ProbabilityMap) {
   )
 }
 
-export const getServerSideProps: GetServerSideProps<ProbabilityMap> = async () => {
-  return {
-    props: {
-      A: 0.5,
-      B: 0.5,
-    },
-  };
-};
+export const getServerSideProps: GetServerSideProps<ProbabilityMap> =
+  async () => {
+    return {
+      props: {
+        A: 0.5,
+        B: 0.5,
+      },
+    }
+  }
