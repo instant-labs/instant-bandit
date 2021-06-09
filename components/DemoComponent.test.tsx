@@ -2,15 +2,10 @@
  * @jest-environment jsdom
  */
 
-import { cleanup, render, screen, waitFor } from "@testing-library/react"
-import { useEffect } from "react"
+import { render, waitFor } from "@testing-library/react"
 import { getSessionVariant, setSessionVariant } from "../lib/lib"
 import * as lib from "../lib/lib"
 import { DemoComponent, experimentId } from "./DemoComponent"
-
-afterAll(() => {
-  jest.restoreAllMocks()
-})
 
 beforeEach(() => {
   sessionStorage.clear()
@@ -39,11 +34,11 @@ describe("DemoComponent", () => {
 
   it("should set the session storage on render", async () => {
     const before = getSessionVariant(experimentId)
-    expect(before).toBe(null)
+    expect(before).toBeNull()
     render(<DemoComponent />)
     await waitFor(() => {
       const after = getSessionVariant(experimentId)
-      return expect(after).toEqual("A")
+      return expect(after).not.toBeNull()
     })
   })
 
