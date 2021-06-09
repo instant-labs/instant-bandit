@@ -1,5 +1,10 @@
 import fetch from "node-fetch"
-import { ConversionOptions, ProbabilityDistribution, Variant } from "./types"
+import {
+  ConversionOptions,
+  Counts,
+  ProbabilityDistribution,
+  Variant,
+} from "./types"
 
 export async function fetchProbabilities(
   experimentId: string,
@@ -144,7 +149,7 @@ export async function sendConversion(options?: ConversionOptions) {
 export function incrementCounts(
   variants: Variant[],
   variant: Variant,
-  oldCounts: { [v: string]: number }
+  oldCounts: Counts
 ) {
   return Object.fromEntries(
     variants.map((v) => [
