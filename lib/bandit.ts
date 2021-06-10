@@ -7,7 +7,7 @@ import { Counts, ProbabilityDistribution } from "./types"
 export function bandit(
   exposures: Counts,
   conversions: Counts,
-  epsilon = 0.2
+  epsilon = 0.2 // taken from common values in literature
 ): ProbabilityDistribution {
   const rates = conversionRates(exposures, conversions)
   const winningVariant = maxKey(rates)
@@ -16,6 +16,7 @@ export function bandit(
   )
   return Math.random() > epsilon ? winningVariant : sample(otherVariants)
 }
+
 export function sample(items: Array<any>) {
   return items[Math.floor(Math.random() * items.length)]
 }
