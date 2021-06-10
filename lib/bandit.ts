@@ -3,6 +3,7 @@ import { Counts, ProbabilityDistribution, Variant } from "./types"
 /**
  * This is an epsilon-greedy bandit algorithm.
  * @see https://en.wikipedia.org/wiki/Multi-armed_bandit#Semi-uniform_strategies
+ * IDEA: equal probs until one clear winner
  */
 export function bandit(
   exposures: Counts,

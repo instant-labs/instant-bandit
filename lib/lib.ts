@@ -53,10 +53,14 @@ export const sendExposure = (
 ): void => {
   try {
     if (navigator && navigator.sendBeacon) {
-      const success = navigator.sendBeacon(
-        `${baseUrl}/exposures`,
-        JSON.stringify({ experimentId, variant, variants })
+      // TODO: extract to sendBeacon function
+      const blob = new Blob(
+        [JSON.stringify({ experimentId, variant, variants })],
+        {
+          type: "application/json; charset=UTF-8",
+        }
       )
+      const success = navigator.sendBeacon(`${baseUrl}/exposures`, blob)
       if (!success) throw new Error("Bad request: " + experimentId)
     } else {
       postData(`${baseUrl}/exposures`, { experimentId, variant, variants })
