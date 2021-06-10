@@ -52,7 +52,7 @@ export default function Home(serverSideProps: Props) {
       </main>
 
       <footer className={styles.footer}>
-        <a href="/api/hello" target="_blank">
+        <a href="/api/_hello" target="_blank">
           Is the server running?
         </a>
         <a href="/api/_database" target="_blank">
