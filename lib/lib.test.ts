@@ -27,6 +27,11 @@ describe("fetchProbabilities", () => {
 })
 
 describe("selectVariant", () => {
+  it("should return default for empty", () => {
+    const variant = selectVariant({}, "C")
+    expect(variant).toEqual("C")
+  })
+
   it("should always select 1.0", () => {
     jest.spyOn(global.Math, "random").mockReturnValue(0.123)
     const variant = selectVariant({ A: 1.0, B: 0.0 }, "C")

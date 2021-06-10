@@ -12,11 +12,11 @@ import {
 export async function fetchProbabilities(
   experimentId: string,
   defaultVariant: Variant,
-  timeout = 200 // NOTE: 100ms is needed to pass unit tests
+  timeout = 250 // NOTE: 100ms is needed to pass unit tests
 ): Promise<ProbabilityDistribution | null> {
+  const controller = new AbortController()
   try {
     // See https://stackoverflow.com/a/50101022/200312
-    const controller = new AbortController()
     setTimeout(() => controller.abort(), timeout)
     const res = await fetch(
       // TODO: change localhost
@@ -26,10 +26,17 @@ export async function fetchProbabilities(
     const data = await res.json()
     return data.probabilities
   } catch (error) {
-    console.error(
-      `Error fetching probabilities. Reverting to default: ${defaultVariant}. Details: `,
-      error
-    )
+    if (controller.signal.aborted) {
+      console.error(
+        `Timeout fetching probabilities (${timeout} ms). Reverting to default: ${defaultVariant}.`,
+        error
+      )
+    } else {
+      console.error(
+        `Error fetching probabilities. Reverting to default: ${defaultVariant}. Details: `,
+        error
+      )
+    }
     return { [defaultVariant]: 1.0 }
   }
 }
@@ -68,6 +75,9 @@ export function selectVariant(
   probabilities: ProbabilityDistribution,
   defaultVariant: Variant
 ) {
+  if (!Object.entries(probabilities).length) {
+    return defaultVariant
+  }
   try {
     const rand = Math.random()
     let cumulativeProb = 0.0
