@@ -3,7 +3,6 @@ import {
   ConversionOptions,
   Counts,
   ProbabilitiesResponse,
-  Probability,
   ProbabilityDistribution,
   Variant,
 } from "./types"
@@ -127,7 +126,7 @@ export function setSessionVariant(
   sessionStorage.setItem("__experiments__", JSON.stringify(experiments))
 
   // store frequency map
-  const all = JSON.parse(sessionStorage.getItem("__all__") || "") || {}
+  const all = JSON.parse(sessionStorage.getItem("__all__") || '""') || {}
   all[experimentId] = all[experimentId] ? all[experimentId] + 1 : 1
   sessionStorage.setItem("__all__", JSON.stringify(all))
 }
@@ -138,7 +137,7 @@ export function getSessionVariant(experimentId: string): string | null {
 }
 
 export function getSessionExperiments() {
-  return JSON.parse(sessionStorage.getItem("__experiments__") || "") || {}
+  return JSON.parse(sessionStorage.getItem("__experiments__") || '""') || {}
 }
 
 /**
