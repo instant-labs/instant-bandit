@@ -6,11 +6,14 @@ import {
   Variant,
 } from "./types"
 
+/**
+ * @see computeProbabilities
+ */
 export async function fetchProbabilities(
   experimentId: string,
   defaultVariant: Variant,
   timeout = 200 // NOTE: 100ms is needed to pass unit tests
-): Promise<ProbabilityDistribution> {
+): Promise<ProbabilityDistribution | null> {
   try {
     // See https://stackoverflow.com/a/50101022/200312
     const controller = new AbortController()
@@ -21,8 +24,6 @@ export async function fetchProbabilities(
       { signal: controller.signal }
     )
     const data = await res.json()
-
-    if (!data.probabilities) throw new Error("Bad response data: " + res.text())
     return data.probabilities
   } catch (error) {
     console.error(
@@ -107,7 +108,7 @@ export function setSessionVariant(
   sessionStorage.setItem("__experiments__", JSON.stringify(experiments))
 
   // store frequency map
-  const all = JSON.parse(sessionStorage.getItem("__all__")) || {}
+  const all = JSON.parse(sessionStorage.getItem("__all__") || "") || {}
   all[experimentId] = all[experimentId] ? all[experimentId] + 1 : 1
   sessionStorage.setItem("__all__", JSON.stringify(all))
 }
@@ -118,7 +119,7 @@ export function getSessionVariant(experimentId: string): string | null {
 }
 
 export function getSessionExperiments() {
-  return JSON.parse(sessionStorage.getItem("__experiments__")) || {}
+  return JSON.parse(sessionStorage.getItem("__experiments__") || "") || {}
 }
 
 /**

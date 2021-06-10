@@ -7,7 +7,7 @@ export type Probability = number
 export type ProbabilityDistribution = Record<Variant, Probability>
 
 export type InstantBanditOptions = {
-  probabilities?: ProbabilityDistribution // for overriding locally
+  probabilities?: ProbabilityDistribution | null // for overriding locally
   preserveSession?: boolean // for overriding locally
 }
 

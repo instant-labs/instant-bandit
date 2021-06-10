@@ -66,7 +66,8 @@ export function WithInstantBandit<
         const probabilities =
           props.probabilities ||
           (preserveSession && seenVariant && { [seenVariant]: 1.0 }) ||
-          (await fetchProbabilities(experimentId, defaultVariant))
+          (await fetchProbabilities(experimentId, defaultVariant)) ||
+          {}
         const selectedVariant = selectVariant(probabilities, defaultVariant)
 
         // console.timeEnd("fetch") // 20ms in local testing

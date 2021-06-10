@@ -1,6 +1,5 @@
 import Keyv from "@keyv/redis"
 import * as KeyvType from "keyv"
-import exposures from "../pages/api/exposures"
 import { bandit } from "./bandit"
 import { Counts as Counts, ProbabilityDistribution } from "./types"
 
@@ -14,24 +13,44 @@ export function db(): KeyvType {
 }
 // IDEA: bring back sqlite
 
-export async function computeProbabilities(
+export async function getProbabilities(
   experimentId: string
-): Promise<ProbabilityDistribution> {
+): Promise<ProbabilityDistribution | null> {
   const exposures = await getExposures(experimentId)
+  if (!exposures) return null
   const conversions = await getConversions(experimentId)
+  if (!conversions) return null
   return bandit(exposures, conversions)
 }
 
-export async function getExposures(experimentId: string): Promise<Counts> {
-  return JSON.parse(await db().get(experimentId + ".exposures"))
+export async function getExposures(
+  experimentId: string
+): Promise<Counts | null> {
+  try {
+    const val = await db().get(experimentId + ".exposures")
+    if (!val) return null
+    return JSON.parse(val)
+  } catch (error) {
+    console.error(error)
+    return null
+  }
 }
 
 export async function setExposures(experimentId: string, newCounts: Counts) {
   return db().set(experimentId + ".exposures", JSON.stringify(newCounts))
 }
 
-export async function getConversions(experimentId: string): Promise<Counts> {
-  return JSON.parse(await db().get(experimentId + ".conversions"))
+export async function getConversions(
+  experimentId: string
+): Promise<Counts | null> {
+  try {
+    const val = await db().get(experimentId + ".conversions")
+    if (!val) return null
+    return JSON.parse(val)
+  } catch (error) {
+    console.error(error)
+    return null
+  }
 }
 
 export async function setConversion(experimentId: string, newCounts: Counts) {

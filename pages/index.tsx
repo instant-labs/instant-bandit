@@ -2,12 +2,12 @@ import { GetServerSideProps } from "next"
 import Head from "next/head"
 
 import { DemoComponent, demoExperimentId } from "../components/DemoComponent"
-import { computeProbabilities } from "../lib/db"
+import { getProbabilities } from "../lib/db"
 import { sendConversion } from "../lib/lib"
 import { ProbabilityDistribution } from "../lib/types"
 import styles from "../styles/Home.module.css"
 
-export default function Home(serverSideProps: ProbabilityDistribution) {
+export default function Home(serverSideProps: Props) {
   return (
     <div className={styles.container}>
       <Head>
@@ -25,8 +25,8 @@ export default function Home(serverSideProps: ProbabilityDistribution) {
         <p>
           <DemoComponent
             preserveSession={false}
-            // NOTE: comment out this line if you want to switch to fetch probabilities client-side
-            probabilities={serverSideProps}
+            // comment out this line to fetch probabilities client-side
+            probabilities={serverSideProps.probabilities}
           >
             {(props) => {
               return (
@@ -63,10 +63,12 @@ export default function Home(serverSideProps: ProbabilityDistribution) {
   )
 }
 
-export const getStaticProps: GetServerSideProps<ProbabilityDistribution> =
-  async () => {
-    const probabilities = await computeProbabilities(demoExperimentId)
-    return {
-      props: probabilities,
-    }
+type Props = {
+  probabilities: ProbabilityDistribution | null
+}
+export const getStaticProps: GetServerSideProps<Props> = async () => {
+  const probabilities = await getProbabilities(demoExperimentId)
+  return {
+    props: { probabilities },
   }
+}
