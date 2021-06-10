@@ -69,7 +69,6 @@ export function WithInstantBandit<
           (await fetchProbabilities(experimentId, defaultVariant)) ||
           {}
         const selectedVariant = selectVariant(probabilities, defaultVariant)
-        console.log("sdf", probabilities, selectVariant)
         // console.timeEnd("fetch") // 20ms in local testing
         if (mounted) {
           // Set the variant and trigger a render

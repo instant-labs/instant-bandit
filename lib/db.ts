@@ -52,6 +52,6 @@ export async function getConversions(
   }
 }
 
-export async function setConversion(experimentId: string, newCounts: Counts) {
+export async function setConversions(experimentId: string, newCounts: Counts) {
   return db().set(experimentId + ".conversions", JSON.stringify(newCounts))
 }

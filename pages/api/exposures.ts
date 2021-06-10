@@ -7,8 +7,10 @@ import { incrementCounts } from "../../lib/lib"
  */
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { experimentId, variant, variants } = JSON.parse(req.body)
+
   const oldCounts = await getExposures(experimentId)
   const newCounts = incrementCounts(variants, variant, oldCounts || {})
   await setExposures(experimentId, newCounts)
+
   res.status(200).json({ name: "exposures", newCounts })
 }
