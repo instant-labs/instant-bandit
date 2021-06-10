@@ -24,6 +24,11 @@ describe("otherProbabilities", () => {
 })
 
 describe("bandit", () => {
+  it("should return 80/20 by default", () => {
+    const probabilities = bandit({ A: 100, B: 50, C: 1 }, { A: 10, B: 25 })
+    expect(probabilities).toEqual({ A: 0.1, B: 0.8, C: 0.1 })
+  })
+
   it("should return the top when epsilon 1.0", () => {
     const probabilities = bandit({ A: 100, B: 50 }, { A: 10, B: 25 }, 1.0)
     expect(probabilities).toEqual({ A: 1, B: 0 })
