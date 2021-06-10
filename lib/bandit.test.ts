@@ -1,12 +1,4 @@
-import { bandit, conversionRates, maxKey, sample } from "./bandit"
-
-describe("sample", () => {
-  it("should return a random element", () => {
-    const elem = sample([1, 2, 3])
-    expect(elem).toBeGreaterThan(0)
-    expect(elem).toBeLessThan(4)
-  })
-})
+import { bandit, conversionRates, maxKey, otherProbabilities } from "./bandit"
 
 describe("maxKey", () => {
   it("should return the max variant", () => {
@@ -24,14 +16,21 @@ describe("conversionRates", () => {
   })
 })
 
+describe("otherProbabilities", () => {
+  it("should divide epsilon evently", () => {
+    const probabilities = otherProbabilities(["A", "B", "C"], "A", 0.5)
+    expect(probabilities).toEqual({ B: 0.25, C: 0.25 })
+  })
+})
+
 describe("bandit", () => {
   it("should return the top when epsilon 1.0", () => {
-    const variant = bandit({ A: 100, B: 50 }, { A: 10, B: 25 }, 1.0)
-    expect(variant).toEqual("A")
+    const probabilities = bandit({ A: 100, B: 50 }, { A: 10, B: 25 }, 1.0)
+    expect(probabilities).toEqual({ A: 1, B: 0 })
   })
 
-  it("should return the other variant when epsilon 0.0", () => {
-    const variant = bandit({ A: 100, B: 50 }, { A: 10, B: 25 }, 0.0)
-    expect(variant).toEqual("B")
+  it("should return the other probabilities when epsilon 0.0", () => {
+    const probabilities = bandit({ A: 100, B: 50 }, { A: 10, B: 25 }, 0.0)
+    expect(probabilities).toEqual({ A: 0, B: 1 })
   })
 })

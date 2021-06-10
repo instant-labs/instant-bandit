@@ -1,4 +1,4 @@
-import { Counts, ProbabilityDistribution } from "./types"
+import { Counts, ProbabilityDistribution, Variant } from "./types"
 
 /**
  * This is an epsilon-greedy bandit algorithm.
@@ -11,14 +11,21 @@ export function bandit(
 ): ProbabilityDistribution {
   const rates = conversionRates(exposures, conversions)
   const winningVariant = maxKey(rates)
-  const otherVariants = Object.keys(exposures).filter(
-    (v) => v !== winningVariant
-  )
-  return Math.random() > epsilon ? winningVariant : sample(otherVariants)
+  return {
+    [winningVariant]: 1 - epsilon,
+    ...otherProbabilities(Object.keys(exposures), winningVariant, epsilon),
+  }
 }
 
-export function sample(items: Array<any>) {
-  return items[Math.floor(Math.random() * items.length)]
+export function otherProbabilities(
+  variants: Variant[],
+  winningVariant: Variant,
+  epsilon: number
+) {
+  const otherVariants = variants.filter((v) => v !== winningVariant)
+  return Object.fromEntries(
+    otherVariants.map((v) => [v, epsilon / otherVariants.length])
+  )
 }
 
 export function maxKey(rates: Counts) {

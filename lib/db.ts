@@ -19,8 +19,7 @@ export async function getProbabilities(
   const exposures = await getExposures(experimentId)
   if (!exposures) return null
   const conversions = await getConversions(experimentId)
-  if (!conversions) return null
-  return bandit(exposures, conversions)
+  return bandit(exposures, conversions || {})
 }
 
 export async function getExposures(
