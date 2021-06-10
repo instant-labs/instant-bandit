@@ -6,6 +6,9 @@ import {
   Variant,
 } from "./types"
 
+// TODO: make env var
+export const baseUrl = "http://localhost:3000/api"
+
 /**
  * @see computeProbabilities
  */
@@ -19,8 +22,7 @@ export async function fetchProbabilities(
     // See https://stackoverflow.com/a/50101022/200312
     setTimeout(() => controller.abort(), timeout)
     const res = await fetch(
-      // TODO: change localhost
-      "http://localhost:3000/api/probabilities?experimentId=" + experimentId,
+      `${baseUrl}/probabilities?experimentId=` + experimentId,
       { signal: controller.signal }
     )
     const data = await res.json()
@@ -50,12 +52,12 @@ export const sendExposure = (
   try {
     if (navigator && navigator.sendBeacon) {
       const success = navigator.sendBeacon(
-        "http://localhost:3000/api/exposures",
+        `${baseUrl}/exposures`,
         JSON.stringify({ experimentId, variant, variants })
       )
       if (!success) throw new Error("Bad request: " + experimentId)
     } else {
-      fetch("http://localhost:3000/api/exposures", {
+      fetch(`${baseUrl}/exposures`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -146,8 +148,7 @@ export async function sendConversion(options?: ConversionOptions) {
     )
   }
   const success = navigator.sendBeacon(
-    // TODO: replace localhost
-    "http://localhost:3000/api/conversions",
+    `${baseUrl}/conversions`,
     JSON.stringify({ experiments, value })
   )
   if (!success) console.error("sendConversion failed")

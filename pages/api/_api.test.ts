@@ -1,9 +1,10 @@
 // NOTE: next server should be running. Try `yarn run dev`.
 
 import fetch from "node-fetch"
+import { baseUrl } from "../../lib/lib"
 describe("_hello", () => {
   test("returns", async () => {
-    const res = await fetch("http://localhost:3000/api/_hello")
+    const res = await fetch(`${baseUrl}/_hello`)
     const data = await res.json()
     expect(data).toEqual({ name: "Hello World" })
   })
@@ -11,7 +12,7 @@ describe("_hello", () => {
 
 describe("_database", () => {
   test("returns", async () => {
-    const res = await fetch("http://localhost:3000/api/_database")
+    const res = await fetch(`${baseUrl}/_database`)
     const data = await res.json()
     expect(data).toEqual({ _testKey: "true" })
   })
@@ -20,7 +21,7 @@ describe("_database", () => {
 // TODO: rewrite these for current behavior
 describe("probabilities", () => {
   test.skip("returns", async () => {
-    const res = await fetch("http://localhost:3000/api/probabilities")
+    const res = await fetch(`${baseUrl}/probabilities`)
     const data = await res.json()
     expect(data).toEqual({
       name: "probabilities",
@@ -31,7 +32,7 @@ describe("probabilities", () => {
 
 describe("exposures", () => {
   test.skip("returns", async () => {
-    const res = await fetch("http://localhost:3000/api/exposures")
+    const res = await fetch(`${baseUrl}/exposures`)
     const data = await res.json()
     expect(data).toEqual({ name: "exposures" })
   })
@@ -39,7 +40,7 @@ describe("exposures", () => {
 
 describe("conversions", () => {
   test.skip("returns", async () => {
-    const res = await fetch("http://localhost:3000/api/conversions")
+    const res = await fetch(`${baseUrl}/conversions`)
     const data = await res.json()
     expect(data).toEqual({ name: "conversions" })
   })
