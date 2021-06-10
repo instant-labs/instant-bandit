@@ -4,7 +4,11 @@ import { incrementCounts } from "../../lib/lib"
 import { Counts, Variant } from "../../lib/types"
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const { experiments } = JSON.parse(req.body)
+  const { experiments } = req.body
+  if (!experiments || !Object.keys(experiments).length) {
+    res.status(400).json("Bad request")
+    return
+  }
 
   const newCounts = Object.fromEntries(
     await Promise.all(Object.entries(experiments).map(incrementConversions))
@@ -18,8 +22,8 @@ const incrementConversions = async ([experimentId, variant]: [
   Variant
 ]): Promise<[string, Counts]> => {
   const exposures = await getExposures(experimentId)
-  if (!exposures) {
-    console.error("No exposures for conversion: ", experimentId)
+  if (!exposures || !exposures[variant]) {
+    console.error("No exposures for conversion: ", experimentId, variant)
     return [experimentId, {}]
   }
   const oldCounts = await getConversions(experimentId)

@@ -2,6 +2,8 @@ import fetch from "node-fetch"
 import {
   ConversionOptions,
   Counts,
+  ProbabilitiesResponse,
+  Probability,
   ProbabilityDistribution,
   Variant,
 } from "./types"
@@ -10,7 +12,8 @@ import {
 export const baseUrl = "http://localhost:3000/api"
 
 /**
- * @see computeProbabilities
+ * Fetches ProbabilityDistribution from the server for an experiment with
+ * timeout and fallbacks.
  */
 export async function fetchProbabilities(
   experimentId: string,
@@ -25,7 +28,7 @@ export async function fetchProbabilities(
       `${baseUrl}/probabilities?experimentId=` + experimentId,
       { signal: controller.signal }
     )
-    const data = await res.json()
+    const data = (await res.json()) as ProbabilitiesResponse
     return data.probabilities
   } catch (error) {
     if (controller.signal.aborted) {
@@ -57,13 +60,7 @@ export const sendExposure = (
       )
       if (!success) throw new Error("Bad request: " + experimentId)
     } else {
-      fetch(`${baseUrl}/exposures`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ experimentId, variant, variants }),
-      })
+      postData(`${baseUrl}/exposures`, { experimentId, variant, variants })
     }
   } catch (error) {
     console.error(
@@ -71,6 +68,16 @@ export const sendExposure = (
       error
     )
   }
+}
+
+export function postData(url: string, data: Record<string, unknown>) {
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ...data }),
+  })
 }
 
 export function selectVariant(

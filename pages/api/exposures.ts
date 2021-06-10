@@ -6,7 +6,11 @@ import { incrementCounts } from "../../lib/lib"
  * @see sendExposure
  */
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const { experimentId, variant, variants } = JSON.parse(req.body)
+  const { experimentId, variant, variants } = req.body
+  if (!experimentId || !variant || !variants) {
+    res.status(400).json("Bad request")
+    return
+  }
 
   const oldCounts = await getExposures(experimentId)
   const newCounts = incrementCounts(variants, variant, oldCounts || {})

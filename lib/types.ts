@@ -19,3 +19,8 @@ export type ConversionOptions = {
 export type Counts = {
   [variant: string]: number
 }
+
+export type ProbabilitiesResponse = {
+  name: string
+  probabilities: ProbabilityDistribution | null
+}
