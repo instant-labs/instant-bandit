@@ -12,6 +12,7 @@
   "dependencies": {
     "@keyv/redis": "^2.1.2",
     "@types/keyv": "^3.1.1",
+    "chi-square-p-value": "https://github.com/gregdingle/chi-square-p-value.git",
     "keyv": "^4.0.3",
     "next": "10.2.3",
     "react": "17.0.2",

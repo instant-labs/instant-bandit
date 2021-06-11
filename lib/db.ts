@@ -1,10 +1,10 @@
 import Keyv from "@keyv/redis"
-import * as KeyvType from "keyv"
 import { bandit } from "./bandit"
-import { Counts as Counts, ProbabilityDistribution } from "./types"
+import { getPValue } from "./pvalue"
+import { Counts as Counts, ProbabilityDistribution, PValue } from "./types"
 
-let _db: KeyvType
-export function db(): KeyvType {
+let _db: Keyv
+export function db() {
   if (_db) return _db
   _db = new Keyv(
     // setup from https://leerob.io/blog/serverless-redis-nextjs
@@ -17,11 +17,14 @@ export function db(): KeyvType {
 
 export async function getProbabilities(
   experimentId: string
-): Promise<ProbabilityDistribution | null> {
+): Promise<[ProbabilityDistribution | null, PValue | null]> {
   const exposures = await getExposures(experimentId)
-  if (!exposures) return null
+  if (!exposures) return [null, null]
   const conversions = await getConversions(experimentId)
-  return bandit(exposures, conversions || {})
+  return [
+    bandit(exposures, conversions || {}),
+    getPValue(exposures, conversions || {}),
+  ]
 }
 
 export async function getExposures(

@@ -67,7 +67,7 @@ type Props = {
   probabilities: ProbabilityDistribution | null
 }
 export const getStaticProps: GetServerSideProps<Props> = async () => {
-  const probabilities = await getProbabilities(demoExperimentId)
+  const [probabilities] = await getProbabilities(demoExperimentId)
   return {
     props: { probabilities },
   }

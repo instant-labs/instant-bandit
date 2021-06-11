@@ -23,4 +23,8 @@ export type Counts = {
 export type ProbabilitiesResponse = {
   name: string
   probabilities: ProbabilityDistribution | null
+  pValue: PValue | null
 }
+
+// p-value of difference in counts between variants
+export type PValue = number
