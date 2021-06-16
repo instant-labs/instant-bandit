@@ -1,9 +1,11 @@
 import { GetServerSideProps } from "next"
 import Head from "next/head"
+import Script from "next/script"
+import React from "react"
 
 import { DemoComponent, demoExperimentId } from "../components/DemoComponent"
 import { getProbabilities } from "../lib/db"
-import { sendConversion } from "../lib/lib"
+import { sendConversion, baseUrl } from "../lib/lib"
 import { ProbabilityDistribution } from "../lib/types"
 import styles from "../styles/Home.module.css"
 
@@ -19,6 +21,10 @@ export default function Home(serverSideProps: Props) {
           href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>"
         />
       </Head>
+      <Script
+        src={`${baseUrl}/probabilities?experimentId=` + demoExperimentId}
+        strategy="beforeInteractive"
+      />
 
       <main className={styles.main}>
         <h1 className={styles.description}>Welcome to Instant Bandit</h1>
@@ -26,7 +32,7 @@ export default function Home(serverSideProps: Props) {
           <DemoComponent
             preserveSession={false}
             // comment out this line to fetch probabilities client-side
-            probabilities={serverSideProps.probabilities}
+            // probabilities={serverSideProps.probabilities}
           >
             {(props) => {
               return (

@@ -10,6 +10,8 @@ export default async (
   const [probabilities, pValue] = experimentId
     ? await getProbabilities(experimentId)
     : [null, null]
+  // 5 seconds should always be enough for second request to be fetched from client cache
+  res.setHeader("Cache-Control", "public,max-age=5")
   res.status(200).json({
     name: "probabilities",
     probabilities,
