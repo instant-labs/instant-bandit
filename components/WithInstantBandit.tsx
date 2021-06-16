@@ -66,6 +66,7 @@ export function WithInstantBandit<
         const probabilities =
           props.probabilities ||
           (preserveSession && seenVariant && { [seenVariant]: 1.0 }) ||
+          // TODO: fixme... still 20ms even with disk cache hit... need to implement own session ttl cache!?
           (await fetchProbabilities(experimentId, defaultVariant)) ||
           {}
         const selectedVariant = selectVariant(probabilities, defaultVariant)
