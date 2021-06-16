@@ -14,7 +14,7 @@
     "@types/keyv": "^3.1.1",
     "chi-square-p-value": "https://github.com/gregdingle/chi-square-p-value.git",
     "keyv": "^4.0.3",
-    "next": "10.2.3",
+    "next": "^11.0.0",
     "react": "17.0.2",
     "react-dom": "17.0.2"
   },
