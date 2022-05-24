@@ -14,15 +14,12 @@
     "@types/keyv": "^3.1.1",
     "chi-square-p-value": "https://github.com/gregdingle/chi-square-p-value.git",
     "keyv": "^4.0.3",
-    "next": "10.2.3",
-    "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "next": "12",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
   },
   "devDependencies": {
-    "@testing-library/dom": "^7.31.0",
-    "@testing-library/jest-dom": "^5.12.0",
-    "@testing-library/react": "^11.2.7",
-    "@testing-library/user-event": "^13.1.9",
+    "@testing-library/jest-dom": "^5.16.4",
     "@types/jest": "^26.0.23",
     "@types/keyv__redis": "^1.3.1",
     "@types/node": "^15.6.1",
