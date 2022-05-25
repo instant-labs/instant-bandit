@@ -27,6 +27,7 @@ describe("API", () => {
       const data = await res.json()
       expect(data).toEqual({
         name: "probabilities",
+        pValue: null,
         probabilities: null,
       })
     })
@@ -38,6 +39,7 @@ describe("API", () => {
       const data = await res.json()
       expect(data).toEqual({
         name: "probabilities",
+        pValue: null,
         probabilities: null,
       })
     })
