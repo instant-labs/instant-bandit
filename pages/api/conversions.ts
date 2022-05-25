@@ -4,7 +4,12 @@ import { incrementCounts } from "../../lib/lib"
 import { Counts, Variant } from "../../lib/types"
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const { experiments } = req.body
+  let body = req.body
+  if (typeof body === "string") {
+    body = JSON.parse(body)
+  }
+
+  const { experiments } = body
   if (!experiments || !Object.keys(experiments).length) {
     res.status(400).json("Bad request")
     return

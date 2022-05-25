@@ -41,7 +41,7 @@ export function WithInstantBandit<
   experimentId: string,
   variants: T["variant"][],
   defaultVariant: T["variant"]
-): React.ComponentType<WithoutVariant<T> & InstantBanditOptions> {
+): React.FC<WithoutVariant<T> & InstantBanditOptions> {
   // Return the wrapped component with variant set
   // console.time("wrap")
 

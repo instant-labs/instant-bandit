@@ -38,7 +38,7 @@ export default function Home(serverSideProps: Props) {
                   }}
                   onClick={() => {
                     alert(`Your click will be recorded`)
-                    sendConversion()
+                    sendConversion({ experimentIds: [demoExperimentId], value: 1 })
                     // also try:
                     // sendConversion({ experimentIds: [experimentId], value: 99.99 })
                   }}
