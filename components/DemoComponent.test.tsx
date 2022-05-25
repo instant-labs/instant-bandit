@@ -71,7 +71,7 @@ describe("DemoComponent", () => {
       </>
     )
     await waitFor(() => {
-      const after = JSON.parse(sessionStorage.getItem("__all__"))
+      const after = JSON.parse(sessionStorage.getItem("__all__") || "{}")
       return expect(after).toEqual({ [demoExperimentId]: 2 })
     })
   })
