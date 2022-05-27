@@ -1,11 +1,11 @@
-import { demoExperimentId } from "../components/DemoComponent"
+import { demoExperimentId } from "../../components/DemoComponent"
 import {
   fetchProbabilities,
   selectVariant,
   setSessionVariant,
   getSessionVariant,
   incrementCounts,
-} from "./lib"
+} from "../../lib/lib"
 
 beforeEach(() => {
   sessionStorage.clear()

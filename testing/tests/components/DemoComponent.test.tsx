@@ -3,9 +3,9 @@
  */
 
 import { render, waitFor } from "@testing-library/react"
-import { getSessionVariant, setSessionVariant } from "../lib/lib"
-import * as lib from "../lib/lib"
-import { DemoComponent, demoExperimentId } from "./DemoComponent"
+import { getSessionVariant, setSessionVariant } from "../../../lib/lib"
+import * as lib from "../../../lib/lib"
+import { DemoComponent, demoExperimentId } from "../../../components/DemoComponent"
 
 beforeEach(() => {
   sessionStorage.clear()

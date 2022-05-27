@@ -1,4 +1,4 @@
-import { bandit, conversionRates, maxKey, otherProbabilities } from "./bandit"
+import { bandit, conversionRates, maxKey, otherProbabilities } from "../../lib/bandit"
 
 describe("maxKey", () => {
   it("should return the max variant", () => {
