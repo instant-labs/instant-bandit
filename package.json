@@ -11,26 +11,26 @@
   },
   "dependencies": {
     "@keyv/redis": "^2.1.2",
-    "@types/keyv": "^3.1.1",
     "chi-square-p-value": "https://github.com/gregdingle/chi-square-p-value.git",
     "keyv": "^4.0.3",
-    "next": "12",
-    "react": "^18.1.0"
+    "next": "^12.1.6",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@types/jest": "^26.0.23",
+    "@types/keyv": "^3.1.1",
     "@types/keyv__redis": "^1.3.1",
     "@types/node": "^15.6.1",
     "@types/node-fetch": "^2.5.10",
-    "@types/react": "^17.0.8",
+    "@types/react": "^18.0.9",
     "babel-jest": "^27.0.2",
     "jest": "^27.0.3",
     "jest-fetch-mock": "^3.0.3",
     "jest-localstorage-mock": "^2.4.14",
     "node-fetch": "^2.6.1",
-    "react-dom": "^18.1.0",
     "typescript": "^4.3.2"
   }
 }
