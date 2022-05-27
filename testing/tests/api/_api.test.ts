@@ -1,8 +1,8 @@
 // NOTE: next server should be running. Try `yarn run dev`.
 
 import fetch from "node-fetch"
-import { setConversions, setExposures } from "../../lib/db"
-import { baseUrl, postData } from "../../lib/lib"
+import { setConversions, setExposures } from "../../../lib/db"
+import { baseUrl, postData } from "../../../lib/lib"
 
 describe("API", () => {
   describe("_hello", () => {

@@ -1,4 +1,4 @@
-import { getPValue } from "./pvalue"
+import { getPValue } from "../../lib/pvalue"
 
 describe("getPValue", () => {
   test("returns correct values", () => {
