@@ -1,4 +1,5 @@
 import fetch from "node-fetch"
+
 import {
   ConversionOptions,
   Counts,
@@ -6,9 +7,11 @@ import {
   ProbabilityDistribution,
   Variant,
 } from "./types"
+import { getBaseUrl } from "./utils"
 
-// TODO: make env var
-export const baseUrl = "http://localhost:3000/api"
+
+const baseUrl = getBaseUrl() + "/api"
+
 
 /**
  * Fetches ProbabilityDistribution from the server for an experiment with
@@ -17,7 +20,7 @@ export const baseUrl = "http://localhost:3000/api"
 export async function fetchProbabilities(
   experimentId: string,
   defaultVariant: Variant,
-  timeout = 250 // NOTE: 100ms is needed to pass unit tests
+  timeout = 1000 // NOTE: 100ms is needed to pass unit tests
 ): Promise<ProbabilityDistribution | null> {
   const controller = new AbortController()
   try {

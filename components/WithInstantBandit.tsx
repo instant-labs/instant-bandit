@@ -9,7 +9,7 @@ import {
   sendExposure,
   setSessionVariant,
 } from "../lib/lib"
-import { InstantBanditOptions } from "../lib/types"
+import { InstantBanditProps } from "../lib/types"
 
 type WithInstantBanditProps = {
   variant: string // designed to be overridden by author
@@ -41,7 +41,7 @@ export function WithInstantBandit<
   experimentId: string,
   variants: T["variant"][],
   defaultVariant: T["variant"]
-): React.FC<WithoutVariant<T> & InstantBanditOptions> {
+): React.FC<WithoutVariant<T> & InstantBanditProps> {
   // Return the wrapped component with variant set
   // console.time("wrap")
 
