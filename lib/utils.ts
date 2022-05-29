@@ -8,17 +8,17 @@ import * as constants from "./constants"
  * @param obj 
  * @returns 
  */
-export function deepFreeze<T extends object>(obj: T, seen = new WeakMap()) {
+export function deepFreeze<T extends object>(obj: T, seen = new WeakMap<T, any>()) {
   if (!exists(obj)) return obj
 
   seen.set(obj, true)
 
   Object.getOwnPropertyNames(obj)
-    .filter(prop => obj[prop] && typeof obj[prop] === "object")
     .filter(prop => !seen.has(obj[prop]))
-    .forEach(prop => deepFreeze(obj[prop]))
+    .filter(prop => obj[prop] && typeof obj[prop] === "object")
+    .forEach(prop => deepFreeze(obj[prop], seen))
 
-  return Object.freeze(obj)
+  return Object.freeze<T>(obj)
 }
 
 /**
