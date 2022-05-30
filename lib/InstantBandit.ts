@@ -225,7 +225,6 @@ export class InstantBandit {
    * 
    * When running in a browser environment, the variant is saved in the session.
    * 
-   * @param site
    * @param selectVariant
    */
   async select(selectVariant?: string): Promise<Selection> {
