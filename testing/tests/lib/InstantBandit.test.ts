@@ -139,7 +139,7 @@ describe("InstantBandit", () => {
             inactive: true,
             variants: [
               {
-                name: "variant-in-inactive-experiments",
+                name: "variant-in-inactive-experiment",
                 props: {
                   from: "inactive-1",
                 },
@@ -151,7 +151,7 @@ describe("InstantBandit", () => {
             inactive: true,
             variants: [
               {
-                name: "variant-in-inactive-experiments",
+                name: "variant-in-inactive-experiment",
                 props: {
                   from: "inactive-2",
                 },

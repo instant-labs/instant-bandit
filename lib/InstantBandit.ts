@@ -108,12 +108,6 @@ export class InstantBandit {
 
     } finally {
       this._state = LoadState.READY
-
-      // Keep on trucking with the default site if we don't have one.
-      if (!exists(this._site)) {
-        this._site = DEFAULT_SITE
-        await this.init(DEFAULT_SITE, variant)
-      }
       return this._site
     }
   }
