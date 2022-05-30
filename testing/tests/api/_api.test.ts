@@ -5,7 +5,7 @@ import { postData } from "../../../lib/lib"
 import { getBaseUrl } from "../../../lib/utils"
 
 const baseUrl = getBaseUrl()
-const apiUrl = baseUrl + "/api/"
+const apiUrl = baseUrl + "/api"
 
 describe("API", () => {
   describe("_hello", () => {
