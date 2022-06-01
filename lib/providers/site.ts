@@ -19,7 +19,6 @@ export function getSiteProvider(opts?: InstantBanditOptions) {
     _options: providerOptions,
     _error: null,
     _timer: null as TimerLike | null,
-    _session: null as SessionDescriptor | null,
     _site: DEFAULT_SITE as Site,
     _experiment: DEFAULT_EXPERIMENT as Experiment,
     _variant: DEFAULT_VARIANT as Variant,
@@ -64,18 +63,11 @@ export function getSiteProvider(opts?: InstantBanditOptions) {
         const url = new URL(sitePath, baseUrl)
         siteUrl = url.toString()
 
-        const headers = new Headers()
         if (provider._options.appendTimestamp === true) {
           url.searchParams.append(PARAM_TIMESTAMP, new Date().getTime() + "")
         }
         if (exists(variant)) {
           url.searchParams.append(PARAM_SELECT, variant!)
-        }
-        if (exists(provider._session)) {
-          const session = provider._session!
-          if (exists(session.sid)) {
-            headers.append(constants.HEADER_SESSION_ID, session.sid!)
-          }
         }
 
         siteUrl = url.toString()
