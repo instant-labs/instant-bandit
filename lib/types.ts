@@ -1,4 +1,5 @@
 import { Experiment, MetricsBucket, MetricsSample, Site, Variant as VariantModel } from "./models"
+import { InstantBanditContext } from "./contexts"
 
 
 export interface InstantBanditProps {
@@ -7,18 +8,23 @@ export interface InstantBanditProps {
   select?: string
   site?: Site
   debug?: boolean
-  onReady?: (state: InstantBanditState) => void
-  onError?: (err: Error | null, state: InstantBanditState | null) => void
+  options?: InstantBanditOptions
+  onReady?: (ctx: InstantBanditContext) => void
+  onError?: (err?: Error, ctx?: InstantBanditContext) => void
 }
 
-export interface InstantBanditState extends Scope {
-  state: LoadState
-  error: Error | null
-  site: Site | null
-  siteName: string
-  experiment: string
-  variant: VariantModel | null
+export interface InstantBanditOptions {
+  baseUrl: string
+  sitePath: string
+  metricsPath: string
+  appendTimestamp: boolean
+  batchSize: number
+  flushInterval: number
+  defaultAlgo: Algorithm | string
+  providers: Providers
+  algorithms: Algorithms
 }
+
 
 export interface Scope {
   siteName: string
@@ -49,12 +55,12 @@ export enum LoadState {
  * Algorithms to use when selecting a variant.
  */
 export enum Algorithm {
+  DEFAULT = "default",
   RANDOM = "random",
   MAB_EPSILON_GREEDY = "mab-epsilon-greedy",
 }
 
-export type AlgorithmFactory = () => AlgorithmImpl
-export type Algorithms = Record<string, AlgorithmFactory>
+export type Algorithms = Record<string, AlgorithmImpl>
 export interface AlgorithmResults {
   pValue: number
   metrics: MetricsBucket
@@ -72,10 +78,22 @@ export interface MetricsProvider {
   flush(): Promise<void>
 }
 
-export type ProviderFactory<T> = () => T
+export interface SiteProvider {
+  state: LoadState
+  error: Error | null
+  model: Site
+  experiment: Experiment
+  variant: VariantModel
+  load(variant?: string): Promise<Site>
+  init(site: Site, select?: string): Promise<Site>
+  select(selectVariant?: string): Promise<Selection>
+}
+
+export type ProviderFactory<T> = (options: InstantBanditOptions) => T
 export type Providers = {
-  session: SessionProvider
-  metrics: MetricsProvider
+  loader: ProviderFactory<SiteProvider>
+  session: ProviderFactory<SessionProvider>
+  metrics: ProviderFactory<MetricsProvider>
 }
 
 /**

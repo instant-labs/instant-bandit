@@ -4,7 +4,7 @@ import * as constants from "./constants"
 
 
 /**
- * Freezes an entire object tree.
+ * Freezes an entire object tree
  * @param obj 
  * @returns 
  */
