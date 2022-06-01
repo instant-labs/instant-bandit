@@ -317,7 +317,12 @@ describe("InstantBanditContext", () => {
         algoRuns = 0
         ctx = createBanditContext({
           algorithms: {
-            [DEFAULT_BANDIT_OPTIONS.defaultAlgo]: new DummyAlgo(),
+            [DEFAULT_BANDIT_OPTIONS.defaultAlgo]: {
+              async select(args: SelectionArgs) {
+                ++algoRuns
+                return dummyResults
+              },
+            },
           },
         })
       })
@@ -326,12 +331,6 @@ describe("InstantBanditContext", () => {
         metrics: {},
         pValue: 0,
         winner: { name: "dummy-variant" },
-      }
-      class DummyAlgo implements AlgorithmImpl {
-        async select(args: SelectionArgs) {
-          ++algoRuns
-          return dummyResults
-        }
       }
 
       it("invokes the bandit algorithm at load time", async () => {

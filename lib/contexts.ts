@@ -89,7 +89,7 @@ export const DEFAULT_BANDIT_OPTIONS: InstantBanditOptions = {
     [Algorithm.RANDOM]: getRandomVariantAlgorithm(),
 
     // MAB goes here
-    // [Algorithm.MAB_EPSILON_GREEDY]: () => new EpsilonGreedyBanditAlgo(),
+    // [Algorithm.MAB_EPSILON_GREEDY]: getEpsilonGreedyBanditAlgo(),
   },
 } as const
 Object.freeze(DEFAULT_BANDIT_OPTIONS)

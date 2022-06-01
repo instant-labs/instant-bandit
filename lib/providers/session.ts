@@ -12,7 +12,7 @@ export function getLocalStorageSessionProvider(options: InstantBanditOptions): S
       }
       return session
     },
-    persistVariant: async (site: string, experiment: string, variant: string)  =>{
+    persistVariant: async (site: string, experiment: string, variant: string) => {
     },
     hasSeen: async (site: string, experiment: string, variant: string) => {
       return false
