@@ -69,8 +69,8 @@ export interface AlgorithmResults {
 
 export interface SessionProvider {
   getOrCreateSession(site: string, props?: Partial<SessionDescriptor>): Promise<SessionDescriptor>
-  persistVariant(site: string, experiment: string, variant: string)
-  hasSeen(site: string, experiment: string, variant: string)
+  persistVariant(site: string, experiment: string, variant: string): Promise<void>
+  hasSeen(site: string, experiment: string, variant: string): Promise<boolean>
 }
 
 export interface MetricsProvider {
@@ -101,7 +101,6 @@ export type Providers = {
  * Includes the selected variant for the current site.
  */
 export interface SessionDescriptor {
-  origin: string
   site: string | null
   variants: { [experiment: string]: string[] }
 
