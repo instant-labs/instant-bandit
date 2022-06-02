@@ -48,7 +48,7 @@ describe("InstantBanditContext", () => {
 
     it("begins in the preload state", async () => {
       expect(loader.state).toBe(LoadState.PRELOAD)
-      await loader.load()
+      await loader.load(ctx)
       expect(count).toBe(1)
       expect(url).toBeDefined()
       expect(url?.toString()).toContain(constants.DEFAULT_BASE_URL)
@@ -56,14 +56,14 @@ describe("InstantBanditContext", () => {
     })
 
     it("invokes a fetch for the data", async () => {
-      await loader.load()
+      await loader.load(ctx)
       expect(count).toBe(1)
       expect(url).toBeDefined()
       expect(url?.toString()).toContain(constants.DEFAULT_BASE_URL)
     })
 
     it("produces a site object", async () => {
-      site = await loader.load()
+      site = await loader.load(ctx)
       expect(site).toStrictEqual(TEST_SITE)
 
       // Jest runs in node, so we get the default origin
@@ -72,13 +72,13 @@ describe("InstantBanditContext", () => {
 
     it("uses default site if initial fetch fails", async () => {
       fetchMock.mockResponseOnce(siteErrorResponse())
-      site = await loader.load()
+      site = await loader.load(ctx)
       expectReady()
       expectDefaultSite()
     })
 
     it("does not include a timestamp by default", async () => {
-      site = await loader.load()
+      site = await loader.load(ctx)
       expect(count).toBe(1)
       expect(url!.searchParams.get(PARAM_TIMESTAMP)).toBe(null)
     })
@@ -86,7 +86,7 @@ describe("InstantBanditContext", () => {
     it("includes a timestamp if specified", async () => {
       ctx = createBanditContext({ appendTimestamp: true })
       loader = ctx.loader
-      site = await loader.load()
+      site = await loader.load(ctx)
       const ts = url!.searchParams.get(PARAM_TIMESTAMP)
       expect(count).toBe(1)
       expect(ts).toBeDefined()
@@ -96,14 +96,14 @@ describe("InstantBanditContext", () => {
     it("can load multiple times", async () => {
 
       fetchMock.mockResponseOnce(siteLoadResponse(TEST_SITE_A))
-      const site1 = await loader.load()
+      const site1 = await loader.load(ctx)
       expectNoError()
       expectReady()
       expect(site1).toStrictEqual(TEST_SITE_A)
       expect(loader.model).toStrictEqual(TEST_SITE_A)
 
       fetchMock.mockResponseOnce(siteLoadResponse(TEST_SITE_B))
-      const site2 = await loader.load()
+      const site2 = await loader.load(ctx)
       expectNoError()
       expectReady()
       expect(site2).toStrictEqual(TEST_SITE_B)
@@ -115,14 +115,14 @@ describe("InstantBanditContext", () => {
 
   describe("init", () => {
     it("can initialize from an object", async () => {
-      site = await loader.init(TEST_SITE_A)
+      site = await loader.init(ctx, TEST_SITE_A)
       expectNoError()
       expectReady()
       expect(site).toStrictEqual(TEST_SITE_A)
     })
 
     it("loads the default site from an invalid input", async () => {
-      site = await loader.init(null as any)
+      site = await loader.init(ctx, null as any)
       expectReady()
       expectError()
       expectDefaultSite()
@@ -131,7 +131,7 @@ describe("InstantBanditContext", () => {
 
   describe("selection", () => {
     beforeEach(async () => {
-      site = await loader.init({
+      site = await loader.init(ctx, {
         name: "test-selection",
         experiments: [
           {
@@ -213,24 +213,24 @@ describe("InstantBanditContext", () => {
     describe("builtin defaults", () => {
       // Any sort of error during init means getting the builtins for fault-tolerance
       it("selects the builtin variant and experiment on error", async () => {
-        site = await loader.init(null as any)
-        const { experiment, variant } = await loader.select("active-1")
+        site = await loader.init(ctx, null as any)
+        const { experiment, variant } = await loader.select(ctx, "active-1")
         expectError()
         expectDefaultExperiment(experiment, variant)
       })
 
       it("selects the builtin variant and experiment when no experiments defined", async () => {
-        site = await loader.init({
+        site = await loader.init(ctx, {
           name: "test",
           experiments: [],
         })
-        const { experiment, variant } = await loader.select("non-existent")
+        const { experiment, variant } = await loader.select(ctx, "non-existent")
         expectNoError()
         expectDefaultExperiment(experiment, variant)
       })
 
       it("selects a configured default variant and configured experiment on unrecognized variant", async () => {
-        const { experiment, variant } = await loader.select("unknown-variant")
+        const { experiment, variant } = await loader.select(ctx, "unknown-variant")
         expectNoError()
         expectNonBuiltinExperimentInstance(experiment)
         expect(experiment.id).toBe(DEFAULT_EXPERIMENT.id)
@@ -241,7 +241,7 @@ describe("InstantBanditContext", () => {
 
     describe("configured builtins", () => {
       it("can select an arbitrary variant from a configured builtin experiment", async () => {
-        const { experiment, variant } = await loader.select("variant-in-configured-default")
+        const { experiment, variant } = await loader.select(ctx, "variant-in-configured-default")
         expectNoError()
         expectNonBuiltinExperimentInstance(experiment)
         expect(experiment.id).toEqual(DEFAULT_EXPERIMENT.id)
@@ -250,7 +250,7 @@ describe("InstantBanditContext", () => {
       })
 
       it("can select a configured builtin variant from a configured builtin experiment", async () => {
-        const { experiment, variant } = await loader.select(constants.DEFAULT_VARIANT_NAME)
+        const { experiment, variant } = await loader.select(ctx, constants.DEFAULT_VARIANT_NAME)
         expectNoError()
         expectNonBuiltinExperimentInstance(experiment)
         expect(experiment.id).toStrictEqual(DEFAULT_EXPERIMENT.id)
@@ -260,14 +260,14 @@ describe("InstantBanditContext", () => {
 
       // Ensures the right instance of experiment is selected, even though the builtin variant is used
       it("can select the builtin variant from a configured builtin experiment", async () => {
-        site = await loader.init({
+        site = await loader.init(ctx, {
           name: "test-builtin-variant-from-configured",
           experiments: [{
             id: constants.DEFAULT_EXPERIMENT_ID,
             variants: [],
           }],
         })
-        const { experiment, variant } = await loader.select(constants.DEFAULT_VARIANT_NAME)
+        const { experiment, variant } = await loader.select(ctx, constants.DEFAULT_VARIANT_NAME)
         expectNoError()
         expectNonBuiltinExperimentInstance(experiment)
         expect(experiment.id).toStrictEqual(DEFAULT_EXPERIMENT.id)
@@ -276,7 +276,7 @@ describe("InstantBanditContext", () => {
     })
 
     it("ignores inactive experiments", async () => {
-      site = await loader.init({
+      site = await loader.init(ctx, {
         name: "test",
         experiments: [
           {
@@ -303,7 +303,7 @@ describe("InstantBanditContext", () => {
         ],
       })
 
-      const { experiment, variant } = await loader.select("variant")
+      const { experiment, variant } = await loader.select(ctx, "variant")
       expectNoError()
       expectNonBuiltinExperimentInstance(experiment)
       expect(variant).toStrictEqual(site.experiments[2].variants[0])
@@ -334,13 +334,13 @@ describe("InstantBanditContext", () => {
       }
 
       it("invokes the bandit algorithm at load time", async () => {
-        await loader.load()
+        await loader.load(ctx, )
         expect(count).toBe(1)
         expect(loader.variant?.name === "dummy-variant")
       })
 
       it("does not invoke the specified algorithm if a selection is specified", async () => {
-        await loader.init({
+        await loader.init(ctx, {
           name: "test",
           select: "specific-variant",
           experiments: []

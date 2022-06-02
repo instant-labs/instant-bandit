@@ -1,4 +1,5 @@
 export const DEFAULT_NAME = "@default"
+export const DEFAULT_SITE_ID = DEFAULT_NAME
 export const DEFAULT_SITE_NAME = DEFAULT_NAME
 export const DEFAULT_EXPERIMENT_ID = DEFAULT_NAME
 export const DEFAULT_EXPERIMENT_NAME = DEFAULT_NAME
@@ -17,7 +18,7 @@ export const VARNAME_BASE_URL_PUBLIC = NEXTJS_PUBLIC_PREFIX + VARNAME_BASE_URL
 export const VARNAME_SITE_PATH = "DEFAULT_SITE_PATH"
 export const VARNAME_METRICS_PATH = "DEFAULT_METRICS_PATH"
 
-export const HEADER_SESSION_ID = "X-IB-Session"
+export const HEADER_SESSION_ID = "x-ib-session"
 
 
 /**

@@ -6,6 +6,8 @@
  * 
  */
 
+import { MetricEventPayload } from "./types";
+
 
 /**
  * Represents configuration for a particular site/app and the variants to test
@@ -38,9 +40,10 @@ export interface Experiment {
  * A named set of variants with metadata around lifecycle such as start/end dates
  */
 export interface ExperimentMeta extends Experiment {
+  id: string
   name: string
   desc?: string
-  metrics: MetricsBucket
+  metrics?: MetricsBucket
   variants: VariantMeta[]
 }
 
@@ -77,6 +80,7 @@ export interface PropsBucket {
 
 /**
  * An individual metric sample to report to a metrics sink such as a Redis backend.
+ * 
  * Samples are associated with experiments and variants and aggregated into the
  * metrics buckets on the server side.
  */
@@ -88,5 +92,5 @@ export interface MetricsSample {
   experiment: string
   variant: string
   name: string
-  value: number
+  payload?: MetricEventPayload
 }

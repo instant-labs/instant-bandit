@@ -1,19 +1,25 @@
 /**
  * @jest-environment jsdom
  */
-import { DEFAULT_BANDIT_OPTIONS } from "../../lib/contexts"
+import { DEFAULT_BANDIT_OPTIONS, InstantBanditContext } from "../../lib/contexts"
+import { Site } from "../../lib/models"
 import { getLocalStorageSessionProvider, getLocalStorageKey } from "../../lib/providers/session"
 import { SessionProvider } from "../../lib/types"
+import { TEST_SITE_AB } from "../sites"
 
 
 describe("browser session provider", () => {
-  let site: string = ""
+  let site: Site
   let provider: SessionProvider
   let windowSpy
+  let ctx: InstantBanditContext
 
   beforeEach(() => {
-    site = "test-site"
+    site = TEST_SITE_AB
     provider = getLocalStorageSessionProvider(DEFAULT_BANDIT_OPTIONS)
+    ctx = {
+      site,
+    } as InstantBanditContext
   })
 
   beforeEach(() => {
@@ -27,13 +33,13 @@ describe("browser session provider", () => {
 
   describe("getOrCreateSession", () => {
     it("saves a new session into local storage", async () => {
-      const newSession = await provider.getOrCreateSession(site, {})
+      const newSession = await provider.getOrCreateSession(ctx, {})
       expect(newSession).toStrictEqual({
-        site,
+        site: site.name,
         variants: {},
       })
 
-      const k = getLocalStorageKey(site)
+      const k = getLocalStorageKey(site.name)
       const storedJson = localStorage.getItem(k) ?? "{}"
       const storedSession = JSON.parse(storedJson)
 
@@ -41,38 +47,37 @@ describe("browser session provider", () => {
     })
 
     it("retrieves a session from local storage", async () => {
-      const newSession = await provider.getOrCreateSession(site, { uid: "1001" })
+      const newSession = await provider.getOrCreateSession(ctx, { uid: "1001" })
       expect(newSession).toStrictEqual({
-        site,
+        site: site.name,
         uid: "1001",
         variants: {},
       })
-      const storedSession = await provider.getOrCreateSession(site)
+      const storedSession = await provider.getOrCreateSession(ctx)
       expect(storedSession).toStrictEqual(newSession)
     })
   })
 
   describe("hasSeen", () => {
     it("returns true when seen and false when not", async () => {
-      const sesh = await provider.getOrCreateSession(site)
-      await provider.persistVariant(site, "A", "a")
-      expect(await provider.hasSeen(site, "A", "a")).toBe(true)
-      expect(await provider.hasSeen(site, "A", "b")).toBe(false)
-      expect(await provider.hasSeen(site, "B", "a")).toBe(false)
-      expect(await provider.hasSeen("fake-site", "B", "a")).toBe(false)
+      const sesh = await provider.getOrCreateSession(ctx)
+      await provider.persistVariant(ctx, "A", "a")
+      expect(await provider.hasSeen(ctx, "A", "a")).toBe(true)
+      expect(await provider.hasSeen(ctx, "A", "b")).toBe(false)
+      expect(await provider.hasSeen(ctx, "B", "a")).toBe(false)
     })
   })
 
   describe("persistVariant", () => {
     it("persists a variant", async () => {
-      let sesh = await provider.getOrCreateSession(site, {})
+      let sesh = await provider.getOrCreateSession(ctx, {})
       expect(sesh.variants).toStrictEqual({})
 
-      await provider.persistVariant(site, "experiment-1", "a")
-      sesh = await provider.getOrCreateSession(site)
+      await provider.persistVariant(ctx, "experiment-1", "a")
+      sesh = await provider.getOrCreateSession(ctx)
 
       expect(sesh).toStrictEqual({
-        site,
+        site: site.name,
         variants: {
           "experiment-1": [
             "a",
@@ -82,19 +87,17 @@ describe("browser session provider", () => {
     })
 
     it("doesn't persist duplicates", async () => {
-      let sesh = await provider.getOrCreateSession(site, {})
+      let sesh = await provider.getOrCreateSession(ctx, {})
       expect(sesh.variants).toStrictEqual({})
 
-      await Promise.all([
-        provider.persistVariant(site, "experiment-1", "a"),
-        provider.persistVariant(site, "experiment-1", "a"),
-        provider.persistVariant(site, "experiment-1", "a"),
-      ])
+      await provider.persistVariant(ctx, "experiment-1", "a")
+      await provider.persistVariant(ctx, "experiment-1", "a")
+      await provider.persistVariant(ctx, "experiment-1", "a")
 
-      sesh = await provider.getOrCreateSession(site)
+      sesh = await provider.getOrCreateSession(ctx)
 
       expect(sesh).toStrictEqual({
-        site,
+        site: site.name,
         variants: {
           "experiment-1": [
             "a",
@@ -104,49 +107,25 @@ describe("browser session provider", () => {
     })
 
     it("persists exposures across multiple experiments and variants", async () => {
-      let sesh = await provider.getOrCreateSession(site, {})
+      let sesh = await provider.getOrCreateSession(ctx, {})
       expect(sesh.variants).toStrictEqual({})
 
-      await provider.persistVariant("A", "experiment-1", "a")
-      await provider.persistVariant("A", "experiment-2", "b")
-      await provider.persistVariant("A", "experiment-3", "c")
-      await provider.persistVariant("B", "experiment-1", "a")
-      await provider.persistVariant("B", "experiment-2", "b")
-      await provider.persistVariant("B", "experiment-3", "c")
-      await provider.persistVariant("C", "experiment-1", "a")
-      await provider.persistVariant("C", "experiment-2", "b")
-      await provider.persistVariant("C", "experiment-3", "c")
+      await provider.persistVariant(ctx, "experiment-1", "a")
+      await provider.persistVariant(ctx, "experiment-2", "b")
+      await provider.persistVariant(ctx, "experiment-3", "c")
 
-      let a = await provider.getOrCreateSession("A")
-      let b = await provider.getOrCreateSession("B")
-      let c = await provider.getOrCreateSession("C")
+      sesh = await provider.getOrCreateSession(ctx)
 
-      expect([a, b, c]).toStrictEqual([
+      expect(sesh).toStrictEqual(
         {
-          site: "A",
+          site: site.name,
           variants: {
             "experiment-1": ["a"],
             "experiment-2": ["b"],
             "experiment-3": ["c"],
           },
         },
-        {
-          site: "B",
-          variants: {
-            "experiment-1": ["a"],
-            "experiment-2": ["b"],
-            "experiment-3": ["c"],
-          },
-        },
-        {
-          site: "C",
-          variants: {
-            "experiment-1": ["a"],
-            "experiment-2": ["b"],
-            "experiment-3": ["c"],
-          },
-        },
-      ])
+      )
     })
   })
 })

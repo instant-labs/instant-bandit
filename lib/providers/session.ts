@@ -1,33 +1,36 @@
-import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../defaults"
+import { InstantBanditContext } from "../contexts"
 import { InstantBanditOptions, SessionDescriptor, SessionProvider } from "../types"
 import { exists, isBrowserEnvironment } from "../utils"
+import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../defaults"
 
 
-
-export function getLocalStorageKey(siteName: string) {
-  return `site.${siteName}`
+export function getLocalStorageKey(site: string) {
+  return `site.${site}`
 }
 
 export function getLocalStorageSessionProvider(options: InstantBanditOptions): SessionProvider {
-  const provider: SessionProvider = {
+  const provider = {
+    _id: null as string | null,
+
+    get id() {
+      return provider._id
+    },
 
     /**
     * Gets an existing session for the given site, creating one with default
     * properties if it does not exist.
-    * @param props 
-    * @returns 
     */
-    getOrCreateSession: async (site: string, props?: Partial<SessionDescriptor>) => {
+    async getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>) {
       if (!isBrowserEnvironment) {
-        console.warn(`[IB] BrowserSessionProvider run on server. No action taken.`)
         return Object.assign({}, props) as SessionDescriptor
       }
 
+      let { site } = ctx
       if (!exists(site)) {
-        site = DEFAULT_SITE.name
+        site = DEFAULT_SITE
       }
 
-      const storageKey = getLocalStorageKey(site)
+      const storageKey = getLocalStorageKey(site.name)
       const sessionJson = localStorage.getItem(storageKey)
 
       let session: SessionDescriptor
@@ -35,7 +38,7 @@ export function getLocalStorageSessionProvider(options: InstantBanditOptions): S
         session = <SessionDescriptor>JSON.parse(sessionJson!)
       } else {
         session = {
-          site: site!,
+          site: site.name,
           variants: {},
         }
       }
@@ -44,12 +47,14 @@ export function getLocalStorageSessionProvider(options: InstantBanditOptions): S
         Object.assign(session, props)
       }
 
+      if (session.sid) {
+        provider._id = session.sid
+      }
+
       try {
         localStorage.setItem(storageKey, JSON.stringify(session))
       } catch (err) {
-        // Most likely a QuotaExceededError
-        // Note that this will occur in private browsing modes in most browsers
-        console.warn(`[IB] Error saving session: ${err}`)
+        provider.handlePossibleQuotaError(err)
       }
 
       return session
@@ -57,41 +62,86 @@ export function getLocalStorageSessionProvider(options: InstantBanditOptions): S
 
     /**
      * Records a variant exposure in the session so that it may be remembered
-     * @param site 
-     * @param experiment 
-     * @param variant 
-     * @returns 
      */
-    persistVariant: async (site: string, experiment: string, variant: string) => {
-      if (experiment === DEFAULT_EXPERIMENT.id && variant === DEFAULT_VARIANT.name) {
+    async persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) {
+      if (!isBrowserEnvironment) {
         return
       }
 
-      const storageKey = getLocalStorageKey(site)
-      const session = await provider.getOrCreateSession(site)
+      try {
+        if (experiment === DEFAULT_EXPERIMENT.id && variant === DEFAULT_VARIANT.name) {
+          return
+        }
 
-      let variants = session.variants[experiment]
-      if (!exists(variants)) {
-        variants = session.variants[experiment] = []
+        const { site } = ctx
+        const storageKey = getLocalStorageKey(site.name)
+        const session = await provider.getOrCreateSession(ctx)
+
+        let variants = session.variants[experiment]
+        if (!exists(variants)) {
+          variants = session.variants[experiment] = []
+        }
+
+        if (variants.indexOf(variant) === -1) {
+          variants.push(variant)
+        }
+
+        localStorage.setItem(storageKey, JSON.stringify(session))
+      } catch (err) {
+        provider.handlePossibleQuotaError(err)
       }
+    },
 
-      if (variants.indexOf(variant) === -1) {
-        variants.push(variant)
+    handlePossibleQuotaError(err: DOMException) {
+      if (!provider.isQuotaError(err)) {
+        console.warn(`[IB] Error updating session: ${err}`)
+      } else {
+        // NOTE: This is almost certainly a quota issue, and the shape of which is not
+        // consistent across browsers. Safe to suppress here.
+        console.debug(`[IB] Storage quota error: ${err}`)
       }
+    },
 
-      localStorage.setItem(storageKey, JSON.stringify(session))
+    /**
+     * Examines an error to see if it's a quota error from local/session storage
+     */
+    isQuotaError(err: DOMException): boolean {
+      if (!err) return false
+      if (!exists(err.code)) {
+
+        // IE 8
+        if ((err as any).number === -2147024882) return true
+        else return false
+
+      } else {
+        switch (err.code) {
+
+          // Proper DOM code in most modern browsers
+          case 22:
+            return true
+
+          // Firefox
+          case 1014:
+            if (err.name === "NS_ERROR_DOM_QUOTA_REACHED") {
+              return true
+            }
+
+          default:
+            return false
+        }
+      }
     },
 
     /**
      * Checks the session to see if a particular site/experiment/variant combo has been
      * presented before
-     * @param site 
-     * @param experiment 
-     * @param variant 
-     * @returns 
      */
-    hasSeen: async (site: string, experiment: string, variant: string) => {
-      const session = await provider.getOrCreateSession(site)
+    async hasSeen(ctx: InstantBanditContext, experiment: string, variant: string) {
+      if (!isBrowserEnvironment) {
+        return false
+      }
+
+      const session = await provider.getOrCreateSession(ctx)
       const variants = (session.variants || {})[experiment]
       return exists(variants) && exists(variants.find(v => v === variant))
     },

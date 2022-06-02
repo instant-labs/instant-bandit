@@ -48,10 +48,10 @@ export function createBanditContext(options?: Partial<InstantBanditOptions>, mix
     get variant() { return loader.variant },
 
     load: async (variant?: string) => {
-      return await loader.load(variant)
+      return await loader.load(ctx, variant)
     },
     init: async (site: Site, select?: string) => {
-      return await loader.init(site, select)
+      return await loader.init(ctx, site, select)
     },
   }
 

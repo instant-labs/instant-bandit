@@ -2,13 +2,13 @@
 import * as constants from "../constants"
 import { AlgorithmResults, SessionDescriptor, TimerLike, SelectionArgs, Selection, SiteProvider } from "../types"
 import { Experiment, Site, Variant } from "../models"
+import { InstantBanditContext, DEFAULT_BANDIT_OPTIONS } from "../contexts"
 import { InstantBanditOptions, LoadState } from "../types"
 import { exists, isBrowserEnvironment } from "../utils"
 import { DEFAULT_ALGO_RESULTS, DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../defaults"
-import { DEFAULT_BANDIT_OPTIONS } from "../contexts"
 
 
-export function getSiteProvider(opts?: InstantBanditOptions) {
+export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
   const providerOptions = Object.assign({}, DEFAULT_BANDIT_OPTIONS, opts)
   Object.freeze(providerOptions)
   Object.seal(providerOptions.algorithms)
@@ -55,7 +55,7 @@ export function getSiteProvider(opts?: InstantBanditOptions) {
       return provider._state
     },
 
-    load: async (variant?: string) => {
+    async load(ctx: InstantBanditContext, variant?: string) {
       let siteUrl = ""
       try {
         const { baseUrl, sitePath } = provider._options
@@ -70,20 +70,44 @@ export function getSiteProvider(opts?: InstantBanditOptions) {
           url.searchParams.append(PARAM_SELECT, variant!)
         }
 
+        // Attach our session ID if we have one
+        let sid: string | null = null
+        let session: SessionDescriptor
+        if (!exists(ctx.session.id)) {
+          session = await ctx.session.getOrCreateSession(ctx)
+          sid = session.sid ?? null
+        }
+
         siteUrl = url.toString()
         provider._state = LoadState.WAIT
 
-        const resp = await fetch(siteUrl)
+        const headers = new Headers()
+        if (exists(sid)) {
+          headers.append(constants.HEADER_SESSION_ID, sid!)
+        }
+
+        const req: RequestInit = {
+          headers,
+        }
+        const resp = await fetch(siteUrl, req)
+
+        // Pluck out a session ID
+        sid = resp.headers.get(constants.HEADER_SESSION_ID)
+        if (exists(sid)) {
+          session = await ctx.session.getOrCreateSession(ctx, { sid: sid! })
+        }
+
+
         const site = await resp.json() as Site
 
-        provider._site = await provider.init(site, variant)
+        provider._site = await provider.init(ctx, site, variant)
 
       } catch (err) {
         provider._error = err
         console.warn(`[IB] An error occurred while loading from '${siteUrl}': ${err}. Default site will be used.`)
 
         // Re-init w/ builtins
-        await provider.init(DEFAULT_SITE, variant)
+        await provider.init(ctx, DEFAULT_SITE, variant)
 
       } finally {
         provider._state = LoadState.READY
@@ -93,11 +117,12 @@ export function getSiteProvider(opts?: InstantBanditOptions) {
 
     /**
     * Initializes from a site object provided locally
+    * @param ctx
     * @param site
     * @param select
     * @returns 
     */
-    init: async (site: Site, select?: string) => {
+    async init(ctx: InstantBanditContext, site: Site, select?: string) {
       try {
         if (!site || typeof site !== "object") {
           throw new Error(`Invalid site configuration`)
@@ -107,7 +132,7 @@ export function getSiteProvider(opts?: InstantBanditOptions) {
         provider._state = LoadState.SELECTING
         provider._site = Object.assign({}, site)
 
-        const { experiment, variant } = await provider.select(select)
+        const { experiment, variant } = await provider.select(ctx, select)
 
         provider._experiment = Object.assign({}, experiment)
         provider._variant = Object.assign({}, variant)
@@ -178,9 +203,10 @@ export function getSiteProvider(opts?: InstantBanditOptions) {
      * 
      * When running in a browser environment, the variant is saved in the session.
      * 
+     * @param ctx
      * @param selectVariant
      */
-    select: async (selectVariant?: string) => {
+    async select(ctx: InstantBanditContext, selectVariant?: string) {
       try {
         const { model: site } = provider
 
