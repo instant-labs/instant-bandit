@@ -80,13 +80,16 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
   }
 
   function markVariantPresented(ctx: InstantBanditContext) {
-    const { experiment, variant } = ctx 
+    const { experiment, variant } = ctx
     session.persistVariant(ctx, experiment.id, variant.name)
       .catch(err => console.info(`Session not saved`))
   }
 
   function handleError(err: Error | null = null, ib?: InstantBanditContext) {
-    if (!err) return
+    if (!err) {
+      return
+    }
+
     console.warn(`[IB] Component received error: ${err}`)
 
     if (onError) {

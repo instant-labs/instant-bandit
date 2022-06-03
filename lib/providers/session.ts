@@ -67,25 +67,26 @@ export function getLocalStorageSessionProvider(options: InstantBanditOptions): S
       if (!isBrowserEnvironment) {
         return
       }
+      if (experiment === DEFAULT_EXPERIMENT.id && variant === DEFAULT_VARIANT.name) {
+        return
+      }
+
+      const { site } = ctx
+      const storageKey = getLocalStorageKey(site.name)
+
+      const session = await provider.getOrCreateSession(ctx)
+
+      let variants = session.variants[experiment]
+      if (!exists(variants)) {
+        variants = session.variants[experiment] = []
+      }
+
+      if (variants.indexOf(variant) === -1) {
+        variants.push(variant)
+      }
+
 
       try {
-        if (experiment === DEFAULT_EXPERIMENT.id && variant === DEFAULT_VARIANT.name) {
-          return
-        }
-
-        const { site } = ctx
-        const storageKey = getLocalStorageKey(site.name)
-        const session = await provider.getOrCreateSession(ctx)
-
-        let variants = session.variants[experiment]
-        if (!exists(variants)) {
-          variants = session.variants[experiment] = []
-        }
-
-        if (variants.indexOf(variant) === -1) {
-          variants.push(variant)
-        }
-
         localStorage.setItem(storageKey, JSON.stringify(session))
       } catch (err) {
         provider.handlePossibleQuotaError(err)
@@ -106,13 +107,12 @@ export function getLocalStorageSessionProvider(options: InstantBanditOptions): S
      * Examines an error to see if it's a quota error from local/session storage
      */
     isQuotaError(err: DOMException): boolean {
-      if (!err) return false
+      if (!err) {
+        return false
+      }
+
       if (!exists(err.code)) {
-
-        // IE 8
-        if ((err as any).number === -2147024882) return true
-        else return false
-
+        return false
       } else {
         switch (err.code) {
 

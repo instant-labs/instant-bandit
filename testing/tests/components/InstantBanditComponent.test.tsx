@@ -128,7 +128,9 @@ describe("InstantBandit component", () => {
       await renderTest(
         <InstantBandit select="A">
           <Debug onEffect={({ ctx }) => {
-            if (!exists(ctx.loader.variant)) return
+            if (!exists(ctx.loader.variant)) {
+              return
+            }
 
             gotVariant = true
             expect(exists(ctx.loader.variant)).toBe(true)
