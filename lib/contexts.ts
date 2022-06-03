@@ -74,8 +74,8 @@ export const DEFAULT_BANDIT_OPTIONS: InstantBanditOptions = {
   sitePath: env(constants.VARNAME_SITE_PATH) ?? constants.DEFAULT_SITE_PATH,
   metricsPath: env(constants.VARNAME_METRICS_PATH) ?? constants.DEFAULT_METRICS_PATH,
   appendTimestamp: false,
-  batchSize: 10,
-  flushInterval: 50,
+  batchSize: 100,
+  flushInterval: 100,
   defaultAlgo: Algorithm.DEFAULT,
 
   // NOTE: These will need to be isomorphic for SSR

@@ -14,6 +14,7 @@ import { InstantBanditContext } from "../../../lib/contexts"
 import { SessionProvider } from "../../../lib/types"
 import { DEFAULT_EXPERIMENT } from "../../../lib/defaults"
 import { Experiment } from "../../../lib/models"
+import { DefaultMetrics } from "../../../lib/constants"
 
 
 describe("InstantBandit component", () => {
@@ -177,6 +178,32 @@ describe("InstantBandit component", () => {
       )
       expect(fetches).toStrictEqual(1)
       expect(callbackResult).toBeDefined()
+    })
+  })
+
+  describe("metrics", () => {
+    it("records an exposure on mount", async () => {
+      let pending = 0
+      await renderTest(
+        <InstantBandit onReady={ctx => {
+         pending = ctx.metrics.pending
+        }} />
+      )
+      expect(pending).toBe(1)
+    })
+
+    it("flushes metrics on unmount", async () => {
+      let flushes = 0
+      const component = await renderTest(
+        <InstantBandit onReady={ctx => {
+          jest.spyOn(ctx.metrics, "flush").mockImplementation(async () => {
+            ++flushes
+          })
+        }} />
+      )
+      expect(flushes).toBe(0)
+      component.unmount()
+      expect(flushes).toBe(1)
     })
   })
 })
