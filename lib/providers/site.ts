@@ -1,18 +1,41 @@
 
 import * as constants from "../constants"
-import { AlgorithmResults, SessionDescriptor, TimerLike, SelectionArgs, Selection, SiteProvider } from "../types"
+import {
+  LoadState,
+  SessionDescriptor,
+  Selection,
+  SiteProvider,
+  ProbabilityDistribution,
+} from "../types"
 import { Experiment, Site, Variant } from "../models"
-import { InstantBanditContext, DEFAULT_BANDIT_OPTIONS } from "../contexts"
-import { InstantBanditOptions, LoadState } from "../types"
-import { exists, isBrowserEnvironment } from "../utils"
-import { DEFAULT_ALGO_RESULTS, DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../defaults"
+import { InstantBanditContext } from "../contexts"
+import { env, exists, isBrowserEnvironment } from "../utils"
+import {
+  DEFAULT_EXPERIMENT,
+  DEFAULT_OPTIONS,
+  DEFAULT_SITE,
+  DEFAULT_VARIANT
+} from "../defaults"
 
 
-export function getSiteProvider(initOptions: Partial<InstantBanditOptions> = {}): SiteProvider {
-  const options = Object.assign({}, DEFAULT_BANDIT_OPTIONS, initOptions)
+export type SiteProviderOptions = {
+  baseUrl: string,
+  sitePath: string,
+  appendTimestamp?: boolean,
+}
+
+
+export const DEFAULT_SITE_PROVIDER_OPTIONS: SiteProviderOptions = {
+  ...DEFAULT_OPTIONS,
+  sitePath: env(constants.VARNAME_SITE_PATH) ?? constants.DEFAULT_SITE_PATH,
+  appendTimestamp: false,
+} as const
+Object.freeze(DEFAULT_SITE_PROVIDER_OPTIONS)
+
+
+export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}): SiteProvider {
+  const options = Object.assign({}, DEFAULT_SITE_PROVIDER_OPTIONS, initOptions)
   Object.freeze(options)
-  Object.seal(options.algorithms)
-  Object.seal(options.providers)
 
   let state = LoadState.PRELOAD
   let error = null
@@ -34,7 +57,6 @@ export function getSiteProvider(initOptions: Partial<InstantBanditOptions> = {})
     get model() { return site },
     get experiment() { return experiment },
     get variant() { return variant },
-    get session() { return options.providers.session },
     get state() { return state },
 
 
@@ -142,37 +164,6 @@ export function getSiteProvider(initOptions: Partial<InstantBanditOptions> = {})
       return site
     },
 
-    /**
-     * Selects a winning variant using a specific algorithm
-     * @param algoName
-     * @param params
-     * @returns
-     */
-    runAlgorithm: async <TAlgoParams = unknown>(algoName: string, params: TAlgoParams | null = null): Promise<AlgorithmResults> => {
-      const algo = options.algorithms[algoName]
-
-      if (!exists(algo)) {
-        console.warn(`[IB] Could not find implementation for selection algorithm '${algoName}'`)
-        return DEFAULT_ALGO_RESULTS
-      }
-
-      try {
-        const experiment = getActiveExperiment(site) ?? DEFAULT_EXPERIMENT
-        const { variants } = experiment
-        const args: SelectionArgs<TAlgoParams> = {
-          site,
-          algo: algoName,
-          params,
-          variants,
-        }
-
-        return algo.select(args)
-      } catch (err) {
-        error = err
-        console.warn(`[IB] There was an error selecting a variant: ${err}`)
-        return DEFAULT_ALGO_RESULTS
-      }
-    },
 
     /**
      * Selects the appropriate experiment and variant given a site.
@@ -198,7 +189,7 @@ export function getSiteProvider(initOptions: Partial<InstantBanditOptions> = {})
         let selection = selectVariant ?? site.select ?? undefined
         let experiment =
           getActiveExperiment(site, selection) ??
-          getDefaultExperiment(site, ) ??
+          getDefaultExperiment(site) ??
           DEFAULT_EXPERIMENT
 
         let variant: Variant | null = null
@@ -208,7 +199,9 @@ export function getSiteProvider(initOptions: Partial<InstantBanditOptions> = {})
           experiment = result.experiment
           variant = result.variant
         } else {
-          variant = await provider.selectWithAlgorithm(site)
+          const experiment = getActiveExperiment(site) ?? DEFAULT_EXPERIMENT
+          const { variants } = experiment
+          variant = selectWithProbabilities(experiment)
         }
 
         if (!variant) {
@@ -228,27 +221,6 @@ export function getSiteProvider(initOptions: Partial<InstantBanditOptions> = {})
 
         console.warn(`[IB] Error encountered while selecting variant '${selectVariant}': ${err}`)
         return { experiment: DEFAULT_EXPERIMENT, variant: DEFAULT_VARIANT }
-      }
-    },
-
-    /**
-    * Performs variant selection using an algorithm such as a multi-armed bandit.
-    * Returns the default variant if not found.
-    * Does not save the variant in the session.
-    * @param args 
-    * @param algo 
-    * @returns 
-    */
-    async selectWithAlgorithm<TArgs = unknown>(args?: TArgs, algo: string = DEFAULT_BANDIT_OPTIONS.defaultAlgo): Promise<Variant> {
-      const timeStart = new Date().getTime()
-      try {
-        const { metrics, pValue, winner } = await provider.runAlgorithm(algo, args)
-        return winner
-      } finally {
-        const timeEnd = new Date().getTime()
-        const elapsed = timeEnd - timeStart
-
-        // console.info(`[IB] Ran algorithm '${algo}' in ${elapsed} ms`)
       }
     },
 
@@ -288,6 +260,65 @@ export function getSiteProvider(initOptions: Partial<InstantBanditOptions> = {})
   }
 
   return provider
+}
+
+/**
+ * Selects a specific variant based on the probabilities expressed by the variants
+ * in the experiment
+ * @param experiment 
+ */
+export function selectWithProbabilities(experiment: Experiment): Variant | null {
+  const { variants } = experiment
+
+  const probs = balanceProbabilities(variants)
+  let winner: Variant | null = null
+  const rand = Math.random()
+  let cumulativeProb = 0.0
+
+  const sorted = Object.entries(probs).sort((a, b) => a[1] - b[1])
+
+  for (const pair of sorted) {
+    const [name, prob] = pair
+    cumulativeProb += prob
+    if (rand <= cumulativeProb) {
+      winner = variants.find(v => v.name === name)!
+      break
+    }
+  }
+
+  return winner
+}
+
+
+/**
+ * Balances variant probabilities, ensuring that don't exceed 1.0.
+ * If all probabilities are 0, gives them equal weight.
+ * If the sum is < 1, balances them so that the sum is 1.
+ * @param variants 
+ * @returns 
+ */
+export function balanceProbabilities(variants: Variant[]): ProbabilityDistribution {
+  const sum = variants.reduce((p, v) => p += v.prob ?? 0, 0)
+  const results: ProbabilityDistribution = {}
+
+  for (const v of variants) {
+    if (!exists(v.prob) || isNaN(v.prob!) || v.prob === 0) {
+      results[v.name] = 0
+    }
+
+    if (sum === 0) {
+      results[v.name] = parseFloat(
+        (1 / variants.length).toPrecision(constants.PROBABILITY_PRECISION)
+      )
+    } else {
+      const ratio = 1 / sum
+      results[v.name] = parseFloat(
+        (v.prob! * ratio).toPrecision(constants.PROBABILITY_PRECISION)
+      )
+    }
+  }
+
+  return results
 }
 
 export function getActiveExperiment(site: Site, variant?: string): Experiment {

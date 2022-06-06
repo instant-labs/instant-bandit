@@ -5,8 +5,8 @@ import fetchMock from "jest-fetch-mock"
 
 import { InstantBanditContext, createBanditContext } from "../../lib/contexts"
 import { MetricsBatch, MetricsSample } from "../../lib/models"
-import { InstantBanditOptions, MetricsProvider } from "../../lib/types"
-import { getHttpMetricsSink } from "../../lib/providers/metrics"
+import { MetricsProvider } from "../../lib/types"
+import { getHttpMetricsSink, HttpMetricsSinkOptions } from "../../lib/providers/metrics"
 import { exists } from "../../lib/utils"
 import { TEST_SITE_AB } from "../sites"
 import { DEFAULT_SITE } from "../../lib/defaults"
@@ -21,7 +21,7 @@ describe("metrics (client)", () => {
   let oldSendBeacon = navigator.sendBeacon
   let sendBeaconContent: Promise<string>
 
-  const TEST_OPTIONS: Partial<InstantBanditOptions> = {
+  const TEST_OPTIONS: Partial<HttpMetricsSinkOptions> = {
     batchSize: 10,
     flushInterval: 10,
   }

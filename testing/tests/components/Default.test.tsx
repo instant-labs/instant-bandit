@@ -28,6 +28,8 @@ describe("Default", () => {
 
   describe("visible", () => {
     it("when default variant implicitly selected", async () => {
+      fetchMock.resetMocks()
+      fetchMock.mockResponse(siteLoadResponse(defaults.DEFAULT_SITE))
       await renderTest(
         <InstantBandit>
           <Default>

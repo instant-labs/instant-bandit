@@ -1,5 +1,5 @@
 import { InstantBanditContext } from "../contexts"
-import { InstantBanditOptions, SessionDescriptor, SessionProvider } from "../types"
+import { SessionDescriptor, SessionProvider } from "../types"
 import { exists, isBrowserEnvironment } from "../utils"
 import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../defaults"
 
@@ -8,7 +8,7 @@ export function getLocalStorageKey(site: string) {
   return `site.${site}`
 }
 
-export function getLocalStorageSessionProvider(options: InstantBanditOptions): SessionProvider {
+export function getLocalStorageSessionProvider(): SessionProvider {
   let id: string | null = null
   return {
     get id() { return id },

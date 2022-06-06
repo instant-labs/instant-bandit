@@ -1,9 +1,9 @@
 import fetchMock from "jest-fetch-mock"
 
 import * as constants from "../../../lib/constants"
-import { AlgorithmImpl, AlgorithmResults, LoadState, SelectionArgs, SiteProvider } from "../../../lib/types"
-import { Experiment, Site, SiteMeta, Variant } from "../../../lib/models"
-import { InstantBanditContext, createBanditContext, DEFAULT_BANDIT_OPTIONS } from "../../../lib/contexts"
+import { LoadState, SiteProvider } from "../../../lib/types"
+import { Experiment, Site, Variant } from "../../../lib/models"
+import { InstantBanditContext, createBanditContext } from "../../../lib/contexts"
 import { siteErrorResponse, siteLoadResponse } from "../../test-utils"
 import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../../../lib/defaults"
 import { TEST_SITE_A, TEST_SITE_AB, TEST_SITE_B } from "../../sites"
@@ -307,46 +307,6 @@ describe("InstantBanditContext", () => {
       expectNonBuiltinExperimentInstance(experiment)
       expect(variant).toStrictEqual(site.experiments[2].variants[0])
       expect(variant.props!.correct).toBe(true)
-    })
-
-    describe("algorithmic", () => {
-      let algoRuns = 0
-
-      beforeEach(() => {
-        algoRuns = 0
-        ctx = createBanditContext({
-          algorithms: {
-            [DEFAULT_BANDIT_OPTIONS.defaultAlgo]: {
-              async select(args: SelectionArgs) {
-                ++algoRuns
-                return dummyResults
-              },
-            },
-          },
-        })
-      })
-
-      const dummyResults: AlgorithmResults = {
-        metrics: {},
-        pValue: 0,
-        winner: { name: "dummy-variant" },
-      }
-
-      it("invokes the bandit algorithm at load time", async () => {
-        await loader.load(ctx, )
-        expect(count).toBe(1)
-        expect(loader.variant?.name === "dummy-variant")
-      })
-
-      it("does not invoke the specified algorithm if a selection is specified", async () => {
-        await loader.init(ctx, {
-          name: "test",
-          select: "specific-variant",
-          experiments: []
-        })
-        expect(count).toBe(0)
-        expect(loader.variant?.name === "dummy-variant")
-      })
     })
   })
 

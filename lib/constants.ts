@@ -22,6 +22,7 @@ export const PARAM_TIMESTAMP = "ts"
 export const PARAM_SELECT = "select"
 export const HEADER_SESSION_ID = "x-ib-session"
 
+export const PROBABILITY_PRECISION = 4
 
 /**
  * Metrics tracked by Instant Bandit by default

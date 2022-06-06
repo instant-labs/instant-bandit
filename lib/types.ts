@@ -18,12 +18,8 @@ export type InstantBanditOptions = {
   baseUrl: string
   sitePath: string
   metricsPath: string
-  appendTimestamp: boolean
-  batchSize: number
-  flushInterval: number
-  defaultAlgo: Algorithm | string
+  appendTimestamp?: boolean
   providers: Providers
-  algorithms: Algorithms
 }
 
 export type AlgorithmImpl<TAlgoArgs = unknown> = {

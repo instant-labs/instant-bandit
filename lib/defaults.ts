@@ -1,8 +1,16 @@
 import * as constants from "./constants"
 import { AlgorithmResults } from "./types"
 import { SiteMeta } from "./models"
-import { deepFreeze } from "./utils"
+import { deepFreeze, env } from "./utils"
 
+
+export type BaseOptions = {
+  baseUrl: string
+}
+
+export const DEFAULT_OPTIONS: BaseOptions = {
+  baseUrl: env(constants.VARNAME_BASE_URL) ?? constants.DEFAULT_BASE_URL,
+}
 
 /**
  * 

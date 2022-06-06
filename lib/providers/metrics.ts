@@ -1,12 +1,26 @@
 import * as constants from "../constants"
-import { InstantBanditOptions, Metric, MetricsProvider, TimerLike } from "../types"
+import { BaseOptions, DEFAULT_OPTIONS } from "../defaults"
+import { InstantBanditContext } from "../contexts"
+import { Metric, MetricsProvider, TimerLike } from "../types"
 import { MetricsBatch, MetricsSample } from "../models"
-import { exists } from "../utils"
-import { DEFAULT_BANDIT_OPTIONS, InstantBanditContext } from "../contexts"
+import { env, exists } from "../utils"
 
 
-export function getHttpMetricsSink(initOptions?: Partial<InstantBanditOptions>): MetricsProvider {
-  const options = Object.assign({}, DEFAULT_BANDIT_OPTIONS, initOptions)
+export type HttpMetricsSinkOptions = BaseOptions & {
+  metricsPath: string
+  batchSize: number
+  flushInterval: number
+}
+
+export const DEFAULT_METRICS_SINK_OPTIONS: HttpMetricsSinkOptions = {
+  ...DEFAULT_OPTIONS,
+  metricsPath: env(constants.VARNAME_METRICS_PATH) ?? constants.DEFAULT_METRICS_PATH,
+  batchSize: 10,
+  flushInterval: 100,
+}
+
+export function getHttpMetricsSink(initOptions?: Partial<HttpMetricsSinkOptions>): MetricsProvider {
+  const options = Object.assign({}, DEFAULT_METRICS_SINK_OPTIONS, initOptions)
   const items: MetricsSample[] = []
   let flushTimer: TimerLike | null = null
 
