@@ -213,9 +213,10 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
         // Selection precedence:
         // 1. Explicit (i.e. specified on props)
         // 2. Specified in site object (via the "select" field)
-        // 3. Algorithmic (e.g. multi-armed bandit)
-        // 4. Fallback to default variant in configured experiment (should one exist)
-        // 5. Fallback to default variant in builtin experiment
+        // 3. Session (display previously presented variant)
+        // 4. Probabilistic (use probabilities computed on the server)
+        // 5. Fallback to default variant in configured experiment (should one exist)
+        // 6. Fallback to default variant in builtin experiment
 
         let selection = selectVariant ?? site.select ?? undefined
         let experiment =
@@ -224,13 +225,23 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
           DEFAULT_EXPERIMENT
 
         let variant: Variant | null = null
+        const { session } = ctx
 
         if (exists(selection)) {
           const result = provider.selectSpecific(experiment, selection!)
           experiment = result.experiment
           variant = result.variant
-        } else {
-          variant = await provider.selectWithAlgorithm(site)
+        } else if (session) {
+          const userSession = await session.getOrCreateSession(ctx)
+          const { variants } = userSession
+          const variantsSeenForExperiment = variants?.[experiment.id]
+          const previouslySeenVariant = variantsSeenForExperiment?.reverse()[0]
+          variant = experiment.variants.find(v => v.name === previouslySeenVariant) ?? null
+        }
+
+        if (!variant) {
+          const { variants } = experiment
+          variant = selectWithProbabilities(experiment)
         }
 
         if (!variant) {
