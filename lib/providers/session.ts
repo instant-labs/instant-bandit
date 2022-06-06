@@ -96,10 +96,13 @@ async function persistVariant(ctx: InstantBanditContext, experiment: string, var
     variants = session.variants[experiment] = []
   }
 
-  if (variants.indexOf(variant) === -1) {
-    variants.push(variant)
+  // Put the most recently presented variant at the end
+  const ix = variants.indexOf(variant)
+  if (ix > -1) {
+    variants.splice(ix, 1)
   }
 
+  variants.push(variant)
 
   try {
     localStorage.setItem(storageKey, JSON.stringify(session))
