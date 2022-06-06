@@ -1,0 +1,32 @@
+#
+# This compose file is for development only
+#
+version: "3.8"
+
+services:
+
+  # For development
+  redis:
+    image: redis:7.0.0-alpine
+    volumes:
+    - redis:/var/lib/redis/
+
+    entrypoint:
+      - 'redis-server'
+      - '--appendonly yes'
+
+    ports:
+      - "${IB_REDIS_PORT-6379}:6379"
+
+  # For automated tests
+  redis-testing:
+    image: redis:7.0.0-alpine
+    entrypoint:
+      - 'redis-server'
+      - '--appendonly no'
+
+    ports:
+      - "6380:6379"
+
+volumes:
+  redis:
