@@ -8,24 +8,20 @@ import { exists, isBrowserEnvironment } from "../utils"
 import { DEFAULT_ALGO_RESULTS, DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../defaults"
 
 
-export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
-  const providerOptions = Object.assign({}, DEFAULT_BANDIT_OPTIONS, opts)
-  Object.freeze(providerOptions)
-  Object.seal(providerOptions.algorithms)
-  Object.seal(providerOptions.providers)
+export function getSiteProvider(initOptions: Partial<InstantBanditOptions> = {}): SiteProvider {
+  const options = Object.assign({}, DEFAULT_BANDIT_OPTIONS, initOptions)
+  Object.freeze(options)
+  Object.seal(options.algorithms)
+  Object.seal(options.providers)
+
+  let state = LoadState.PRELOAD
+  let error = null
+  let site = DEFAULT_SITE as Site
+  let experiment = DEFAULT_EXPERIMENT as Experiment
+  let variant = DEFAULT_VARIANT as Variant
 
   const provider = {
-    _state: LoadState.PRELOAD,
-    _options: providerOptions,
-    _error: null,
-    _timer: null as TimerLike | null,
-    _site: DEFAULT_SITE as Site,
-    _experiment: DEFAULT_EXPERIMENT as Experiment,
-    _variant: DEFAULT_VARIANT as Variant,
-
-    get error() {
-      return provider._error
-    },
+    get error() { return error },
 
     get origin() {
       if (isBrowserEnvironment) {
@@ -35,39 +31,23 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
       }
     },
 
-    get model() {
-      return provider._site ?? DEFAULT_SITE
-    },
+    get model() { return site },
+    get experiment() { return experiment },
+    get variant() { return variant },
+    get session() { return options.providers.session },
+    get state() { return state },
 
-    get experiment() {
-      return provider._experiment ?? DEFAULT_EXPERIMENT
-    },
-
-    get variant() {
-      return provider._variant ?? DEFAULT_VARIANT
-    },
-
-    get session() {
-      return provider._options.providers.session
-    },
-
-    get state() {
-      return provider._state
-    },
 
     async load(ctx: InstantBanditContext, variant?: string) {
       let siteUrl = ""
       try {
-        const { baseUrl, sitePath } = provider._options
+        const { baseUrl, sitePath } = options
 
         const url = new URL(sitePath, baseUrl)
         siteUrl = url.toString()
 
-        if (provider._options.appendTimestamp === true) {
-          url.searchParams.append(PARAM_TIMESTAMP, new Date().getTime() + "")
-        }
-        if (exists(variant)) {
-          url.searchParams.append(PARAM_SELECT, variant!)
+        if (options.appendTimestamp === true) {
+          url.searchParams.append(constants.PARAM_TIMESTAMP, new Date().getTime() + "")
         }
 
         // Attach our session ID if we have one
@@ -79,7 +59,7 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
         }
 
         siteUrl = url.toString()
-        provider._state = LoadState.WAIT
+        state = LoadState.WAIT
 
         const headers = new Headers()
         if (exists(sid)) {
@@ -98,20 +78,19 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
         }
 
 
-        const site = await resp.json() as Site
-
-        provider._site = await provider.init(ctx, site, variant)
+        const siteJson = await resp.json() as Site
+        site = await provider.init(ctx, siteJson, variant)
 
       } catch (err) {
-        provider._error = err
+        error = err
         console.warn(`[IB] An error occurred while loading from '${siteUrl}': ${err}. Default site will be used.`)
 
         // Re-init w/ builtins
         await provider.init(ctx, DEFAULT_SITE, variant)
 
       } finally {
-        provider._state = LoadState.READY
-        return provider._site
+        state = LoadState.READY
+        return site
       }
     },
 
@@ -122,42 +101,45 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
     * @param select
     * @returns 
     */
-    async init(ctx: InstantBanditContext, site: Site, select?: string) {
+    async init(ctx: InstantBanditContext, siteArg: Site, select?: string) {
       try {
-        if (!site || typeof site !== "object") {
+        if (!siteArg || typeof siteArg !== "object") {
           throw new Error(`Invalid site configuration`)
         }
 
-        provider._error = null
-        provider._state = LoadState.SELECTING
-        provider._site = Object.assign({}, site)
+        error = null
+        state = LoadState.SELECTING
+        site = Object.assign({}, siteArg)
 
-        const { experiment, variant } = await provider.select(ctx, select)
+        const {
+          experiment: selectedExperiment,
+          variant: selectedVariant,
+        } = await provider.select(ctx, select)
 
-        provider._experiment = Object.assign({}, experiment)
-        provider._variant = Object.assign({}, variant)
+        experiment = Object.assign({}, selectedExperiment)
+        variant = Object.assign({}, selectedVariant)
 
-        provider._state = LoadState.READY
+        state = LoadState.READY
 
-        return provider._site
+        return site
       } catch (err) {
-        provider._error = err
-        provider._site = DEFAULT_SITE
-        provider._experiment = DEFAULT_EXPERIMENT
-        provider._variant = DEFAULT_VARIANT
+        error = err
+        site = DEFAULT_SITE
+        experiment = DEFAULT_EXPERIMENT
+        variant = DEFAULT_VARIANT
         console.warn(`[IB] Error initializing. Default site will be used. Error was: ${err}`)
       } finally {
-        provider._state = LoadState.READY
+        state = LoadState.READY
       }
 
       // Just to be safe
-      if (!provider._site) {
-        provider._site = DEFAULT_SITE
-        provider._experiment = DEFAULT_EXPERIMENT
-        provider._variant = DEFAULT_VARIANT
+      if (!site) {
+        site = DEFAULT_SITE
+        experiment = DEFAULT_EXPERIMENT
+        variant = DEFAULT_VARIANT
       }
 
-      return provider._site
+      return site
     },
 
     /**
@@ -167,8 +149,7 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
      * @returns
      */
     runAlgorithm: async <TAlgoParams = unknown>(algoName: string, params: TAlgoParams | null = null): Promise<AlgorithmResults> => {
-      const site = provider._site
-      const algo = provider._options.algorithms[algoName]
+      const algo = options.algorithms[algoName]
 
       if (!exists(algo)) {
         console.warn(`[IB] Could not find implementation for selection algorithm '${algoName}'`)
@@ -176,7 +157,7 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
       }
 
       try {
-        const experiment = provider._getActiveExperiment() ?? DEFAULT_EXPERIMENT
+        const experiment = getActiveExperiment(site) ?? DEFAULT_EXPERIMENT
         const { variants } = experiment
         const args: SelectionArgs<TAlgoParams> = {
           site,
@@ -187,7 +168,7 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
 
         return algo.select(args)
       } catch (err) {
-        provider._error = err
+        error = err
         console.warn(`[IB] There was an error selecting a variant: ${err}`)
         return DEFAULT_ALGO_RESULTS
       }
@@ -200,15 +181,12 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
      * was performed server-side.
      * 
      * If the site has no active experiment, the default will be used.
-     * 
-     * When running in a browser environment, the variant is saved in the session.
-     * 
+     *
      * @param ctx
      * @param selectVariant
      */
     async select(ctx: InstantBanditContext, selectVariant?: string) {
       try {
-        const { model: site } = provider
 
         // Selection precedence:
         // 1. Explicit (i.e. specified on props)
@@ -219,8 +197,8 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
 
         let selection = selectVariant ?? site.select ?? undefined
         let experiment =
-          provider._getActiveExperiment(selection) ??
-          provider._getDefaultExperiment() ??
+          getActiveExperiment(site, selection) ??
+          getDefaultExperiment(site, ) ??
           DEFAULT_EXPERIMENT
 
         let variant: Variant | null = null
@@ -237,16 +215,16 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
           variant = DEFAULT_VARIANT
         }
 
-        provider._experiment = experiment
-        provider._variant = variant
+        experiment = experiment
+        variant = variant
 
         return { experiment, variant }
 
       } catch (err) {
-        provider._error = err
-        provider._site = DEFAULT_SITE
-        provider._experiment = DEFAULT_EXPERIMENT
-        provider._variant = DEFAULT_VARIANT
+        error = err
+        site = DEFAULT_SITE
+        experiment = DEFAULT_EXPERIMENT
+        variant = DEFAULT_VARIANT
 
         console.warn(`[IB] Error encountered while selecting variant '${selectVariant}': ${err}`)
         return { experiment: DEFAULT_EXPERIMENT, variant: DEFAULT_VARIANT }
@@ -283,7 +261,6 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
      * @returns 
      */
     selectSpecific(experiment: Experiment, variant: string): Selection {
-      const site = provider._site
       let configuredDefaultExperiment: Experiment | undefined
 
       // Check in the specified experiment
@@ -308,30 +285,25 @@ export function getSiteProvider(opts?: InstantBanditOptions): SiteProvider {
         return { experiment: DEFAULT_EXPERIMENT, variant: DEFAULT_VARIANT }
       }
     },
-
-    _getActiveExperiment(variant?: string): Experiment {
-      const { model: site } = provider
-      let experiment = (site.experiments ?? [])
-        .filter(exp => !exists(variant) ? true : exp.variants.some(v => v.name === variant))
-        .filter(exp => exp.inactive !== true)[0]
-
-      // No active experiment? Look for an explicit default, falling back to the implicit default
-      // The implicit default is always considered active if we have no other alternative
-      if (!experiment) {
-        experiment = site.experiments.filter(exp => exp.id === constants.DEFAULT_EXPERIMENT_ID)?.[0]
-      }
-
-      return experiment ?? null
-    },
-
-    _getDefaultExperiment(): Experiment {
-      const { model: site } = provider
-      return site.experiments.filter(e => e.id === DEFAULT_EXPERIMENT.id)?.[0] ?? DEFAULT_EXPERIMENT
-    },
   }
 
   return provider
 }
 
-export const PARAM_TIMESTAMP = "ts"
-export const PARAM_SELECT = "select"
+export function getActiveExperiment(site: Site, variant?: string): Experiment {
+  let experiment = (site.experiments ?? [])
+    .filter(exp => !exists(variant) ? true : exp.variants.some(v => v.name === variant))
+    .filter(exp => exp.inactive !== true)[0]
+
+  // No active experiment? Look for an explicit default, falling back to the implicit default
+  // The implicit default is always considered active if we have no other alternative
+  if (!experiment) {
+    experiment = site.experiments.filter(exp => exp.id === constants.DEFAULT_EXPERIMENT_ID)?.[0]
+  }
+
+  return experiment ?? null
+}
+
+export function getDefaultExperiment(site: Site): Experiment {
+  return site.experiments.filter(e => e.id === DEFAULT_EXPERIMENT.id)?.[0] ?? DEFAULT_EXPERIMENT
+}

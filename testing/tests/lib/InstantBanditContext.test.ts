@@ -7,7 +7,6 @@ import { InstantBanditContext, createBanditContext, DEFAULT_BANDIT_OPTIONS } fro
 import { siteErrorResponse, siteLoadResponse } from "../../test-utils"
 import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../../../lib/defaults"
 import { TEST_SITE_A, TEST_SITE_AB, TEST_SITE_B } from "../../sites"
-import { PARAM_TIMESTAMP } from "../../../lib/providers/site"
 
 
 describe("InstantBanditContext", () => {
@@ -80,14 +79,14 @@ describe("InstantBanditContext", () => {
     it("does not include a timestamp by default", async () => {
       site = await loader.load(ctx)
       expect(count).toBe(1)
-      expect(url!.searchParams.get(PARAM_TIMESTAMP)).toBe(null)
+      expect(url!.searchParams.get(constants.PARAM_TIMESTAMP)).toBe(null)
     })
 
     it("includes a timestamp if specified", async () => {
       ctx = createBanditContext({ appendTimestamp: true })
       loader = ctx.loader
       site = await loader.load(ctx)
-      const ts = url!.searchParams.get(PARAM_TIMESTAMP)
+      const ts = url!.searchParams.get(constants.PARAM_TIMESTAMP)
       expect(count).toBe(1)
       expect(ts).toBeDefined()
       expect(parseInt(ts + "")).toBeGreaterThan(0)
