@@ -2,6 +2,17 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Attach server",
+      "type": "node",
+      "request": "attach",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "port": 9229
+    },
+    {
       "name": "Launch server",
       "type": "node-terminal",
       "request": "launch",
@@ -17,14 +28,21 @@
       "name": "Launch tests",
       "type": "node",
       "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**",
+      ],
       "runtimeArgs": [
-        "--inspect-brk",
+        "--inspect-brk=localhost:9230",
         "${workspaceRoot}/node_modules/.bin/jest",
-        "--runInBand"
+        "--runInBand",
+        "--time=648000",
+        "-t",
+        ""
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "port": 9229
+      "port": 9230
     },
     {
       "name": "Launch stack",
