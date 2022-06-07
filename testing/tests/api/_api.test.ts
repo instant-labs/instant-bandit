@@ -7,7 +7,7 @@ import { getBaseUrl } from "../../../lib/utils"
 const baseUrl = getBaseUrl()
 const apiUrl = baseUrl + "/api"
 
-describe("API", () => {
+describe.skip("API", () => {
   describe("_hello", () => {
     test("returns", async () => {
       const res = await fetch(`${apiUrl}/_hello`)

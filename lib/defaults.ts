@@ -26,6 +26,7 @@ export const DEFAULT_SITE = deepFreeze<SiteMeta>({
   experiments: [{
     id: DEFAULT_EXPERIMENT_ID,
     name: DEFAULT_EXPERIMENT_NAME,
+    pValue: 1,
     metrics: {},
     variants: [{
       name: DEFAULT_VARIANT_NAME,
