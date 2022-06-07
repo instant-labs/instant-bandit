@@ -10,6 +10,7 @@ import {
   MetricsBackend,
 } from "./server-types"
 import {
+  Experiment,
   ExperimentMeta,
   MetricsBatch,
   MetricsBucket,
@@ -25,27 +26,16 @@ import { normalizeOrigins } from "./server-utils"
 
 import { bandit } from "../bandit"
 import { getPValue } from "../pvalue"
-
+import { getRedisBackend } from "./backends/redis"
 
 
 export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
   clientOrigins: (env.IB_ORIGINS_WHITELIST ?? ""),
-
+  metrics: getRedisBackend(),
+  models: getStaticSiteBackend(),
 
   // STUB
-  metrics: {
-    async getMetricsBucket(siteName, experimentId, variantName: string) {
-      return {}
-    },
-    async getMetricsForSite(site, experiments): Promise<Map<Variant, MetricsBucket>> {
-      return new Map<Variant, MetricsBucket>()
-    },
-    async ingestBatch(req: ValidatedRequest, batch: MetricsBatch) {
-      log(batch)
-    }
-  },
   sessions: getStubSessionsBackend(),
-  models: getStaticSiteBackend(),
 }
 
 /**
@@ -115,9 +105,10 @@ export function createInstantBanditServer(initOptions?: Partial<InstantBanditSer
 /**
  * Computes probabilities required for variant selection and inlines them into a site configuration 
  */
-export async function embedProbabilities(req: ValidatedRequest, site: Site, metrics: MetricsBackend)
+export async function embedProbabilities(req: ValidatedRequest, origSite: Site, metrics: MetricsBackend)
   : Promise<SiteMeta> {
 
+  const site = JSON.parse(JSON.stringify(origSite))
   const { experiments } = site
   const variantMetrics = await metrics.getMetricsForSite(site, experiments)
 
@@ -143,10 +134,16 @@ export async function embedProbabilities(req: ValidatedRequest, site: Site, metr
       conversions[variant.name] = bucket!.setConversions ?? 0
     }
 
-    const [probs, pValue] = [
-      bandit(exposures, conversions || {}),
-      getPValue(exposures, conversions || {}),
-    ]
+    let probs: { [key: string]: number }
+    let pValue: number | null
+
+    if (Object.keys(exposures).length > 0 && Object.keys(conversions).length > 0) {
+      probs = bandit(exposures, conversions || {})
+      pValue = getPValue(exposures, conversions || {})
+    } else {
+      probs = {}
+      pValue = 1
+    }
 
     experiment.metrics = {}
     experiment.metrics.pValue = pValue!
