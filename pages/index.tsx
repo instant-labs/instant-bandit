@@ -1,8 +1,13 @@
 import { GetServerSideProps } from "next"
 import Head from "next/head"
+import { useCallback } from "react"
 
+import { Default } from "../components/Default"
 import { DemoComponent, demoExperimentId } from "../components/DemoComponent"
+import { InstantBandit } from "../components/InstantBanditComponent"
+import { Variant } from "../components/Variant"
 import { getProbabilities } from "../lib/db"
+import { useInstantBandit } from "../lib/hooks"
 import { sendConversion } from "../lib/lib"
 import { ProbabilityDistribution } from "../lib/types"
 import styles from "../styles/Home.module.css"
@@ -22,6 +27,26 @@ export default function Home(serverSideProps: Props) {
 
       <main className={styles.main}>
         <h1 className={styles.description}>Welcome to Instant Bandit</h1>
+        <InstantBandit>
+          <h1>
+            <Default>
+              Hello
+            </Default>
+            <Variant name="A">Variant A<br />
+              <TestButton>CLICK ME</TestButton>
+            </Variant>
+            <Variant name="B">Variant B<br />
+              <TestButton>CLICK ME</TestButton>
+            </Variant>
+            <Variant name="C">Variant C<br />
+              <TestButton>CLICK ME</TestButton>
+            </Variant>
+            <button onClick={() => {
+              localStorage.clear()
+              location.reload()
+            }}>Clear Session</button>
+          </h1>
+        </InstantBandit>
         <p>
           <DemoComponent
             preserveSession={false}
@@ -48,6 +73,7 @@ export default function Home(serverSideProps: Props) {
               )
             }}
           </DemoComponent>
+
         </p>
       </main>
 
@@ -60,6 +86,19 @@ export default function Home(serverSideProps: Props) {
         </a>
       </footer>
     </div>
+  )
+}
+
+export function TestButton(props) {
+  const ctx = useInstantBandit()
+  const { site, metrics, experiment, variant } = ctx
+
+  const onClick = useCallback(() => {
+    metrics.sinkEvent(ctx, "conversions")
+  }, [site, experiment, variant])
+
+  return (
+    <button onClick={onClick}>{props.children}</button>
   )
 }
 

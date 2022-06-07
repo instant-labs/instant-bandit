@@ -43,6 +43,7 @@ export interface ExperimentMeta extends Experiment {
   id: string
   name: string
   desc?: string
+  pValue: number
   metrics?: MetricsBucket
   variants: VariantMeta[]
 }
