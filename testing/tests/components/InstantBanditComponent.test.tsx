@@ -4,7 +4,7 @@
 import React from "react"
 import fetchMock from "jest-fetch-mock"
 
-import { CountMountsAndRenders, Debug, ExpectBanditReady, expectRenders, resetDebugHelpers } from "../../test-utils"
+import { CountMountsAndRenders, Debug, ExpectBanditReady, expectRenders, resetDebugHelpers, siteLoadResponse } from "../../test-utils"
 import { InstantBandit } from "../../../components/InstantBanditComponent"
 import { exists } from "../../../lib/utils"
 import { expectMounts, renderTest } from "../../test-utils"
@@ -12,7 +12,6 @@ import { TEST_SITE_AB } from "../../sites"
 import { Variant } from "../../../components/Variant"
 import { InstantBanditContext } from "../../../lib/contexts"
 import { SessionProvider } from "../../../lib/types"
-import { DEFAULT_EXPERIMENT } from "../../../lib/defaults"
 import { Experiment } from "../../../lib/models"
 
 
@@ -30,6 +29,7 @@ describe("InstantBandit component", () => {
   beforeEach(() => {
     fetches = 0
     resetDebugHelpers()
+    localStorage.clear()
   })
 
   function mockSiteResponses(count = 1) {
@@ -41,7 +41,6 @@ describe("InstantBandit component", () => {
     )
   }
 
-
   describe("mount", () => {
     it("invokes a fetch for the default config", async () => {
       mockSiteResponses()
@@ -50,9 +49,8 @@ describe("InstantBandit component", () => {
     })
 
     it("persists the chosen variant", async () => {
-      mockSiteResponses()
-
-      let markedB = false
+      fetchMock.resetMocks()
+      mockSiteResponses(1)
       let ctx: InstantBanditContext
       let session: SessionProvider
       let experiment: Experiment
@@ -177,6 +175,32 @@ describe("InstantBandit component", () => {
       )
       expect(fetches).toStrictEqual(1)
       expect(callbackResult).toBeDefined()
+    })
+  })
+
+  describe("metrics", () => {
+    it("records an exposure on mount", async () => {
+      let pending = 0
+      await renderTest(
+        <InstantBandit onReady={ctx => {
+         pending = ctx.metrics.pending
+        }} />
+      )
+      expect(pending).toBe(1)
+    })
+
+    it("flushes metrics on unmount", async () => {
+      let flushes = 0
+      const component = await renderTest(
+        <InstantBandit onReady={ctx => {
+          jest.spyOn(ctx.metrics, "flush").mockImplementation(async () => {
+            ++flushes
+          })
+        }} />
+      )
+      expect(flushes).toBe(0)
+      component.unmount()
+      expect(flushes).toBe(1)
     })
   })
 })

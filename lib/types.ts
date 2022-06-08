@@ -3,7 +3,7 @@ import { Experiment, MetricsBucket, MetricsSample, Site, Variant as VariantModel
 import { InstantBanditContext } from "./contexts"
 
 
-export interface InstantBanditProps {
+export type InstantBanditProps = {
   preserveSession?: boolean
   probabilities?: ProbabilityDistribution | null
   select?: string
@@ -14,29 +14,19 @@ export interface InstantBanditProps {
   onError?: (err?: Error, ctx?: InstantBanditContext) => void
 }
 
-export interface InstantBanditOptions {
+export type InstantBanditOptions = {
   baseUrl: string
   sitePath: string
   metricsPath: string
-  appendTimestamp: boolean
-  batchSize: number
-  flushInterval: number
-  defaultAlgo: Algorithm | string
+  appendTimestamp?: boolean
   providers: Providers
-  algorithms: Algorithms
 }
 
-
-export interface Scope {
-  siteName: string
-  variant: VariantModel | null
-}
-
-export interface AlgorithmImpl<TAlgoArgs = unknown> {
+export type AlgorithmImpl<TAlgoArgs = unknown> = {
   select<TAlgoArgs>(args: TAlgoArgs & SelectionArgs): Promise<AlgorithmResults>
 }
 
-export interface SelectionArgs<TAlgoParams = unknown> {
+export type SelectionArgs<TAlgoParams = unknown> = {
   site: Site
   algo: Algorithm | string
   params: TAlgoParams | null
@@ -62,26 +52,27 @@ export enum Algorithm {
 }
 
 export type Algorithms = Record<string, AlgorithmImpl>
-export interface AlgorithmResults {
+export type AlgorithmResults = {
   pValue: number
   metrics: MetricsBucket
   winner: VariantModel
 }
 
-export interface SessionProvider {
+export type SessionProvider = {
   id: string | null
   getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): Promise<SessionDescriptor>
   persistVariant(ctx: InstantBanditContext, experiment: string, variant: string): Promise<void>
-  hasSeen(ctx: InstantBanditContext,experiment: string, variant: string): Promise<boolean>
+  hasSeen(ctx: InstantBanditContext, experiment: string, variant: string): Promise<boolean>
 }
 
-export interface MetricsProvider {
-  sink(ctx: InstantBanditContext, metric: MetricsSample): void
-  sinkEvent(ctx: InstantBanditContext, name: string): void
-  flush(ctx: InstantBanditContext): Promise<void>
+export type MetricsProvider = {
+  readonly pending: number
+  sink(ctx: InstantBanditContext, metric: MetricsSample, flushImmediate?: boolean): void
+  sinkEvent(ctx: InstantBanditContext, name: string, payload?: Metric, flush?: boolean): void
+  flush(ctx: InstantBanditContext, flushAll?: boolean): Promise<void>
 }
 
-export interface SiteProvider {
+export type SiteProvider = {
   state: LoadState
   error: Error | null
   model: Site
@@ -103,7 +94,7 @@ export type Providers = {
  * Describes a user session, scoped per origin and site.
  * Includes the selected variant for the current site.
  */
-export interface SessionDescriptor {
+export type SessionDescriptor = {
   site: string | null
   variants: { [experiment: string]: string[] }
 
@@ -137,5 +128,5 @@ export type PValue = number
 export type TimerLike = any
 
 
-export type Metric = DefaultMetrics | string
-export type MetricEventPayload = string | number | object
+export type MetricName = DefaultMetrics | string
+export type Metric = string | number | object

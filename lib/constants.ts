@@ -18,8 +18,11 @@ export const VARNAME_BASE_URL_PUBLIC = NEXTJS_PUBLIC_PREFIX + VARNAME_BASE_URL
 export const VARNAME_SITE_PATH = "DEFAULT_SITE_PATH"
 export const VARNAME_METRICS_PATH = "DEFAULT_METRICS_PATH"
 
+export const PARAM_TIMESTAMP = "ts"
+export const PARAM_SELECT = "select"
 export const HEADER_SESSION_ID = "x-ib-session"
 
+export const PROBABILITY_PRECISION = 4
 
 /**
  * Metrics tracked by Instant Bandit by default

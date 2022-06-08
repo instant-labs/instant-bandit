@@ -1,8 +1,9 @@
-import { PropsWithChildren, useCallback, useState } from "react"
+import { PropsWithChildren, useCallback, useEffect, useState } from "react"
 
+import { DefaultMetrics } from "../lib/constants"
 import { InstantBanditProps, LoadState } from "../lib/types"
 import { InstantBanditContext, createBanditContext } from "../lib/contexts"
-import { useIsomorphicLayoutEffect } from "../lib/utils"
+import { isBrowserEnvironment, useIsomorphicLayoutEffect } from "../lib/utils"
 import { DEFAULT_SITE } from "../lib/defaults"
 
 
@@ -11,7 +12,10 @@ import { DEFAULT_SITE } from "../lib/defaults"
  */
 const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) => {
   const [ready, setReady] = useState(false)
-  const [loadState, setLoadState] = useState({ state: LoadState.PRELOAD })
+  const [loadState, setLoadState] = useState({
+    recordedExposure: false,
+    state: LoadState.PRELOAD,
+   })
   const [ctx, setBanditState] = useState(() => {
     const { options: config } = props || {}
     const ctx = createBanditContext(config)
@@ -34,7 +38,7 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
   })
 
   const { select, site: siteProp, onError, onReady } = props
-  const { loader, session, site, experiment, variant } = ctx
+  const { loader, metrics, session } = ctx
 
   // Kick off site loading ASAP
   if (loader && loadState.state === LoadState.PRELOAD) {
@@ -46,8 +50,8 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     initialize
 
       // This will invoke a layout effect, which will do our primary state update in
-      .then(() => setLoadState({ state: LoadState.READY }))
       .then(() => markVariantPresented(ctx))
+      .then(() => setLoadState({ recordedExposure: true, state: LoadState.READY }))
       .then(broadcastReadyState)
       .then(() => loader.error ? handleError(loader.error, ctx) : void 0)
       .catch(err => handleError(err, ctx))
@@ -74,15 +78,32 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     }
   }, [loader, loadState, onReady, ready, ctx])
 
+  // Flush any queued metrics
+  const flush = useCallback(() => {
+    try {
+      window.removeEventListener("beforeunload", flush)
+      document.removeEventListener("onvisibilitychange", flush)
+    }
+    finally {
+      metrics.flush(ctx, true).catch(err => void 0)
+    }
+  }, [ctx])
 
   function broadcastReadyState() {
     readyCallback()
   }
 
   function markVariantPresented(ctx: InstantBanditContext) {
+    if (!isBrowserEnvironment || loadState.recordedExposure === true) {
+      return
+    }
     const { experiment, variant } = ctx
     session.persistVariant(ctx, experiment.id, variant.name)
-      .catch(err => console.info(`Session not saved`))
+      .catch(err => console.debug(`[IB] Session not saved`))
+
+    // Track the exposure
+    metrics.sinkEvent(ctx, DefaultMetrics.EXPOSURES)
+    loadState.recordedExposure = true
   }
 
   function handleError(err: Error | null = null, ib?: InstantBanditContext) {
@@ -100,6 +121,12 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
       }
     }
   }
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", flush)
+    document.addEventListener("onvisibilitychange", flush)
+    return flush
+  }, [])
 
   // This state change happens synchronously before the next paint.
   // Arranging our state changes in order to do our biggest one here reduces flicker immensely.

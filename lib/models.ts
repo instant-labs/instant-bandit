@@ -6,7 +6,7 @@
  * 
  */
 
-import { MetricEventPayload } from "./types";
+import { Metric } from "./types";
 
 
 /**
@@ -81,17 +81,22 @@ export interface PropsBucket {
 
 /**
  * An individual metric sample to report to a metrics sink such as a Redis backend.
- * 
- * Samples are associated with experiments and variants and aggregated into the
- * metrics buckets on the server side.
  */
 export interface MetricsSample {
   ts: number
-  site: string
+  name: string
+  payload?: Metric
+}
+
+/**
+ * A batch of individual metrics to send to the server at once
+ */
+
+export interface MetricsBatch {
   session: string
-  origin: string
+  site: string
   experiment: string
   variant: string
-  name: string
-  payload?: MetricEventPayload
+  token?: string
+  entries: MetricsSample[]
 }

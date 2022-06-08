@@ -1,14 +1,17 @@
 import React from "react"
 
 import * as constants from "./constants"
-import { Algorithm, InstantBanditOptions, MetricsProvider, SessionProvider, SiteProvider } from "./types"
+import {
+  InstantBanditOptions,
+  MetricsProvider,
+  SessionProvider,
+  SiteProvider,
+} from "./types"
 import { Experiment, Site, Variant } from "./models"
-import { env, getBaseUrl } from "./utils"
-import { getDefaultVariantAlgorithm } from "./algos/default-variant"
-import { getHttpMetricsSink } from "./providers/metrics"
 import { getLocalStorageSessionProvider } from "./providers/session"
-import { getRandomVariantAlgorithm } from "./algos/random-variant"
 import { getSiteProvider } from "./providers/site"
+import { DEFAULT_SITE_PROVIDER_OPTIONS } from "./providers/site"
+import { DEFAULT_METRICS_SINK_OPTIONS, getHttpMetricsSink } from "./providers/metrics"
 
 
 export interface InstantBanditContext {
@@ -59,40 +62,24 @@ export function createBanditContext(options?: Partial<InstantBanditOptions>, mix
 }
 
 export function mergeBanditOptions(a: Partial<InstantBanditOptions>, b: Partial<InstantBanditOptions>) {
-  const { algorithms: algorithmsA, providers: providersA } = a
-  const { algorithms: algorithmsB, providers: providersB } = b
+  const { providers: providersA } = a
+  const { providers: providersB } = b
 
-  const algorithms = Object.assign({}, algorithmsA, algorithmsB)
   const providers = Object.assign({}, providersA, providersB)
-  const merged = Object.assign({}, a, b, { algorithms, providers })
+  const merged = Object.assign({}, a, b, { providers })
 
   return Object.freeze(merged)
 }
 
 export const DEFAULT_BANDIT_OPTIONS: InstantBanditOptions = {
-  baseUrl: getBaseUrl(),
-  sitePath: env(constants.VARNAME_SITE_PATH) ?? constants.DEFAULT_SITE_PATH,
-  metricsPath: env(constants.VARNAME_METRICS_PATH) ?? constants.DEFAULT_METRICS_PATH,
-  appendTimestamp: false,
-  batchSize: 10,
-  flushInterval: 50,
-  defaultAlgo: Algorithm.DEFAULT,
-
-  // NOTE: These will need to be isomorphic for SSR
+  ...DEFAULT_SITE_PROVIDER_OPTIONS,
+  ...DEFAULT_METRICS_SINK_OPTIONS,
   providers: {
     loader: options => getSiteProvider(options),
-    session: options => getLocalStorageSessionProvider(options),
+    session: options => getLocalStorageSessionProvider(),
     metrics: options => getHttpMetricsSink(options),
-  },
-  algorithms: {
-    [Algorithm.DEFAULT]: getDefaultVariantAlgorithm(),
-    [Algorithm.RANDOM]: getRandomVariantAlgorithm(),
-
-    // MAB goes here
-    // [Algorithm.MAB_EPSILON_GREEDY]: getEpsilonGreedyBanditAlgo(),
   },
 } as const
 Object.freeze(DEFAULT_BANDIT_OPTIONS)
-
 export const InstantBanditContext: React.Context<InstantBanditContext> =
   React.createContext<InstantBanditContext>(createBanditContext())

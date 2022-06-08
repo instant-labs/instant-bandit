@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { DEFAULT_BANDIT_OPTIONS, InstantBanditContext } from "../../lib/contexts"
+import { InstantBanditContext } from "../../lib/contexts"
 import { Site } from "../../lib/models"
 import { getLocalStorageSessionProvider, getLocalStorageKey } from "../../lib/providers/session"
 import { SessionProvider } from "../../lib/types"
@@ -16,7 +16,7 @@ describe("browser session provider", () => {
 
   beforeEach(() => {
     site = TEST_SITE_AB
-    provider = getLocalStorageSessionProvider(DEFAULT_BANDIT_OPTIONS)
+    provider = getLocalStorageSessionProvider()
     ctx = {
       site,
     } as InstantBanditContext
