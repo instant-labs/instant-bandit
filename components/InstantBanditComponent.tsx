@@ -20,7 +20,7 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     // Hook to switch variants on the fly for debugging
     ctx.select = async (variant) => {
       try {
-        const site = await loader.load(typeof variant === "string" ? variant : variant?.name)
+        const site = await loader.load(ctx, typeof variant === "string" ? variant : variant?.name)
         setBanditState({ ...ctx })
         return site
       } catch (err) {
@@ -34,7 +34,7 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
   })
 
   const { select, site: siteProp, onError, onReady } = props
-  const { loader } = ctx
+  const { loader, session, site, experiment, variant } = ctx
 
   // Kick off site loading ASAP
   if (loader && loadState.state === LoadState.PRELOAD) {
@@ -42,11 +42,12 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     // Note: Not calling setState for internal state. Prevents unwanted renders aka flicker
     loadState.state = LoadState.WAIT
 
-    const initialize = (siteProp ? loader.init(siteProp, select) : loader.load(select))
+    const initialize = (siteProp ? loader.init(ctx, siteProp, select) : loader.load(ctx, select))
     initialize
 
       // This will invoke a layout effect, which will do our primary state update in
       .then(() => setLoadState({ state: LoadState.READY }))
+      .then(() => markVariantPresented(ctx))
       .then(broadcastReadyState)
       .then(() => loader.error ? handleError(loader.error, ctx) : void 0)
       .catch(err => handleError(err, ctx))
@@ -73,12 +74,22 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     }
   }, [loader, loadState, onReady, ready, ctx])
 
+
   function broadcastReadyState() {
     readyCallback()
   }
 
+  function markVariantPresented(ctx: InstantBanditContext) {
+    const { experiment, variant } = ctx
+    session.persistVariant(ctx, experiment.id, variant.name)
+      .catch(err => console.info(`Session not saved`))
+  }
+
   function handleError(err: Error | null = null, ib?: InstantBanditContext) {
-    if (!err) return
+    if (!err) {
+      return
+    }
+
     console.warn(`[IB] Component received error: ${err}`)
 
     if (onError) {

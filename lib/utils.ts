@@ -9,7 +9,9 @@ import * as constants from "./constants"
  * @returns 
  */
 export function deepFreeze<T extends object>(obj: T, seen = new WeakMap<T, any>()) {
-  if (!exists(obj)) return obj
+  if (!exists(obj)) {
+    return obj
+  }
 
   seen.set(obj, true)
 

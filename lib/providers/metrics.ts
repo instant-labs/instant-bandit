@@ -4,7 +4,8 @@ import { MetricsSample } from "../models";
 
 export function getHttpMetricsSink(options: InstantBanditOptions) {
   const sink: MetricsProvider = {
-    push: async (metric: MetricsSample) => { },
+    sink: (ctx, metric) => { },
+    sinkEvent: (ctx, name) => { },
     flush: async () => { }
   }
 

@@ -9,6 +9,11 @@ import { InstantBandit } from "../../../components/InstantBanditComponent"
 import { exists } from "../../../lib/utils"
 import { expectMounts, renderTest } from "../../test-utils"
 import { TEST_SITE_AB } from "../../sites"
+import { Variant } from "../../../components/Variant"
+import { InstantBanditContext } from "../../../lib/contexts"
+import { SessionProvider } from "../../../lib/types"
+import { DEFAULT_EXPERIMENT } from "../../../lib/defaults"
+import { Experiment } from "../../../lib/models"
 
 
 describe("InstantBandit component", () => {
@@ -42,6 +47,29 @@ describe("InstantBandit component", () => {
       mockSiteResponses()
       await renderTest(<InstantBandit />)
       expect(fetches).toStrictEqual(1)
+    })
+
+    it("persists the chosen variant", async () => {
+      mockSiteResponses()
+
+      let markedB = false
+      let ctx: InstantBanditContext
+      let session: SessionProvider
+      let experiment: Experiment
+      await renderTest(
+        <InstantBandit select="B">
+          <Variant name="B">
+            <Debug onFirstEffect={info => {
+              ctx = info.ctx
+              session = ctx.session
+              experiment = ctx.experiment
+            }} />
+          </Variant>
+        </InstantBandit>
+      )
+
+      expect(await session!.hasSeen(ctx!, experiment!.id, "A")).toBe(false)
+      expect(await session!.hasSeen(ctx!, experiment!.id, "B")).toBe(true)
     })
 
     it("invokes multiple load requests for the same site", async () => {
@@ -100,7 +128,9 @@ describe("InstantBandit component", () => {
       await renderTest(
         <InstantBandit select="A">
           <Debug onEffect={({ ctx }) => {
-            if (!exists(ctx.loader.variant)) return
+            if (!exists(ctx.loader.variant)) {
+              return
+            }
 
             gotVariant = true
             expect(exists(ctx.loader.variant)).toBe(true)

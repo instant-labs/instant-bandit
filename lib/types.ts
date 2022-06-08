@@ -1,3 +1,4 @@
+import { DefaultMetrics } from "./constants"
 import { Experiment, MetricsBucket, MetricsSample, Site, Variant as VariantModel } from "./models"
 import { InstantBanditContext } from "./contexts"
 
@@ -68,14 +69,16 @@ export interface AlgorithmResults {
 }
 
 export interface SessionProvider {
-  getOrCreateSession(site: string, props?: Partial<SessionDescriptor>): Promise<SessionDescriptor>
-  persistVariant(site: string, experiment: string, variant: string)
-  hasSeen(site: string, experiment: string, variant: string)
+  id: string | null
+  getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): Promise<SessionDescriptor>
+  persistVariant(ctx: InstantBanditContext, experiment: string, variant: string): Promise<void>
+  hasSeen(ctx: InstantBanditContext,experiment: string, variant: string): Promise<boolean>
 }
 
 export interface MetricsProvider {
-  push(metric: MetricsSample): void
-  flush(): Promise<void>
+  sink(ctx: InstantBanditContext, metric: MetricsSample): void
+  sinkEvent(ctx: InstantBanditContext, name: string): void
+  flush(ctx: InstantBanditContext): Promise<void>
 }
 
 export interface SiteProvider {
@@ -84,9 +87,9 @@ export interface SiteProvider {
   model: Site
   experiment: Experiment
   variant: VariantModel
-  load(variant?: string): Promise<Site>
-  init(site: Site, select?: string): Promise<Site>
-  select(selectVariant?: string): Promise<Selection>
+  load(ctx: InstantBanditContext, variant?: string): Promise<Site>
+  init(ctx: InstantBanditContext, site: Site, select?: string): Promise<Site>
+  select(ctx: InstantBanditContext, selectVariant?: string): Promise<Selection>
 }
 
 export type ProviderFactory<T> = (options: InstantBanditOptions) => T
@@ -101,7 +104,6 @@ export type Providers = {
  * Includes the selected variant for the current site.
  */
 export interface SessionDescriptor {
-  origin: string
   site: string | null
   variants: { [experiment: string]: string[] }
 
@@ -133,3 +135,7 @@ export type PValue = number
 
 // Node and DOM typings for `setTimeout` / `setInterval` differ
 export type TimerLike = any
+
+
+export type Metric = DefaultMetrics | string
+export type MetricEventPayload = string | number | object
