@@ -1,19 +1,22 @@
-import { GetServerSideProps } from "next"
 import Head from "next/head"
+import { GetServerSideProps } from "next"
 import { useCallback } from "react"
 
 import { Default } from "../components/Default"
-import { DemoComponent, demoExperimentId } from "../components/DemoComponent"
 import { InstantBandit } from "../components/InstantBanditComponent"
+import { InstantBanditOptions } from "../lib/types"
 import { Variant } from "../components/Variant"
-import { getProbabilities } from "../lib/db"
 import { useInstantBandit } from "../lib/hooks"
-import { sendConversion } from "../lib/lib"
-import { ProbabilityDistribution } from "../lib/types"
+import { serverSideRenderedSite } from "./bandit-server"
+import { HEADER_SESSION_ID } from "../lib/constants"
 import styles from "../styles/Home.module.css"
 
-export default function Home(serverSideProps: Props) {
+
+const siteName = "demo"
+
+export default function Home(serverSideProps: InstantBanditOptions) {
   return (
+
     <div className={styles.container}>
       <Head>
         <title>Instant Bandit</title>
@@ -23,73 +26,48 @@ export default function Home(serverSideProps: Props) {
           // See https://css-tricks.com/emojis-as-favicons/
           href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>"
         />
+        <link rel="preload" href={`/api/sites/${siteName}`} as="fetch" crossOrigin="anonymous" />
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.description}>Welcome to Instant Bandit</h1>
-        <InstantBandit>
-          <h1>
-            <Default>
-              Hello
-            </Default>
-            <Variant name="A">Variant A<br />
-              <TestButton>CLICK ME</TestButton>
-            </Variant>
-            <Variant name="B">Variant B<br />
-              <TestButton>CLICK ME</TestButton>
-            </Variant>
-            <Variant name="C">Variant C<br />
-              <TestButton>CLICK ME</TestButton>
-            </Variant>
-            <button onClick={() => {
-              localStorage.clear()
-              location.reload()
-            }}>Clear Session</button>
-          </h1>
-        </InstantBandit>
-        <p>
-          <DemoComponent
-            preserveSession={false}
-            // comment out this line to fetch probabilities client-side
-            probabilities={serverSideProps.probabilities}
-          >
-            {(props) => {
-              return (
-                <button
-                  className={styles.title}
-                  // AB test logic here
-                  style={{
-                    background: props.variant === "A" ? "red" : "green",
-                  }}
-                  onClick={() => {
-                    alert(`Your click will be recorded`)
-                    sendConversion({ experimentIds: [demoExperimentId], value: 1 })
-                    // also try:
-                    // sendConversion({ experimentIds: [experimentId], value: 99.99 })
-                  }}
-                >
-                  👉 Click me 👈
-                </button>
-              )
-            }}
-          </DemoComponent>
+        <h1 className={styles.header}>Welcome to Instant Bandit</h1>
+        <InstantBandit {...serverSideProps} siteName={siteName}>
+          <Default>
+            <h2>You are currently viewing the default variant</h2>
+            <SignUpButton>Add Conversion</SignUpButton>
+          </Default>
 
-        </p>
+          <Variant name="A">
+            <h2>You are currently viewing variant A</h2>
+            <SignUpButton>Add Conversion</SignUpButton>
+          </Variant>
+
+          <Variant name="B">
+            <h2>You are currently viewing variant B</h2>
+            <SignUpButton>Add Conversion</SignUpButton>
+          </Variant>
+
+          <Variant name="C">
+            <h2>You are currently viewing variant C</h2>
+            <SignUpButton>Add Conversion</SignUpButton>
+          </Variant>
+
+        </InstantBandit>
       </main>
 
       <footer className={styles.footer}>
-        <a href="/api/_hello" target="_blank">
-          Is the server running?
-        </a>
-        <a href="/api/_database" target="_blank">
-          Is the database running?
-        </a>
+        <button onClick={() => {
+          localStorage.clear()
+          document.cookie = `${HEADER_SESSION_ID}=""`
+          location.reload()
+        }}>Clear Session and Reload</button>
       </footer>
     </div>
+
   )
 }
 
-export function TestButton(props) {
+export function SignUpButton(props) {
   const ctx = useInstantBandit()
   const { site, metrics, experiment, variant } = ctx
 
@@ -98,16 +76,20 @@ export function TestButton(props) {
   }, [site, experiment, variant])
 
   return (
-    <button onClick={onClick}>{props.children}</button>
+    <button className={styles[variant.name]} onClick={onClick}>{props.children}</button>
   )
 }
 
-type Props = {
-  probabilities: ProbabilityDistribution | null
-}
-export const getStaticProps: GetServerSideProps<Props> = async () => {
-  const [probabilities] = await getProbabilities(demoExperimentId)
+
+// Comment out to have loading done in the browser
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { req, res } = context
+  const { site, select } = await serverSideRenderedSite(siteName, req, res)
+
   return {
-    props: { probabilities },
+    props: {
+      site,
+      select,
+    }
   }
 }

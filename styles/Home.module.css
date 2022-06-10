@@ -1,5 +1,4 @@
 .container {
-  padding: 0 2rem;
 }
 
 .main {
@@ -112,4 +111,47 @@
     width: 100%;
     flex-direction: column;
   }
+}
+
+
+.main button {
+  padding: 2em;
+  margin: 2em;
+  border: none;
+  font-weight: bold;
+  font-size: 1.2em;
+  color: white;
+  cursor: pointer;
+  align-items: center;
+  background-color: rgb(37, 99, 235);
+  border-radius: 8px;
+}
+
+.main button:hover,
+.main button:focus { 
+  background-color: #16437E;
+  color: #ffffff;
+}
+
+.main button:active {
+  background: #09223b;
+  color: rgb(255, 255, 255, .7);
+}
+
+.main button:disabled { 
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, .08);
+  color: rgba(0, 0, 0, .3);
+}
+
+.main button.A {
+  background: red;
+}
+
+.main button.B {
+  background: green;
+}
+
+.main button.C {
+  background: rgb(37, 99, 235)
 }
