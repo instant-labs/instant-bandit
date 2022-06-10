@@ -23,6 +23,6 @@
     "node_modules",
     "pages/_app.tsx",
     "pages/index.tsx",
-    "testing",
+    "testing"
   ]
 }
