@@ -1,4 +1,4 @@
-import { PropsWithChildren, useCallback, useEffect, useState } from "react"
+import React, { PropsWithChildren, useCallback, useEffect, useState } from "react"
 
 import { DefaultMetrics } from "../lib/constants"
 import { InstantBanditProps, LoadState } from "../lib/types"

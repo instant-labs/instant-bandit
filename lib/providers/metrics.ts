@@ -138,7 +138,7 @@ export function sendBatchViaBeacon(url: URL, batch: MetricsBatch) {
       type: "application/json; charset=UTF-8",
     }
   )
-  return navigator.sendBeacon(url, blob)
+  return navigator.sendBeacon(url + "", blob)
 }
 
 export async function sendBatchViaFetch(url: URL, sessionId: string, batch: MetricsBatch) {

@@ -1,4 +1,4 @@
-import { Counts, ProbabilityDistribution, Variant } from "./types"
+import { Counts, ProbabilityDistribution, VariantName } from "./types"
 
 /**
  * This is an epsilon-greedy bandit algorithm.
@@ -19,8 +19,8 @@ export function bandit(
 }
 
 export function otherProbabilities(
-  variants: Variant[],
-  winningVariant: Variant,
+  variants: VariantName[],
+  winningVariant: VariantName,
   epsilon: number
 ) {
   const otherVariants = variants.filter((v) => v !== winningVariant)

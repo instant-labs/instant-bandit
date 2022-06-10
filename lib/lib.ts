@@ -5,7 +5,7 @@ import {
   Counts,
   ProbabilitiesResponse,
   ProbabilityDistribution,
-  Variant,
+  VariantName,
 } from "./types"
 import { getBaseUrl } from "./utils"
 
@@ -19,7 +19,7 @@ const baseUrl = getBaseUrl() + "/api"
  */
 export async function fetchProbabilities(
   experimentId: string,
-  defaultVariant: Variant,
+  defaultVariant: VariantName,
   timeout = 1000 // NOTE: 100ms is needed to pass unit tests
 ): Promise<ProbabilityDistribution | null> {
   const controller = new AbortController()
@@ -51,8 +51,8 @@ export async function fetchProbabilities(
 // TODO: somehow make sendBeacon testable in node
 export const sendExposure = (
   experimentId: string,
-  variant: Variant, // selected
-  variants: Variant[] // all
+  variant: VariantName, // selected
+  variants: VariantName[] // all
 ): void => {
   try {
     if (navigator && navigator.sendBeacon) {
@@ -88,7 +88,7 @@ export function postData(url: string, data: Record<string, unknown>) {
 
 export function selectVariant(
   probabilities: ProbabilityDistribution,
-  defaultVariant: Variant
+  defaultVariant: VariantName
 ) {
   if (!Object.entries(probabilities).length) {
     return defaultVariant
@@ -118,7 +118,7 @@ export function selectVariant(
 
 export function setSessionVariant(
   experimentId: string,
-  selectedVariant: Variant
+  selectedVariant: VariantName
 ) {
   if (!selectedVariant) {
     console.error(
@@ -172,8 +172,8 @@ export async function sendConversion(options?: ConversionOptions) {
  * Get new counts from old counts.
  */
 export function incrementCounts(
-  variants: Variant[],
-  variant: Variant,
+  variants: VariantName[],
+  variant: VariantName,
   oldCounts: Counts
 ) {
   return Object.fromEntries(

@@ -1,3 +1,5 @@
+import React from "react"
+
 import { WithInstantBandit } from "./WithInstantBandit"
 
 type DemoComponentProps = {
