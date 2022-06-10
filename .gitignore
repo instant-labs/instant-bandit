@@ -34,3 +34,5 @@ yarn-error.log*
 
 # files marked local
 *.local.*
+
+dist/**
