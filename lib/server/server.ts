@@ -123,7 +123,7 @@ export async function embedProbabilities(req: ValidatedRequest, origSite: Site, 
         continue
       }
 
-      const bucket = variantMetrics.get(variant);
+      const bucket = variantMetrics.get(variant) as Record<constants.DefaultMetrics, number>
 
       // Show raw metrics in dev mode
       if (env.isDev()) {
@@ -131,7 +131,7 @@ export async function embedProbabilities(req: ValidatedRequest, origSite: Site, 
       }
 
       exposures[variant.name] = bucket!.exposures ?? 0
-      conversions[variant.name] = bucket!.setConversions ?? 0
+      conversions[variant.name] = bucket!.conversions ?? 0
     }
 
     let probs: { [key: string]: number }
