@@ -6,7 +6,7 @@ export const DEFAULT_EXPERIMENT_NAME = DEFAULT_NAME
 export const DEFAULT_VARIANT_NAME = DEFAULT_NAME
 export const DEFAULT_ORIGIN = "localhost"
 export const DEFAULT_BASE_URL = "http://localhost:3000"
-export const DEFAULT_SITE_PATH = "api/sites/default"
+export const DEFAULT_SITE_PATH = "api/sites"
 export const DEFAULT_METRICS_PATH = "api/metrics"
 
 // Any env vars prefixed with this are exposed to the browser

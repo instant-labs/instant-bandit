@@ -25,7 +25,7 @@ export interface InstantBanditContext {
   session: SessionProvider
 
   init: (site: Site) => Promise<Site>
-  load: (variant?: string) => Promise<Site>
+  load: (siteName?: string, variant?: string) => Promise<Site>
   select?: (variant?: Variant | string) => Promise<Site>
 }
 

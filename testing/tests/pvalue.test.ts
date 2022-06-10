@@ -1,6 +1,6 @@
 import { getPValue } from "../../lib/pvalue"
 
-describe("getPValue", () => {
+describe.skip("getPValue", () => {
   test("returns correct values", () => {
     const pValue = getPValue({ A: 30, B: 70 }, { A: 20, B: 40 })
     // verify with https://statpages.info/chisq.html and

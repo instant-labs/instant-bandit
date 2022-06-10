@@ -15,16 +15,16 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
   const [loadState, setLoadState] = useState({
     recordedExposure: false,
     state: LoadState.PRELOAD,
-   })
+  })
   const [ctx, setBanditState] = useState(() => {
-    const { options: config } = props || {}
+    const { options: config, siteName } = props || {}
     const ctx = createBanditContext(config)
     const { loader } = ctx
 
     // Hook to switch variants on the fly for debugging
     ctx.select = async (variant) => {
       try {
-        const site = await loader.load(ctx, typeof variant === "string" ? variant : variant?.name)
+        const site = await loader.load(ctx, siteName, typeof variant === "string" ? variant : variant?.name)
         setBanditState({ ...ctx })
         return site
       } catch (err) {
@@ -37,25 +37,9 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     return ctx as InstantBanditContext
   })
 
-  const { select, site: siteProp, onError, onReady } = props
+  const { select, site: siteProp, siteName, onError, onReady } = props
   const { loader, metrics, session } = ctx
 
-  // Kick off site loading ASAP
-  if (loader && loadState.state === LoadState.PRELOAD) {
-
-    // Note: Not calling setState for internal state. Prevents unwanted renders aka flicker
-    loadState.state = LoadState.WAIT
-
-    const initialize = (siteProp ? loader.init(ctx, siteProp, select) : loader.load(ctx, select))
-    initialize
-
-      // This will invoke a layout effect, which will do our primary state update in
-      .then(() => markVariantPresented(ctx))
-      .then(() => setLoadState({ recordedExposure: true, state: LoadState.READY }))
-      .then(broadcastReadyState)
-      .then(() => loader.error ? handleError(loader.error, ctx) : void 0)
-      .catch(err => handleError(err, ctx))
-  }
 
   // Rather than setting state as soon as we are ready, we defer it to the layout effect.
   const readyCallback = useCallback(() => {
@@ -98,8 +82,12 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
       return
     }
     const { experiment, variant } = ctx
-    session.persistVariant(ctx, experiment.id, variant.name)
-      .catch(err => console.debug(`[IB] Session not saved`))
+
+    try {
+      session.persistVariant(ctx, experiment.id, variant.name)
+    } catch (err) {
+      console.warn(`[IB] Session not saved`)
+    }
 
     // Track the exposure
     metrics.sinkEvent(ctx, DefaultMetrics.EXPOSURES)
@@ -122,6 +110,33 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     }
   }
 
+  // Kick off site loading ASAP
+  if (loader && loadState.state === LoadState.PRELOAD) {
+
+    // Note: Not calling setState for internal state. Prevents unwanted renders aka flicker
+    loadState.state = LoadState.WAIT
+
+    // Note: In order to load in SSR without flicker, we must initialize *synchronously*.
+    if (siteProp) {
+      loader.init(ctx, siteProp, select)
+      setLoadState({ recordedExposure: true, state: LoadState.READY })
+      markVariantPresented(ctx)
+      broadcastReadyState()
+      if (loader.error) {
+        handleError(loader.error, ctx)
+      }
+    } else {
+      loader.load(ctx, siteName, select)
+
+        // This will invoke a layout effect, which will do our primary state update in
+        .then(() => markVariantPresented(ctx))
+        .then(() => setLoadState({ recordedExposure: true, state: LoadState.READY }))
+        .then(broadcastReadyState)
+        .then(() => loader.error ? handleError(loader.error, ctx) : void 0)
+        .catch(err => handleError(err, ctx))
+    }
+  }
+
   useEffect(() => {
     window.addEventListener("beforeunload", flush)
     document.addEventListener("onvisibilitychange", flush)
@@ -130,7 +145,11 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
 
   // This state change happens synchronously before the next paint.
   // Arranging our state changes in order to do our biggest one here reduces flicker immensely.
-  useIsomorphicLayoutEffect(() => { ready && setBanditState(ctx) }, [])
+  useIsomorphicLayoutEffect(() => {
+    if (ready) {
+      setBanditState(ctx)
+    }
+  }, [])
 
   return (
     <InstantBanditContext.Provider value={ctx}>

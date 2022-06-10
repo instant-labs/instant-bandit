@@ -17,8 +17,8 @@ export function getLocalStorageSessionProvider(): SessionProvider {
     * Gets an existing session for the given site, creating one with default
     * properties if it does not exist.
     */
-    async getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>) {
-      const session = await getOrCreateSession(ctx, props)
+    getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): SessionDescriptor {
+      const session = getOrCreateSession(ctx, props)
       if (exists(session.sid!)) {
         id = session.sid!
       }
@@ -28,7 +28,7 @@ export function getLocalStorageSessionProvider(): SessionProvider {
     /**
      * Records a variant exposure in the session in order to show the same one next time
      */
-    async persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) {
+    persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) {
       return persistVariant(ctx, experiment, variant)
     },
 
@@ -43,7 +43,7 @@ export function getLocalStorageSessionProvider(): SessionProvider {
 }
 
 
-async function getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>) {
+function getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>) {
   if (!isBrowserEnvironment) {
     return Object.assign({}, props) as SessionDescriptor
   }
@@ -79,7 +79,7 @@ async function getOrCreateSession(ctx: InstantBanditContext, props?: Partial<Ses
   return session
 }
 
-async function persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) {
+function persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) {
   if (!isBrowserEnvironment) {
     return
   }
@@ -89,7 +89,7 @@ async function persistVariant(ctx: InstantBanditContext, experiment: string, var
 
   const { site } = ctx
   const storageKey = getLocalStorageKey(site.name)
-  const session = await getOrCreateSession(ctx)
+  const session = getOrCreateSession(ctx)
 
   let variants = session.variants[experiment]
   if (!exists(variants)) {
@@ -150,12 +150,12 @@ function isQuotaError(err: DOMException): boolean {
   }
 }
 
-async function hasSeen(ctx: InstantBanditContext, experiment: string, variant: string) {
+function hasSeen(ctx: InstantBanditContext, experiment: string, variant: string) {
   if (!isBrowserEnvironment) {
     return false
   }
 
-  const session = await getOrCreateSession(ctx)
+  const session = getOrCreateSession(ctx)
   const variants = (session.variants || {})[experiment]
   return exists(variants) && exists(variants.find(v => v === variant))
 }

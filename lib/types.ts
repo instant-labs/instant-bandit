@@ -6,6 +6,7 @@ import { InstantBanditContext } from "./contexts"
 export type InstantBanditProps = {
   preserveSession?: boolean
   probabilities?: ProbabilityDistribution | null
+  siteName?: string
   select?: string
   site?: Site
   debug?: boolean
@@ -60,9 +61,9 @@ export type AlgorithmResults = {
 
 export type SessionProvider = {
   id: string | null
-  getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): Promise<SessionDescriptor>
-  persistVariant(ctx: InstantBanditContext, experiment: string, variant: string): Promise<void>
-  hasSeen(ctx: InstantBanditContext, experiment: string, variant: string): Promise<boolean>
+  getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): SessionDescriptor
+  persistVariant(ctx: InstantBanditContext, experiment: string, variant: string): void
+  hasSeen(ctx: InstantBanditContext, experiment: string, variant: string): boolean
 }
 
 export type MetricsProvider = {
@@ -78,9 +79,9 @@ export type SiteProvider = {
   model: Site
   experiment: Experiment
   variant: VariantModel
-  load(ctx: InstantBanditContext, variant?: string): Promise<Site>
-  init(ctx: InstantBanditContext, site: Site, select?: string): Promise<Site>
-  select(ctx: InstantBanditContext, selectVariant?: string): Promise<Selection>
+  load(ctx: InstantBanditContext, siteName?: string, variant?: string): Promise<Site>
+  init(ctx: InstantBanditContext, site: Site, select?: string): Site
+  select(ctx: InstantBanditContext, selectVariant?: string): Selection
 }
 
 export type ProviderFactory<T> = (options: InstantBanditOptions) => T
