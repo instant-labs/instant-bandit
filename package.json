@@ -8,7 +8,7 @@
     "up": "yarn dc up -d",
     "rc": "yarn dc exec redis redis-cli",
     "rct": "yarn dc exec redis-testing redis-cli",
-    "dev": "yarn dc up -d && NODE_OPTIONS='--inspect=localhost:9229' next dev",
+    "dev": "NODE_OPTIONS='--inspect=localhost:9229' next dev && yarn dc up -d",
     "build": "next build",
     "start": "next start",
     "test": "jest --verbose"
