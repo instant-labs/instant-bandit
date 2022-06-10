@@ -61,10 +61,14 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend {
 
     // Note: ioredis 
     async connect(): Promise<void> {
-      if (["connecting", "connect", "ready"].includes(redis.status)) {
-        return
+      switch (redis.status) {
+        case "connecting":
+        case "connect":
+        case "ready":
+          return
+        default:
+          await redis.connect()
       }
-      await redis.connect()
     },
 
     async disconnect() {
