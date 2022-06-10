@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next"
 
 import env from "../../lib/server/environment"
 import { InstantBanditHeaders } from "../../lib/server/server-types"
-import { server } from "../bandit-server"
+import { server } from "../../server"
 import { validateUserRequest } from "../../lib/server/server-utils"
 import { DEFAULT_SITE } from "../../lib/defaults"
 

@@ -1,14 +1,21 @@
 {
-  "name": "@instant-domains/bandit",
+  "name": "@instantdomain/bandit",
   "version": "0.1.0",
   "types": "index.d.ts",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./server": "./server.js",
+    "./api": "./api.js"
+  },
   "files": [
     "lib",
     "components",
-    "pages/bandit-server.ts",
-    "pages/api/metrics.ts",
-    "pages/api/sites/[siteName].ts",
+    "api.js",
+    "server.js",
+    "pages/bandit-server.js",
+    "pages/api/metrics.js",
+    "pages/api/sites/[siteName].js",
     "docker-compose.dev.yml"
   ],
   "scripts": {

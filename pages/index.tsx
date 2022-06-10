@@ -7,7 +7,7 @@ import { InstantBandit } from "../components/InstantBanditComponent"
 import { InstantBanditOptions } from "../lib/types"
 import { Variant } from "../components/Variant"
 import { useInstantBandit } from "../lib/hooks"
-import { serverSideRenderedSite } from "./bandit-server"
+import { serverSideRenderedSite } from "../server"
 import { HEADER_SESSION_ID } from "../lib/constants"
 import styles from "../styles/Home.module.css"
 
@@ -32,6 +32,7 @@ export default function Home(serverSideProps: InstantBanditOptions) {
       <main className={styles.main}>
         <h1 className={styles.header}>Welcome to Instant Bandit</h1>
         <InstantBandit {...serverSideProps} siteName={siteName}>
+
           <Default>
             <h2>You are currently viewing the default variant</h2>
             <SignUpButton>Add Conversion</SignUpButton>
