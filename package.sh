@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-npm run build
 cp package.json ./dist
 cp README.md ./dist
 cp LICENSE ./dist
+cp docker-compose.dev.yml ./dist
 
 # or, if you need to have package.json "main" entry different,
 # e.g. for being able to use `npm link`, you need to replace "main" 
