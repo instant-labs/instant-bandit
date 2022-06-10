@@ -1,4 +1,4 @@
-export const DEFAULT_NAME = "@default"
+export const DEFAULT_NAME = "default"
 export const DEFAULT_SITE_ID = DEFAULT_NAME
 export const DEFAULT_SITE_NAME = DEFAULT_NAME
 export const DEFAULT_EXPERIMENT_ID = DEFAULT_NAME

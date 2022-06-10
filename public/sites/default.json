@@ -1,0 +1,13 @@
+{
+  "name": "default",
+  "experiments": [
+    {
+      "id": "default",
+      "variants": [
+        {
+          "name": "default"
+        }
+      ]
+    }
+  ]
+}
