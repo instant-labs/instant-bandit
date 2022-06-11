@@ -7,7 +7,7 @@ const defaults = {
   IB_ORIGINS_ALLOWLIST: process.env.NODE_ENV === "production" ? "" : DEFAULT_BASE_URL,
   IB_REDIS_HOST: "localhost",
   IB_REDIS_PORT: 6379,
-  IB_STATIC_SITES_PATH: "./",
+  IB_STATIC_SITES_PATH: "./public/sites",
   IB_MAX_METRICS_PAYLOAD_LEN: 1024,
 }
 

@@ -31,7 +31,7 @@ export default function Home(serverSideProps: InstantBanditOptions) {
 
       <main className={styles.main}>
         <h1 className={styles.header}>Welcome to Instant Bandit</h1>
-        <InstantBandit {...serverSideProps} siteName={siteName}>
+        <InstantBandit {...serverSideProps}>
 
           <Default>
             <h2>You are currently viewing the default variant</h2>
@@ -90,6 +90,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
       site,
+      siteName,
       select,
     }
   }
