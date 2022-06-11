@@ -25,7 +25,6 @@ import { getStaticSiteBackend } from "./backends/static-sites"
 import { normalizeOrigins } from "./server-utils"
 
 import { bandit } from "../bandit"
-import { getPValue } from "../pvalue"
 import { getRedisBackend } from "./backends/redis"
 
 
@@ -139,14 +138,11 @@ export async function embedProbabilities(req: ValidatedRequest, origSite: Site, 
 
     if (Object.keys(exposures).length > 0 && Object.keys(conversions).length > 0) {
       probs = bandit(exposures, conversions || {})
-      pValue = getPValue(exposures, conversions || {})
     } else {
       probs = {}
-      pValue = 1
     }
 
     experiment.metrics = {}
-    experiment.pValue = pValue!
 
     for (const key in probs) {
       let variant = variants.find(v => v.name === key)

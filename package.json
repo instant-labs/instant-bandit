@@ -31,7 +31,6 @@
     "package": "yarn clean && yarn build && sh package.sh"
   },
   "dependencies": {
-    "chi-square-p-value": "^1.0.5",
     "ioredis": "^5.0.6",
     "tslib": "^2.4.0"
   },
@@ -40,23 +39,17 @@
     "react-dom": "^18.1.0"
   },
   "devDependencies": {
-    "@keyv/redis": "^2.1.2",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@types/ioredis": "^4.28.10",
     "@types/jest": "^26.0.23",
-    "@types/keyv": "^3.1.1",
-    "@types/keyv__redis": "^1.3.1",
     "@types/node": "^15.6.1",
-    "@types/node-fetch": "^2.5.10",
     "@types/react": "^18.0.9",
     "babel-jest": "^27.0.2",
     "jest": "^27.0.3",
     "jest-fetch-mock": "^3.0.3",
     "jest-localstorage-mock": "^2.4.14",
-    "keyv": "^4.0.3",
     "next": "^12.1.6",
-    "node-fetch": "^2.6.1",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "typescript": "^4.3.2"
