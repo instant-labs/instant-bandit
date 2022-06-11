@@ -43,7 +43,7 @@ describe("utils", () => {
     it("takes the first cookie value when there are multiple", () => {
       expect(getCookie("foo", multipleCookies)).toBe("1")
     })
-    it("reads a session cookie when there are multiple", () => {
+    it("reads a session cookie", () => {
       expect(getCookie(HEADER_SESSION_ID, sessionCookie)).toBe(nullUuid)
     })
   })
