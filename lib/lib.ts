@@ -1,7 +1,6 @@
 import fetch from "node-fetch"
 
 import {
-  ConversionOptions,
   Counts,
   ProbabilitiesResponse,
   ProbabilityDistribution,
@@ -150,7 +149,7 @@ export function getSessionExperiments() {
 /**
  * Sends a conversion event to the server.
  */
-export async function sendConversion(options?: ConversionOptions) {
+export async function sendConversion(options?) {
   const { experimentIds, value } = options || {}
   let experiments = getSessionExperiments()
   if (experimentIds) {

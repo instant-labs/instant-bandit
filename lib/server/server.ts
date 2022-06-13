@@ -30,7 +30,7 @@ import { getRedisBackend } from "./backends/redis"
 
 
 export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
-  clientOrigins: (env.IB_ORIGINS_WHITELIST ?? ""),
+  clientOrigins: (env.IB_ORIGINS_ALLOWLIST ?? ""),
   metrics: getRedisBackend(),
   models: getStaticSiteBackend(),
 

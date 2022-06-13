@@ -17,9 +17,9 @@ cp node_modules/@instantdomain/bandit/docker-compose.dev.yml .
 docker-compose -f docker-compose.dev.yml up -d
 ```
 
-Create _.env.production.local_ and set your whitelist for testing `next build`. Example:
+Create _.env.production.local_ and set your allowlist for testing `next build`. Example:
 ```bash
-IB_ORIGINS_WHITELIST=https://example.com
+IB_ORIGINS_ALLOWLIST=https://example.com
 ```
 
 Create _pages/api/sites/[siteName].ts_ to serve sites. In that file:
