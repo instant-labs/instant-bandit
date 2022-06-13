@@ -1,6 +1,7 @@
 import { IncomingMessage, ServerResponse } from "http"
 import { NextApiRequestCookies } from "next/dist/server/api-utils"
 
+import { SessionDescriptor } from "./lib/types"
 import { createBanditContext, InstantBanditContext } from "./lib/contexts"
 import { createInstantBanditServer } from "./lib/server/server"
 import { validateUserRequest } from "./lib/server/server-utils"
@@ -37,21 +38,30 @@ export async function serverSideRenderedSite(siteName: string, req: IncomingMess
   }
 
   const { sessions } = server
-  const session = await sessions.getOrCreateSession(validatedRequest)
+  let session: SessionDescriptor | null = null
+
+  try {
+    session = await sessions.getOrCreateSession(validatedRequest)
+  } catch (err) {
+    console.log(`[IB] Error fetching session for '${sid}': ${err}`)
+  }
+
 
   const ctx = createBanditContext({
     providers: {
 
-      // Here we inject the session from the server's session store.
-      // When the variant is selected, we'll persist it in the server's session store.
+      //
+      // Here we inject the session from the server's asynchronous session store into
+      // the InstantBandit component's *synchronous* store. This is done for SSR.
+      //
+      // In order to complete the render entirely on the server and avoid client-side hydration,
+      // the component needs to render synchronously in one pass.
+      //
       session: options => {
         return {
           getOrCreateSession: () => session,
           hasSeen(ctx: InstantBanditContext, experiment: string, variant: string) { },
-          persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) {
-            sessions.markVariantSeen(session, experiment, variant)
-              .then(() => `Marked variant ${variant} see for user ${session.sid}`)
-          },
+          persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) {},
         }
       }
     } as any
@@ -60,9 +70,10 @@ export async function serverSideRenderedSite(siteName: string, req: IncomingMess
   const site = await ctx.load(siteName)
   const { experiment, variant } = ctx
 
-  await server.sessions.markVariantSeen(session, experiment.id, variant.name)
+  await server.sessions.markVariantSeen(session!, experiment.id, variant.name)
+    .catch(err => console.warn(`[IB]: Error marking variant '${variant.name}' seen: ${err}`))
 
-  res.setHeader(`Set-Cookie`, `${HEADER_SESSION_ID}=${session.sid}`)
+  res.setHeader(`Set-Cookie`, `${HEADER_SESSION_ID}=${session!.sid}`)
 
   return {
     site,

@@ -93,12 +93,6 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
         }
         const resp = await fetch(siteUrl, req)
 
-        // Pluck out a session ID
-        sid = getCookie(constants.HEADER_SESSION_ID)
-        if (exists(sid)) {
-          session = await ctx.session.getOrCreateSession(ctx, { sid: sid! })
-        }
-
 
         const siteJson = await resp.json() as Site
         site = await provider.init(ctx, siteJson, variant)

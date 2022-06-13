@@ -7,7 +7,7 @@ import { makeKey, toNumber } from "../../../lib/server/server-utils"
 import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../../../lib/defaults"
 import { exists } from "../../../lib/utils"
 import { MetricsBatch, MetricsSample } from "../../../lib/models"
-import { randomUUID } from "crypto"
+import { randomBytes, randomUUID } from "crypto"
 import { ValidatedRequest } from "../../../lib/server/server-types"
 import { MetricName } from "../../../lib/types"
 
@@ -85,6 +85,10 @@ describe("backend", () => {
   describe(makeKey, () => {
     it("throws on empty key", async () => {
       expect(() => makeKey([])).toThrow()
+    })
+
+    it("throws if key is too long", async () => {
+      expect(() => makeKey([randomString(constants.MAX_STORAGE_KEY_LENGTH + 1)])).toThrow()
     })
 
     it("joins key fragments correctly", async () => {
@@ -239,4 +243,4 @@ export async function incrementMetric(redis: Redis, site: string, eid: string, v
 }
 
 
-const randomString = (len = 8) => (Math.random() + 1).toString(36).substring(len)
+const randomString = (len = 8) => randomBytes(len).toString("ascii")

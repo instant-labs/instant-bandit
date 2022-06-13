@@ -23,6 +23,9 @@ export const PARAM_SELECT = "select"
 export const HEADER_SESSION_ID = "x-ib-session"
 
 export const PROBABILITY_PRECISION = 4
+export const UUID_LENGTH = 36
+export const MAX_STORAGE_KEY_LENGTH = 256
+export const MAX_STORAGE_VALUE_LENGTH = 1024
 
 /**
  * Metrics tracked by Instant Bandit by default

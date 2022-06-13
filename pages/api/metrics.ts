@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next"
 
-import env from "../../lib/server/environment"
-import { InstantBanditHeaders } from "../../lib/server/server-types"
 import { server } from "../../server"
-import { validateUserRequest } from "../../lib/server/server-utils"
-import { DEFAULT_SITE } from "../../lib/defaults"
+import { getSessionIdFromHeaders, validateUserRequest } from "../../lib/server/server-utils"
+import { HEADER_SESSION_ID } from "../../lib/constants"
+import { MetricsBatch } from "../.."
+import { InstantBanditHeaders, ServerSession } from "../../lib/server/server-types"
 
 
 // This endpoint accepts POST requests bearing batches of metrics to ingest.
@@ -14,27 +14,35 @@ export default async function handleMetricsRequest(req: NextApiRequest, res: Nex
 
   // TODO: Respond to CORS preflights
 
-  const { metrics, origins } = server
-  const { method } = req
+  const { metrics, origins, sessions } = server
+  const { method, headers } = req
+
+  // No session? Politely do nothing.
+  let sid = await getSessionIdFromHeaders(headers as InstantBanditHeaders)
+  if (!sid) {
+    res.status(200).json({ status: "OK" })
+    return
+  }
 
   if (method === "POST") {
+    const batch = req.body as MetricsBatch
 
-    // Server
     const validatedReq = await validateUserRequest({
-
-      // Note: To support navigator.sendBeacon, which has no custom headers
-      allowNoSession: true,
-
       allowedOrigins: origins,
-      headers: req.headers as InstantBanditHeaders,
+      headers,
       url: req.url,
-      siteName: req.query.siteName + "" ?? DEFAULT_SITE.name,
+      allowNoSession: false,
+      siteName: batch.site,
     })
 
-    // TODO: Validate session if one is specified
+    const session = await sessions.getOrCreateSession(validatedReq)
+    validatedReq.session = session as ServerSession
 
-    const results = await metrics.ingestBatch(validatedReq, req.body)
-
+    try {
+      await metrics.ingestBatch(validatedReq, req.body)
+    } finally {
+      res.setHeader(`Set-Cookie`, `${HEADER_SESSION_ID}=${session.sid}`)
+    }
     res.status(200).json({ status: "OK" })
     return
 

@@ -8,6 +8,7 @@ import {
   ValidatedRequest,
   ApiSiteResponse,
   MetricsBackend,
+  SessionsBackend,
 } from "./server-types"
 import {
   Experiment,
@@ -20,21 +21,19 @@ import {
   VariantMeta,
 } from "../models"
 import { getBaseUrl } from "../utils"
-import { getStubSessionsBackend } from "./backends/sessions"
 import { getStaticSiteBackend } from "./backends/static-sites"
 import { normalizeOrigins } from "./server-utils"
 
 import { bandit } from "../bandit"
-import { getRedisBackend } from "./backends/redis"
+import { getRedisBackend, RedisBackend } from "./backends/redis"
+
 
 
 export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
   clientOrigins: (env.IB_ORIGINS_ALLOWLIST ?? ""),
-  metrics: getRedisBackend(),
   models: getStaticSiteBackend(),
-
-  // STUB
-  sessions: getStubSessionsBackend(),
+  metrics: null as any,
+  sessions: null as any,
 }
 
 /**
@@ -44,38 +43,70 @@ export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
  * @returns 
  */
 export function createInstantBanditServer(initOptions?: Partial<InstantBanditServerOptions>): InstantBanditServer {
-  const options = Object.freeze(Object.assign({}, DEFAULT_SERVER_OPTIONS, initOptions))
+  const options = Object.assign({}, DEFAULT_SERVER_OPTIONS, initOptions)
+
+  // Only instantiate the Redis backend if needed
+  let defaultRedisBackend: RedisBackend & SessionsBackend | null
+  if (!options.metrics) {
+    options.metrics = defaultRedisBackend = getRedisBackend()
+  }
+  if (!options.sessions) {
+    options.sessions = defaultRedisBackend!
+      ? defaultRedisBackend
+      : (defaultRedisBackend = getRedisBackend())
+  }
+  Object.freeze(options)
+
   const { metrics, models, sessions } = options
   const devOrigins = env.isDev() ? [getBaseUrl()] : []
-  const allowedOrigins = normalizeOrigins(options.clientOrigins, devOrigins)
+  const allowedOrigins = normalizeOrigins(options.clientOrigins!, devOrigins)
   const backends = [metrics, models, sessions]
   let initialized = false
+  let initPromise: Promise<void> | null
+  let shutdownPromise: Promise<void> | null
 
   return {
     get metrics() { return metrics },
-    get models() { return models },
+    get models() { return models! },
     get sessions() { return sessions },
     get origins() { return allowedOrigins },
 
 
     async init() {
-      if (initialized) {
-        return
+      if (initPromise) {
+        return initPromise
       }
+
+      initPromise = Promise.all(
+        backends.filter(be => !!(be?.connect)).map(be => be!.connect!())
+      )
+        .catch(err => console.warn(`[IB]: Error initializing: ${err}`))
+        .then(() => void 0)
+
       log(`Server initializing....`)
-      await Promise.all(backends.filter(be => !!be.connect).map(be => be.connect!()))
-      initialized = true
+      await initPromise
       log(`Server initialized`)
+
+      initialized = true
+      return
     },
 
     async shutdown() {
-      if (!initialized) {
-        return
+      if (shutdownPromise) {
+        return shutdownPromise
       }
+
+      shutdownPromise = Promise.all(
+        backends.filter(be => !!(be?.disconnect)).map(be => be!.disconnect!())
+      )
+        .catch(err => console.warn(`[IB]: Error shutting down: ${err}`))
+        .then(() => void 0)
+
       log(`Server shutting down....`)
-      await Promise.all(backends.filter(be => !!be.disconnect).map(be => be.disconnect!()))
-      initialized = false
+      await shutdownPromise
       log(`Server shut down`)
+
+      initialized = false
     },
 
     /**
@@ -88,9 +119,8 @@ export function createInstantBanditServer(initOptions?: Partial<InstantBanditSer
       const session = await getOrCreateSession(req)
       const siteConfig = await getSiteConfig(req)
       const siteWithProbs = await embedProbabilities(req, siteConfig, metrics)
-
       const responseHeaders: OutgoingHttpHeaders = {
-        [constants.HEADER_SESSION_ID]: session.sid!,
+        "Set-Cookie": `${constants.HEADER_SESSION_ID}=${session.sid}`,
       }
 
       return {
