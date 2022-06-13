@@ -158,7 +158,7 @@ export function makeKey(pieces: string[]): string {
     return length
   }, 0)
 
-  return pieces.join(":")
+  return pieces.map(p => p.replaceAll(":", "_")).join(":")
 }
 
 /**
