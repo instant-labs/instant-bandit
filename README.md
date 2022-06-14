@@ -91,10 +91,10 @@ Thanks to this, we can be sure that the best variant is consistently shown the m
 In order to measure conversions and other metrics, Instant Bandit offers a convenient React hook: `useInstantBandit`. In our example, the code for `SignUpButton` can be augmented like so:
 
 ```TS
-const { metrics } = useInstantBandit
+const { metrics } = useInstantBandit();
 
 // inside of the click handler:
-metrics.sinkEvent(ctx, "conversions")
+metrics.sinkEvent(ctx, "conversions");
 ```
 
 That's it! The `useInstantBandit` hook knows which variant is being displayed, and the "conversions" metric is automatically updated for the correct variant when a user hits the SignUpButton presented to them.
