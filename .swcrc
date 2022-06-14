@@ -1,0 +1,13 @@
+{
+  "minify": true,
+  "jsc": {
+    "baseUrl": ".",
+    "minify": {
+      "compress": {},
+      "mangle": true
+    }
+  },
+  "exclude": [
+    ".d.ts"
+  ]
+}
