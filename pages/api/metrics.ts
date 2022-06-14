@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next"
 import { server } from "../../server"
 import { getSessionIdFromHeaders, validateUserRequest } from "../../lib/server/server-utils"
 import { HEADER_SESSION_ID } from "../../lib/constants"
-import { MetricsBatch } from "../.."
+import { MetricsBatch } from "../../lib/models"
 import { InstantBanditHeaders, ServerSession } from "../../lib/server/server-types"
 
 

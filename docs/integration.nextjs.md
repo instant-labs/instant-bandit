@@ -57,7 +57,7 @@ Create your own site with multiple variants. You can extend the default site or 
 
 ```JSON
 {
-  "name": "default",
+  "name": "demo",
   "experiments": [
     {
       "id": "default",
@@ -95,7 +95,7 @@ In your page, i.e. index.tsx:
 ```TSX
 import { InstantBandit, Default, Variant } from "@instantdomain/bandit";
 
-<InstantBandit siteName="default">
+<InstantBandit siteName="demo">
   <Default>Hello, world!</Default>
   <Variant name="A">Variant A</Variant>
   <Variant name="B">Variant B</Variant>
@@ -110,7 +110,7 @@ import { serverSideRenderedSite } from "@instantdomain/bandit/server";
 .
 .
 .
-const siteName = "default";
+const siteName = "demo";
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { req, res } = context;
   const { site, select } = await serverSideRenderedSite(siteName, req, res);
