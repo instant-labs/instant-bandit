@@ -60,12 +60,12 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
     get state() { return state },
 
 
-    async load(ctx: InstantBanditContext, variant?: string) {
+    async load(ctx: InstantBanditContext, siteName = DEFAULT_SITE.name, variant?: string) {
       let siteUrl = ""
       try {
         const { baseUrl, sitePath } = options
 
-        const url = new URL(sitePath, baseUrl)
+        const url = new URL([sitePath, siteName].join("/"), baseUrl)
         siteUrl = url.toString()
 
         if (options.appendTimestamp === true) {
@@ -123,7 +123,7 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
     * @param select
     * @returns 
     */
-    async init(ctx: InstantBanditContext, siteArg: Site, select?: string) {
+    init(ctx: InstantBanditContext, siteArg: Site, select?: string) {
       try {
         if (!siteArg || typeof siteArg !== "object") {
           throw new Error(`Invalid site configuration`)
@@ -136,7 +136,7 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
         const {
           experiment: selectedExperiment,
           variant: selectedVariant,
-        } = await provider.select(ctx, select)
+        } = provider.select(ctx, select)
 
         experiment = Object.assign({}, selectedExperiment)
         variant = Object.assign({}, selectedVariant)
@@ -164,19 +164,7 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
       return site
     },
 
-
-    /**
-     * Selects the appropriate experiment and variant given a site.
-     * 
-     * If the "select" property of the site model is set, it indicates that selection
-     * was performed server-side.
-     * 
-     * If the site has no active experiment, the default will be used.
-     *
-     * @param ctx
-     * @param selectVariant
-     */
-    async select(ctx: InstantBanditContext, selectVariant?: string) {
+    select(ctx: InstantBanditContext, selectVariant?: string): Selection {
       try {
 
         // Selection precedence:
@@ -201,7 +189,7 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
           experiment = result.experiment
           variant = result.variant
         } else if (session) {
-          const userSession = await session.getOrCreateSession(ctx)
+          const userSession = session.getOrCreateSession(ctx)
           const { variants } = userSession
           const variantsSeenForExperiment = variants?.[experiment.id]
           const previouslySeenVariant = variantsSeenForExperiment?.reverse()[0]

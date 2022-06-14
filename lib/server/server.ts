@@ -146,7 +146,7 @@ export async function embedProbabilities(req: ValidatedRequest, origSite: Site, 
     }
 
     experiment.metrics = {}
-    experiment.metrics.pValue = pValue!
+    experiment.pValue = pValue!
 
     for (const key in probs) {
       variants.find(v => v.name === key)!.prob = probs[key]
