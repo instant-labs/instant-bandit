@@ -75,12 +75,7 @@ export function getStaticSiteBackend(initOptions: Partial<JsonSiteBackendOptions
         site.name = siteName!
       }
 
-      if (!site) {
-        return DEFAULT_SITE
-      } else {
-        return site
-      }
-      return DEFAULT_SITE
+      return site
     }
   }
 }
