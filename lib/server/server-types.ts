@@ -61,6 +61,8 @@ export type MetricsBackend<TOptions = unknown> = BackendFunctions<TOptions> & {
  */
 export type SessionsBackend = BackendFunctions & {
   getOrCreateSession(req: ValidatedRequest): Promise<SessionDescriptor>
+  markVariantSeen(session: SessionDescriptor, experimentId: string, variantName: string)
+    : Promise<SessionDescriptor>
 }
 
 /**
@@ -103,7 +105,7 @@ export type ValidatedRequest = {
 /**
  * Request validation options for utilities
  */
- export type RequestValidationArgs = {
+export type RequestValidationArgs = {
   url: string | URL | undefined
   headers: IncomingHttpHeaders & InstantBanditHeaders
   allowedOrigins: Origins

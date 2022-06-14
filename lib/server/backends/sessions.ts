@@ -12,7 +12,7 @@ export function getStubSessionsBackend(): SessionsBackend {
 
     async getOrCreateSession(req: ValidatedRequest): Promise<SessionDescriptor> {
       const { headers, siteName } = req
-      let sid = headers[constants.HEADER_SESSION_ID]
+      let { sid } = req
 
       if (!exists(siteName)) {
         throw new Error(`Invalid session scope`)
@@ -36,5 +36,19 @@ export function getStubSessionsBackend(): SessionsBackend {
       }
       return session
     },
+
+    async markVariantSeen(session: SessionDescriptor, experimentId: string, variantName: string) {
+      let variants = session.variants[experimentId] || []
+
+      // Put the most recently presented variant at the end
+      const ix = variants.indexOf(variantName)
+      if (ix > -1) {
+        variants.splice(ix, 1)
+      }
+
+      variants.push(variantName)
+
+      return session
+    }
   }
 }

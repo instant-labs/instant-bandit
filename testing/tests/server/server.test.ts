@@ -101,6 +101,7 @@ describe("server", () => {
       async connect() { },
       async disconnect() { },
       async getOrCreateSession() { return void 0 as any },
+      async markVariantSeen() { return void 0 as any },
     }
   }
 

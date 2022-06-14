@@ -69,7 +69,9 @@ describe("metrics (client)", () => {
       fetchMock.mockResponseOnce(async req => {
         url = new URL(req.url)
         ++fetches
-        json = JSON.parse(req.body!.toString())
+        if (req.body) {
+          json = JSON.parse(req.body.toString())
+        }
         return "{}"
       })
 
