@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto"
+import { randomBytes, randomUUID } from "crypto"
 import ioredis, {
   ChainableCommander,
   Pipeline,
@@ -9,7 +9,7 @@ import ioredis, {
 
 import env from "../environment"
 import * as constants from "../../constants"
-import { InstantBanditOptions, Metric, MetricName, } from "../../types"
+import { InstantBanditOptions, Metric, MetricName, SessionDescriptor, } from "../../types"
 import {
   Experiment,
   MetricsBatch,
@@ -20,7 +20,7 @@ import {
   Variant,
   VariantMeta
 } from "../../models"
-import { ConnectingBackendFunctions, MetricsBackend, ValidatedRequest } from "../server-types"
+import { ConnectingBackendFunctions, MetricsBackend, SessionsBackend, ValidatedRequest } from "../server-types"
 import { makeKey, toNumber } from "../server-utils"
 import { exists } from "../../utils"
 
@@ -53,13 +53,12 @@ export type RedisBackend = MetricsBackend & ConnectingBackendFunctions & {
 
 type Options = Partial<InstantBanditOptions & RedisBackendOptions>
 
-export function getRedisBackend(initOptions: Options = {}): RedisBackend {
+export function getRedisBackend(initOptions: Options = {}): RedisBackend & SessionsBackend {
   const options = Object.freeze(Object.assign({}, DEFAULT_REDIS_OPTIONS, initOptions))
   const redis = new ioredis(options)
   return {
     get client() { return redis },
 
-    // Note: ioredis 
     async connect(): Promise<void> {
       switch (redis.status) {
         case "connecting":
@@ -96,6 +95,14 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend {
     async ingestBatch(req: ValidatedRequest, batch: MetricsBatch): Promise<void> {
       return ingestBatch(redis, req, batch)
     },
+
+    async getOrCreateSession(req: ValidatedRequest): Promise<SessionDescriptor> {
+      return getOrCreateSession(redis, req)
+    },
+
+    async markVariantSeen(session: SessionDescriptor, experimentId: string, variantName: string) {
+      return markVariantSeen(redis, session, experimentId, variantName)
+    },
   }
 }
 
@@ -115,6 +122,77 @@ export async function getMetricsForSite(redis: Redis, site: Site, experiments: E
   return variantBuckets
 }
 
+export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): Promise<SessionDescriptor> {
+  const { headers, siteName } = req
+  let { sid } = req
+
+  const sessionsSetKey = makeKey([siteName!, "sessions"])
+  let session: SessionDescriptor | null = null
+
+  if (exists(sid)) {
+    const sessionKey = makeKey([siteName!, "session", sid])
+    const sessionRaw = await redis.get(sessionKey)
+
+    if (!exists(sessionRaw)) {
+      console.warn(`[IB] Invalid or unknown session '${sessionKey}'`)
+      session = null
+    } else {
+      session = JSON.parse(sessionRaw!)
+      return session!
+    }
+  }
+
+  if (!session) {
+    if (!exists(siteName)) {
+      throw new Error(`Invalid session scope`)
+    }
+    sid = randomUUID()
+    session = {
+      sid,
+      site: siteName,
+      variants: {},
+    }
+
+    const serializedSession = JSON.stringify(session)
+    let pipe = redis.multi()
+    try {
+      const sessionKey = makeKey([siteName!, "session", session.sid!])
+      pipe.sadd(sessionsSetKey, session.sid!)
+      pipe.set(sessionKey, serializedSession)
+      await pipe.exec()
+    } catch (err) {
+      console.warn(`[IB] Error saving session '${sid}': ${err}`)
+    }
+  }
+
+  return session
+}
+
+export async function markVariantSeen(redis: Redis, session: SessionDescriptor, experimentId: string, variantName: string) {
+  let variants = session.variants[experimentId]
+  if (!exists(variants)) {
+    variants = session.variants[experimentId] = []
+  }
+
+  // Put the most recently presented variant at the end
+  const ix = variants.indexOf(variantName)
+  if (ix > -1) {
+    variants.splice(ix, 1)
+  }
+
+  variants.push(variantName)
+
+  const serializedSession = JSON.stringify(session)
+  const sessionKey = makeKey([session.site!, "session", session.sid!])
+  try {
+    await redis.set(sessionKey, serializedSession)
+  } catch (err) {
+    console.warn(`[IB] Error saving session '${session.sid}': ${err}`)
+  }
+
+  return session
+}
+
 /**
  * Ingests a batch of metrics, pipelining it into Redis
  * @param redis 
@@ -128,9 +206,8 @@ export async function ingestBatch(redis: Redis, req: ValidatedRequest, batch: Me
     throw new Error(`Missing session`)
   }
 
-  // A mismatch here would be quite suspicious
   if (exists(req.sid) && req.sid !== batch.session) {
-    throw new Error(`Session mismatch`)
+    console.warn(`Session mismatch: SID: ${req.sid} Batch: ${batch.session}`)
   }
 
   const { site, experiment, variant, entries: samples } = batch

@@ -68,7 +68,9 @@ export function getCookie(cookieName, str = ""): string | null {
     .split(";")
     .map(cookie => cookie.trim())
     .filter(cookie => cookie.indexOf(cookieName) === 0)
-    .map(cookie => cookie.substring(cookieName.length + 1, cookie.length))[0]
+    .map(cookie => cookie.substring(cookieName.length + 1, cookie.length))
+    .reverse()
+    [0]
     
   return cookie ?? null
 }

@@ -62,11 +62,20 @@ export function getStaticSiteBackend(initOptions: Partial<JsonSiteBackendOptions
           .catch(logError)
       }
 
-      const site = sites[siteName ?? DEFAULT_SITE.name]
-      if (site) {
-        return site
+      const siteNameOrDefault = siteName ?? DEFAULT_SITE.name
+      const site = sites[siteNameOrDefault]
+
+      if (!site) {
+        console.warn(`[IB] Could not find site '${siteNameOrDefault}'`)
+        return DEFAULT_SITE
       }
-      return DEFAULT_SITE
+
+      if (site.name !== siteName) {
+        console.warn(`[IB] Site '${siteName}'.json doesn't match name '${siteName}' in contents.`)
+        site.name = siteName!
+      }
+
+      return site
     }
   }
 }
@@ -100,7 +109,7 @@ export async function scanSites(folder: string, sites: { [name: string]: Site } 
     try {
       const jsonBuffer = await asyncfs.readFile(fullPath)
       const jsonStr = jsonBuffer.toString("utf-8")
-      const json = JSON.parse(jsonStr)
+      const json = JSON.parse(jsonStr) as Site
 
       sites[siteName] = json
     } catch (err) {

@@ -15,11 +15,12 @@ import { DEFAULT_SITE } from "../../../lib/defaults"
 // Session IDs are transmitted via headers. No cookies are used.
 
 export default async function handleSiteRequest(req: NextApiRequest, res: NextApiResponse) {
+  await server.init()
 
   // TODO: Respond to CORS preflights
 
   const { siteName: siteNameParam } = req.query
-  const { models, origins, sessions } = server
+  const { origins } = server
   const { url, headers } = req
 
   let siteName = DEFAULT_SITE.name
@@ -45,7 +46,7 @@ export default async function handleSiteRequest(req: NextApiRequest, res: NextAp
 
   // Relay headers
   Object.keys(responseHeaders)
-    .forEach(header => res.setHeader(header, responseHeaders[header] + ""))
+    .forEach(header => res.setHeader(header, responseHeaders[header]!))
 
   if (env.isDev()) {
     res.status(200).send(JSON.stringify(site, null, 2))

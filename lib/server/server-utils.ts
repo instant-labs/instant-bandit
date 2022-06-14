@@ -9,7 +9,7 @@ import {
 } from "./server-types"
 import { MetricsBatch } from "../models"
 import { SessionDescriptor } from "../types"
-import { exists } from "../utils"
+import { exists, getCookie } from "../utils"
 import { randomBytes, randomUUID } from "crypto"
 
 
@@ -88,11 +88,12 @@ export async function createNewClientSession(origin: string, site: string): Prom
 }
 
 export async function getSessionIdFromHeaders(headers: InstantBanditHeaders): Promise<string | null> {
-  const id = headers[constants.HEADER_SESSION_ID]
+  let id = getCookie(constants.HEADER_SESSION_ID, headers["cookie"])
+
   if (!exists(id)) {
-    return null
+    id = headers[constants.HEADER_SESSION_ID] ?? null
   }
-  return id!
+  return id
 }
 
 /**
@@ -119,7 +120,7 @@ export function validateMetricsBatch(req: ValidatedRequest, batch: MetricsBatch)
   const { sid } = req
 
   if (exists(sid) && sid !== batch.session) {
-    throw new Error(`Missing session`)
+    throw new Error(`Missing or mismatched session`)
   }
 
   return batch
@@ -138,14 +139,26 @@ export function randomId(len: number = 16) {
 /**
  * Prefixes a storage key with top-level key space identifiers, e.g. the site and experiment name
  * @param pieces 
- * @returns 
+ * @returns
  */
 export function makeKey(pieces: string[]): string {
   if (pieces.length < 1) {
     throw new Error(`Expected key fragments`)
   }
 
-  return pieces.join(":")
+  // Enforce a max key length
+  const length = pieces.reduce((length, piece, ix) => {
+    if (!piece) {
+      return length
+    }
+    length += piece.length + ix
+    if (length > constants.MAX_STORAGE_KEY_LENGTH) {
+      throw new Error(`Maximum storage key size exceeded at length ${length}`)
+    }
+    return length
+  }, 0)
+
+  return pieces.map(p => p.replaceAll(":", "_")).join(":")
 }
 
 /**

@@ -40,8 +40,8 @@ describe("utils", () => {
     it("trims leading whitespace", () => expect(getCookie("cookie-1", cookieStr)).toBe("foo"))
     it("trims trailing whitespace", () => expect(getCookie("cookie-2", cookieStr)).toBe("baz"))
     it("fetches all 3 cookies", () => expect(getCookie("cookie-3", cookieStr)).toBe("bar"))
-    it("takes the first cookie value when there are multiple", () => {
-      expect(getCookie("foo", multipleCookies)).toBe("1")
+    it("takes the last cookie value when there are multiple", () => {
+      expect(getCookie("foo", multipleCookies)).toBe("3")
     })
     it("reads a session cookie", () => {
       expect(getCookie(HEADER_SESSION_ID, sessionCookie)).toBe(nullUuid)
