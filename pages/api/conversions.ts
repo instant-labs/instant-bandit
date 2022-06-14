@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next"
 import { getConversions, getExposures, setConversions } from "../../lib/db"
 import { incrementCounts } from "../../lib/lib"
-import { Counts, Variant } from "../../lib/types"
+import { Counts, VariantName } from "../../lib/types"
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   let body = req.body
@@ -24,7 +24,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
 const incrementConversions = async ([experimentId, variant]: [
   string,
-  Variant
+  VariantName
 ]): Promise<[string, Counts]> => {
   const exposures = await getExposures(experimentId)
   if (!exposures || !exposures[variant]) {

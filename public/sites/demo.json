@@ -1,0 +1,28 @@
+{
+  "name": "default",
+  "experiments": [
+    {
+      "id": "default",
+      "inactive": true,
+      "variants": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "id": "demo",
+      "variants": [
+        {
+          "name": "A"
+        },
+        {
+          "name": "B"
+        },
+        {
+          "name": "C"
+        }
+      ]
+    }
+  ]
+}

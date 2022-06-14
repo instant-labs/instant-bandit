@@ -104,13 +104,9 @@ export type SessionDescriptor = {
   uid?: string
 }
 
-export type Variant = string
+export type VariantName = string
 export type Probability = number
-export type ProbabilityDistribution = Record<Variant, Probability>
-export type ConversionOptions = {
-  experimentIds?: string[] // whitelist of experiments to associate with the conversion
-  value?: number // optional value of the conversion
-}
+export type ProbabilityDistribution = Record<VariantName, Probability>
 
 export type Counts = {
   [variant: string]: number

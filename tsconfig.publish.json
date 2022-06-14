@@ -1,0 +1,30 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "outDir": "dist",
+    "declaration": true,
+    "noEmit": false,
+    "jsx": "react"
+  },
+  "include": [
+    "api.ts",
+    "index.ts",
+    "server.ts",
+    "lib",
+    "components",
+    "pages"
+  ],
+  "exclude": [
+    "lib/db.ts",
+    "lib/algos",
+    "lib/server",
+    "node_modules",
+    "pages/_app.tsx",
+    "pages/index.tsx",
+    "testing"
+  ]
+}

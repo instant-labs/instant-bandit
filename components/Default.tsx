@@ -1,4 +1,4 @@
-import { PropsWithChildren } from "react"
+import React, { PropsWithChildren } from "react"
 import { useInstantBandit } from "../lib/hooks"
 
 import * as constants from "../lib/constants"

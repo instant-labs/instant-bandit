@@ -1,4 +1,5 @@
-import { PropsWithChildren } from "react"
+import React, { PropsWithChildren } from "react"
+
 import { LoadState } from "../lib/types"
 import { useInstantBandit } from "../lib/hooks"
 

@@ -92,7 +92,7 @@ export type GenericRequest = {
 }
 
 /**
- * A request that has been validated to be well formed and matching an origin whitelist
+ * A request that has been validated to be well formed and matching an origin allowlist
  */
 export type ValidatedRequest = {
   sid: string

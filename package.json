@@ -1,28 +1,46 @@
 {
-  "name": "instant-bandit",
+  "name": "@instantdomain/bandit",
   "version": "0.1.0",
-  "private": true,
   "types": "index.d.ts",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./server": "./server.js",
+    "./api": "./api.js"
+  },
+  "files": [
+    "lib",
+    "components",
+    "api.js",
+    "server.js",
+    "pages/bandit-server.js",
+    "pages/api/metrics.js",
+    "pages/api/sites/[siteName].js",
+    "docker-compose.dev.yml"
+  ],
   "scripts": {
     "dc": "docker-compose -f docker-compose.dev.yml --env-file .env.local",
     "up": "yarn dc up -d",
     "rc": "yarn dc exec redis redis-cli",
     "rct": "yarn dc exec redis-testing redis-cli",
     "dev": "NODE_OPTIONS='--inspect=localhost:9229' next dev && yarn dc up -d",
-    "build": "next build",
+    "build": "tsc -p tsconfig.publish.json",
     "start": "next start",
-    "test": "jest --verbose"
+    "test": "jest --verbose",
+    "clean": "rm -rf dist",
+    "package": "yarn clean && yarn build && sh package.sh"
   },
   "dependencies": {
-    "@keyv/redis": "^2.1.2",
-    "chi-square-p-value": "https://github.com/gregdingle/chi-square-p-value.git",
+    "chi-square-p-value": "^1.0.5",
     "ioredis": "^5.0.6",
-    "keyv": "^4.0.3",
-    "next": "^12.1.6",
+    "tslib": "^2.4.0"
+  },
+  "peerDependencies": {
     "react": "^18.1.0",
     "react-dom": "^18.1.0"
   },
   "devDependencies": {
+    "@keyv/redis": "^2.1.2",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@types/ioredis": "^4.28.10",
@@ -36,7 +54,11 @@
     "jest": "^27.0.3",
     "jest-fetch-mock": "^3.0.3",
     "jest-localstorage-mock": "^2.4.14",
+    "keyv": "^4.0.3",
+    "next": "^12.1.6",
     "node-fetch": "^2.6.1",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
     "typescript": "^4.3.2"
   }
 }

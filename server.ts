@@ -1,11 +1,11 @@
 import { IncomingMessage, ServerResponse } from "http"
-
 import { NextApiRequestCookies } from "next/dist/server/api-utils"
-import { createBanditContext, InstantBanditContext } from "../lib/contexts"
-import { createInstantBanditServer } from "../lib/server/server"
-import { validateUserRequest } from "../lib/server/server-utils"
-import { exists } from "../lib/utils"
-import { HEADER_SESSION_ID } from "../lib/constants"
+
+import { createBanditContext, InstantBanditContext } from "./lib/contexts"
+import { createInstantBanditServer } from "./lib/server/server"
+import { validateUserRequest } from "./lib/server/server-utils"
+import { exists } from "./lib/utils"
+import { HEADER_SESSION_ID } from "./lib/constants"
 
 
 // New server with OOB defaults.

@@ -1,8 +1,11 @@
+import { DEFAULT_BASE_URL } from "../constants";
+
+
 // These are overlaid with process variables, if set
 const defaults = {
   IB_MODE: process.env.NODE_ENV,
-  IB_ORIGINS_WHITELIST: "",
-  IB_REDIS_HOST: "redis",
+  IB_ORIGINS_ALLOWLIST: process.env.NODE_ENV === "production" ? "" : DEFAULT_BASE_URL,
+  IB_REDIS_HOST: "localhost",
   IB_REDIS_PORT: 6379,
   IB_STATIC_SITES_PATH: "./",
   IB_MAX_METRICS_PAYLOAD_LEN: 1024,

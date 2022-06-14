@@ -16,9 +16,6 @@ import { randomBytes, randomUUID } from "crypto"
 /**
  * Normalizes an array of origins and produces a map for quick lookup.
  * Origin lookups are to prevent x-domain POST attacks and to enable proper CORS access.
- * @param originsArg 
- * @param injected
- * @param whitelist 
  * @returns 
  */
 export function normalizeOrigins(originsArg: string | string[], injected: string[] = []): Origins {
@@ -54,8 +51,8 @@ export async function validateUserRequest(args: RequestValidationArgs): Promise<
 
   // Null origins allowed by default
   if (origin !== null || requireOrigin === true) {
-    const matchesWhitelist = validateClientReportedOrigin(allowedOrigins, origin)
-    if (!matchesWhitelist) {
+    const allowed = validateClientReportedOrigin(allowedOrigins, origin)
+    if (!allowed) {
 
       // Intentionally vague on error messaging
       throw new Error(`Invalid Request`)
@@ -99,7 +96,7 @@ export async function getSessionIdFromHeaders(headers: InstantBanditHeaders): Pr
 }
 
 /**
- * Checks a client's reported "origin" header against a whitelist
+ * Checks a client's reported "origin" header against an allowlist
  * @param allowedOrigins 
  * @param origin 
  * @returns 
