@@ -3,7 +3,7 @@ import { BaseOptions, DEFAULT_OPTIONS } from "../defaults"
 import { InstantBanditContext } from "../contexts"
 import { Metric, MetricsProvider, TimerLike } from "../types"
 import { MetricsBatch, MetricsSample } from "../models"
-import { env, exists } from "../utils"
+import { env, exists, getCookie } from "../utils"
 
 
 export type HttpMetricsSinkOptions = BaseOptions & {
@@ -80,7 +80,7 @@ export function getHttpMetricsSink(initOptions?: Partial<HttpMetricsSinkOptions>
         : Math.min(items.length, batchSize)
 
       const entries = items.slice(0, count)
-      const sessionId = session.id ?? ""
+      const sessionId = session.id ?? getCookie(constants.HEADER_SESSION_ID) ?? ""
       const batch: MetricsBatch = {
         session: sessionId,
         site: site.name,
@@ -102,15 +102,10 @@ export function getHttpMetricsSink(initOptions?: Partial<HttpMetricsSinkOptions>
         } else {
           await sendBatchViaFetch(url, sessionId, batch)
         }
-
-        items.splice(0, count)
-
       } catch (err) {
-
-        // In the event of an error, metrics remain in the queue
         console.warn(`Error occurred while flushing metrics: ${err}`)
-
       } finally {
+        items.splice(0, count)
 
         if (flushTimer) {
           clearTimeout(flushTimer)

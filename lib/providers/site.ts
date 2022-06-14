@@ -9,7 +9,7 @@ import {
 } from "../types"
 import { Experiment, Site, Variant } from "../models"
 import { InstantBanditContext } from "../contexts"
-import { env, exists, isBrowserEnvironment } from "../utils"
+import { env, exists, getCookie, isBrowserEnvironment } from "../utils"
 import {
   DEFAULT_EXPERIMENT,
   DEFAULT_OPTIONS,
@@ -73,7 +73,7 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
         }
 
         // Attach our session ID if we have one
-        let sid: string | null = null
+        let sid = getCookie(constants.HEADER_SESSION_ID)
         let session: SessionDescriptor
         if (!exists(ctx.session.id)) {
           session = await ctx.session.getOrCreateSession(ctx)
@@ -94,7 +94,7 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
         const resp = await fetch(siteUrl, req)
 
         // Pluck out a session ID
-        sid = resp.headers.get(constants.HEADER_SESSION_ID)
+        sid = getCookie(constants.HEADER_SESSION_ID)
         if (exists(sid)) {
           session = await ctx.session.getOrCreateSession(ctx, { sid: sid! })
         }

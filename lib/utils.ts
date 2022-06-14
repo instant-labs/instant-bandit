@@ -49,6 +49,31 @@ export function env(name: string): string | undefined {
 }
 
 /**
+ * Extracts a cookie by name from a cookie header string
+ * @param cookieName 
+ * @param str 
+ * @returns 
+ */
+export function getCookie(cookieName, str = ""): string | null {
+  let fullStr = ""
+  if (typeof document === "undefined" && str === "") {
+    return null
+  } else if (str !== "") {
+    fullStr = str
+  } else {
+    fullStr = document.cookie
+  }
+
+  const cookie = fullStr
+    .split(";")
+    .map(cookie => cookie.trim())
+    .filter(cookie => cookie.indexOf(cookieName) === 0)
+    .map(cookie => cookie.substring(cookieName.length + 1, cookie.length))[0]
+    
+  return cookie ?? null
+}
+
+/**
  * Gets the base URL, observing environment variables if in a Node environment
  * @returns 
  */
