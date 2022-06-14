@@ -23,7 +23,6 @@ export function getStubSessionsBackend(): SessionsBackend {
         session = sessions[sid!]
         if (!exists(session)) {
           console.warn(`[IB] Missing or expired session '${sid}'`)
-          session = null
         }
       }
 
@@ -39,17 +38,14 @@ export function getStubSessionsBackend(): SessionsBackend {
     },
 
     async markVariantSeen(session: SessionDescriptor, experimentId: string, variantName: string) {
-      let variants = session.variants[experimentId]
-      if (!exists(variants)) {
-        variants = session.variants[experimentId] = []
-      }
-    
+      let variants = session.variants[experimentId] || []
+
       // Put the most recently presented variant at the end
       const ix = variants.indexOf(variantName)
       if (ix > -1) {
         variants.splice(ix, 1)
       }
-    
+
       variants.push(variantName)
 
       return session

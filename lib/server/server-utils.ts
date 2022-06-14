@@ -64,7 +64,7 @@ export async function validateUserRequest(args: RequestValidationArgs): Promise<
 
   // We don't populate the session here - just validate the ID is well formed
   let sid = await getSessionIdFromHeaders(headers)
-  if (!allowNoSession && (!exists(sid) || sid!.length !== 36)) {
+  if (!allowNoSession && (sid === null || sid.length !== 36)) {
     throw new Error(`Missing session`)
   }
 
