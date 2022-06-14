@@ -23,6 +23,7 @@ export function getStubSessionsBackend(): SessionsBackend {
         session = sessions[sid!]
         if (!exists(session)) {
           console.warn(`[IB] Missing or expired session '${sid}'`)
+          session = null
         }
       }
 
@@ -45,7 +46,6 @@ export function getStubSessionsBackend(): SessionsBackend {
       if (ix > -1) {
         variants.splice(ix, 1)
       }
-
       variants.push(variantName)
 
       return session
