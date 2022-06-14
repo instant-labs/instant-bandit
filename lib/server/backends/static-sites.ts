@@ -49,7 +49,11 @@ export function getStaticSiteBackend(initOptions: Partial<JsonSiteBackendOptions
       const { refreshInterval } = options
       const now = new Date().getTime()
 
-      if (refreshInterval !== -1 && (now - lastScan > refreshInterval)) {
+      // Only scan the folder for updated sites if the configured interval has elapsed
+      const useRefreshInterval = refreshInterval > -1
+      const intervalElapsed = (now - lastScan > refreshInterval)
+
+      if (useRefreshInterval && intervalElapsed) {
 
         // Don't hold up the show.
         scanSites(env.IB_STATIC_SITES_PATH, sites, lastScan)
@@ -59,11 +63,10 @@ export function getStaticSiteBackend(initOptions: Partial<JsonSiteBackendOptions
       }
 
       const site = sites[siteName ?? DEFAULT_SITE.name]
-      if (!site) {
-        return DEFAULT_SITE
-      } else {
+      if (site) {
         return site
       }
+      return DEFAULT_SITE
     }
   }
 }
