@@ -70,7 +70,7 @@ export function SignUpButton(props) {
 
   const onClick = useCallback(() => {
     metrics.sinkEvent(ctx, "conversions")
-  }, [site, experiment, variant])
+  }, [ctx, metrics])
 
   return (
     <button className={styles[variant.name]} onClick={onClick}>{props.children}</button>
