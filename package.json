@@ -1,6 +1,10 @@
 {
   "name": "@instantdomain/bandit",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/InstantDomain/instant-bandit"
+  },
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "exports": {
@@ -8,8 +12,10 @@
     "./server": "./dist/server.js"
   },
   "files": [
-    "lib",
-    "components",
+    "dist/index.js",
+    "dist/server.js",
+    "dist/lib",
+    "dist/components",
     "docker-compose.dev.yml"
   ],
   "scripts": {
@@ -23,7 +29,8 @@
     "build": "yarn clean && yarn compile && yarn minify",
     "start": "next start",
     "test": "jest --verbose",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "pack:test": "yarn build && yarn pack --dry-run && tar tvf instantdomain-bandit-v0.1.0.tgz"
   },
   "dependencies": {
     "ioredis": "^5.0.6",

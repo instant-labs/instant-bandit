@@ -17,7 +17,7 @@ export * from "./lib/server/environment"
 export * from "./lib/server/server-helpers"
 export * from "./lib/server/server-types"
 export * from "./lib/server/server-utils"
-export * from "./lib/server/backends/static-sites"
+export * from "./lib/server/backends/json-sites"
 export * from "./lib/server/backends/redis"
 
 

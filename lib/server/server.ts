@@ -21,7 +21,7 @@ import {
   VariantMeta,
 } from "../models"
 import { getBaseUrl } from "../utils"
-import { getStaticSiteBackend } from "./backends/static-sites"
+import { getJsonSiteBackend } from "./backends/json-sites"
 import { normalizeOrigins } from "./server-utils"
 
 import { bandit } from "../bandit"
@@ -31,7 +31,7 @@ import { getRedisBackend, RedisBackend } from "./backends/redis"
 
 export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
   clientOrigins: (env.IB_ORIGINS_ALLOWLIST ?? ""),
-  models: getStaticSiteBackend(),
+  models: getJsonSiteBackend(),
   metrics: null as any,
   sessions: null as any,
 }

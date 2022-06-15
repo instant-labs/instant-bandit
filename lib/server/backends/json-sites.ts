@@ -26,7 +26,7 @@ export type JsonSiteBackendOptions = {
 /**
  * Serves sites from named JSON definitions on the server
  */
-export function getStaticSiteBackend(initOptions: Partial<JsonSiteBackendOptions> = {}): ModelsBackend {
+export function getJsonSiteBackend(initOptions: Partial<JsonSiteBackendOptions> = {}): ModelsBackend {
   const options = Object.assign({}, DEFAULT_STATIC_SITE_BACKEND_OPTIONS, initOptions)
   let sites: { [name: string]: Site } = {}
   let lastScan = 0
