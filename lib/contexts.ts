@@ -26,7 +26,7 @@ export interface InstantBanditContext {
 
   init: (site: Site) => Promise<Site>
   load: (siteName?: string, variant?: string) => Promise<Site>
-  select?: (variant?: Variant | string) => Promise<Site>
+  select: (variant?: Variant | string) => Promise<Site>
 }
 
 
@@ -55,6 +55,11 @@ export function createBanditContext(options?: Partial<InstantBanditOptions>, mix
     },
     init: async (site: Site, select?: string) => {
       return await loader.init(ctx, site, select)
+    },
+    select: async (variant: string) => {
+      loader.select(ctx, variant)
+      session.persistVariant(ctx, loader.experiment.id, loader.variant.name)
+      return loader.model
     },
   }
 

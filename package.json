@@ -1,12 +1,12 @@
 {
   "name": "@instantdomain/bandit",
   "version": "0.1.0",
-  "types": "index.d.ts",
-  "main": "index.js",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
   "exports": {
-    ".": "./index.js",
-    "./server": "./server.js",
-    "./api": "./api.js"
+    ".": "./dist/index.js",
+    "./server": "./dist/server.js",
+    "./api": "./dist/api.js"
   },
   "files": [
     "lib",
@@ -24,11 +24,12 @@
     "rc": "yarn dc exec redis redis-cli",
     "rct": "yarn dc exec redis-testing redis-cli",
     "dev": "NODE_OPTIONS='--inspect=localhost:9229' next dev && yarn dc up -d",
-    "build": "tsc -p tsconfig.publish.json",
+    "compile": "tsc -p tsconfig.publish.json",
+    "minify": "swc ./dist -s false -d ./dist",
+    "build": "yarn clean && yarn compile && yarn minify",
     "start": "next start",
     "test": "jest --verbose",
-    "clean": "rm -rf dist",
-    "package": "yarn clean && yarn build && sh package.sh"
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "ioredis": "^5.0.6",
@@ -39,6 +40,8 @@
     "react-dom": "^18.1.0"
   },
   "devDependencies": {
+    "@swc/cli": "^0.1.57",
+    "@swc/core": "^1.2.198",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@types/ioredis": "^4.28.10",
