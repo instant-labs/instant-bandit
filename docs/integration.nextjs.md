@@ -59,7 +59,7 @@ const defaultOptions: Partial<InstantBanditServerOptions> = {
 export const server = getBanditServer(defaultOptions);
 
 // Call `shutdown` where your process exists, e.g.
-process.on("SIGTERM", () => server.shutdown().finally(() => console.log(`Server shut down`)))
+process.on("SIGTERM", () => server.shutdown().finally(() => console.log(`Server shut down`)));
 ```
 
 > **TIP:** This file should live outside of your _pages_ folder.
@@ -78,20 +78,20 @@ created above.
 ### Endpoint: Sites
 Create _pages/api/sites/[siteName].ts_ to serve sites. In that file:
 ```TS
-import { createSiteEndpoint } from "@instantdomain/bandit/server"
-import { server } from "../../../lib/server"
+import { createSiteEndpoint } from "@instantdomain/bandit/server";
+import { server } from "../../../lib/server";
 
 // This helper method returns a Next.js endpoint and must be the default export
-export default createSiteEndpoint(server)
+export default createSiteEndpoint(server);
 ```
 
 ### Endpoint: Metrics
 Create _pages/api/metrics/ts_ to ingest metrics. In that file:
 ```TS
-import { createMetricsEndpoint } from "@instantdomain/bandit/server"
-import { server } from "../../lib/server"
+import { createMetricsEndpoint } from "@instantdomain/bandit/server";
+import { server } from "../../lib/server";
 
-export default createMetricsEndpoint(server)
+export default createMetricsEndpoint(server);
 ```
 
 
@@ -175,7 +175,7 @@ For SSR pages, use the SSR helper:
 import { serverSideRenderedSite } from "@instantdomain/bandit/server";
 
 // Import the server you configured
-import { server } from "../lib/server"
+import { server } from "../lib/server";
 
 // ... JSX ...
 
@@ -191,7 +191,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       select,
     }
   }
-}
+};
 ```
 
 Be sure to pass the props to `InstantBandit`:
