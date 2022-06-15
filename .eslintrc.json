@@ -1,7 +1,12 @@
 {
   "extends": [
     "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
     "next/core-web-vitals"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
   ],
   "parserOptions": {
     "ecmaVersion": 6,
@@ -15,6 +20,7 @@
     "node": true
   },
   "rules": {
-    "semi": 2
+    "semi": 2,
+    "@typescript-eslint/rule-name": "error"
   }
 }
