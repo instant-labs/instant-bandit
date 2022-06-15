@@ -60,18 +60,17 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
         console.warn(`[IB] An error occurred while handling a ready event: ${err}`)
       }
     }
-  }, [loader, loadState, onReady, ready, ctx])
+  }, [loadState, onReady, ctx])
 
   // Flush any queued metrics
   const flush = useCallback(() => {
     try {
       window.removeEventListener("beforeunload", flush)
       document.removeEventListener("onvisibilitychange", flush)
-    }
-    finally {
+    } finally {
       metrics.flush(ctx, true).catch(err => void 0)
     }
-  }, [ctx])
+  }, [ctx, metrics])
 
   function broadcastReadyState() {
     readyCallback()
@@ -141,7 +140,7 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     window.addEventListener("beforeunload", flush)
     document.addEventListener("onvisibilitychange", flush)
     return flush
-  }, [])
+  }, [flush])
 
   // This state change happens synchronously before the next paint.
   // Arranging our state changes in order to do our biggest one here reduces flicker immensely.

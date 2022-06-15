@@ -28,6 +28,7 @@
     "minify": "swc ./dist -s false -d ./dist",
     "build": "yarn clean && yarn compile && yarn minify",
     "start": "next start",
+    "lint": "next lint",
     "test": "jest --verbose",
     "clean": "rm -rf dist",
     "pack:test": "yarn build && yarn pack --dry-run && tar tvf instantdomain-bandit-v0.1.0.tgz"
@@ -50,6 +51,8 @@
     "@types/node": "^15.6.1",
     "@types/react": "^18.0.9",
     "babel-jest": "^27.0.2",
+    "eslint": "^8.17.0",
+    "eslint-config-next": "^12.1.6",
     "jest": "^27.0.3",
     "jest-fetch-mock": "^3.0.3",
     "jest-localstorage-mock": "^2.4.14",
