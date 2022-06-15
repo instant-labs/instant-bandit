@@ -60,6 +60,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
     get client() { return redis },
 
     async connect(): Promise<void> {
+      console.debug(`[IB] Connecting to redis...`)
       switch (redis.status) {
         case "connecting":
         case "connect":
@@ -72,6 +73,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
 
     async disconnect() {
       try {
+        console.debug(`[IB] Disconnecting from redis...`)
         if (redis.status === "ready") {
           await redis.quit()
         }

@@ -5,17 +5,11 @@
   "main": "./dist/index.js",
   "exports": {
     ".": "./dist/index.js",
-    "./server": "./dist/server.js",
-    "./api": "./dist/api.js"
+    "./server": "./dist/server.js"
   },
   "files": [
     "lib",
     "components",
-    "api.js",
-    "server.js",
-    "pages/bandit-server.js",
-    "pages/api/metrics.js",
-    "pages/api/sites/[siteName].js",
     "docker-compose.dev.yml"
   ],
   "scripts": {

@@ -4,22 +4,34 @@ import { NextApiRequestCookies } from "next/dist/server/api-utils"
 import { InstantBanditServer } from "./lib/server/server-types"
 import { SessionDescriptor } from "./lib/types"
 import { createBanditContext, InstantBanditContext } from "./lib/contexts"
-import { createInstantBanditServer } from "./lib/server/server"
 import { validateUserRequest } from "./lib/server/server-utils"
 import { exists } from "./lib/utils"
 import { HEADER_SESSION_ID } from "./lib/constants"
 
 
-// Utility method for creating servers
+import env from "./lib/server/environment"
+export { env }
 
-export { createInstantBanditServer }
+export * from "./lib/server/server"
+export * from "./lib/server/environment"
+export * from "./lib/server/server-helpers"
+export * from "./lib/server/server-types"
+export * from "./lib/server/server-utils"
+export * from "./lib/server/backends/static-sites"
+export * from "./lib/server/backends/redis"
+
 
 /**
- * Handles details around serving a site in a manner suitable for an SSR render.
- * The selection is persiste in the server's session store, and a session ID is
- * returned to the user.
+ * Handles details around serving a site in a manner suitable for a full SSR render.
+ * The selection is persisted in the server's session store, and a session ID is
+ * returned to the user via cookie.
  */
-export async function serverSideRenderedSite(server: InstantBanditServer, siteName: string, req: IncomingMessage & { cookies: NextApiRequestCookies }, res: ServerResponse) {
+export async function serverSideRenderedSite(
+  server: InstantBanditServer,
+  siteName: string,
+  req: IncomingMessage & { cookies: NextApiRequestCookies },
+  res: ServerResponse,
+) {
   await server.init()
 
   const validatedRequest = await validateUserRequest({

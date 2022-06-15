@@ -37,12 +37,16 @@ export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
 }
 
 /**
- * Provider framework-agnostic helper methods that expose configuration and handle
+ * Provides framework-agnostic helper methods that expose configuration and handle
  * initialization and shutdown of backend services for metrics, models, and sessions.
- * @param initOptions 
- * @returns 
+ * 
+ * Note: Implementers should call `getBanditServer` with their own config instead.
+ * 
+ * @private
  */
-export function createInstantBanditServer(initOptions?: Partial<InstantBanditServerOptions>): InstantBanditServer {
+export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServerOptions>): InstantBanditServer {
+  console.debug(`[IB] createInstantBanditServer invoked from ${__dirname}`)
+  
   const options = Object.assign({}, DEFAULT_SERVER_OPTIONS, initOptions)
 
   // Only instantiate the Redis backend if needed

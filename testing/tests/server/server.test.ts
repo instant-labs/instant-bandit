@@ -4,7 +4,7 @@ import {
   ModelsBackend,
   SessionsBackend,
 } from "../../../lib/server/server-types"
-import { createInstantBanditServer } from "../../../lib/server/server"
+import { buildInstantBanditServer } from "../../../lib/server/server"
 
 
 describe("server", () => {
@@ -16,10 +16,10 @@ describe("server", () => {
   }
 
   let config: InstantBanditServerOptions = TEST_CONFIG
-  let server = createInstantBanditServer(config)
+  let server = buildInstantBanditServer(config)
 
   beforeEach(async () => {
-    server = createInstantBanditServer(config)
+    server = buildInstantBanditServer(config)
   })
 
   function makeStub() {
@@ -53,7 +53,7 @@ describe("server", () => {
 
     describe("init", () => {
       it("calls connect on any backends requiring connect logic", async () => {
-        server = createInstantBanditServer(config)
+        server = buildInstantBanditServer(config)
         await server.init()
         expect(connectedMetrics).toBe(1)
         expect(connectedModels).toBe(1)
@@ -61,7 +61,7 @@ describe("server", () => {
       })
 
       it("can be called multiple times", async () => {
-        server = createInstantBanditServer(config)
+        server = buildInstantBanditServer(config)
         await server.init()
         await server.init()
         await server.init()
@@ -73,7 +73,7 @@ describe("server", () => {
 
     describe("shutdown", () => {
       it("calls disconnect on any backends requiring disconnect logic", async () => {
-        server = createInstantBanditServer(config)
+        server = buildInstantBanditServer(config)
         await server.init()
 
         await server.shutdown()
@@ -83,7 +83,7 @@ describe("server", () => {
       })
 
       it("can be called multiple times", async () => {
-        server = createInstantBanditServer(config)
+        server = buildInstantBanditServer(config)
         await server.init()
 
         await server.shutdown()

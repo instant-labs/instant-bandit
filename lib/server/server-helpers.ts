@@ -5,40 +5,38 @@ import { HEADER_SESSION_ID } from "../constants"
 import { DEFAULT_SITE } from "../defaults"
 import { MetricsBatch } from "../models"
 import { InstantBanditHeaders, InstantBanditServer, InstantBanditServerOptions, ServerSession } from "./server-types"
+import { buildInstantBanditServer } from "./server"
 import { getSessionIdFromHeaders, validateUserRequest } from "./server-utils"
-import { createInstantBanditServer } from "../../server"
 import { exists } from "../utils"
 
 
 /**
- * This server helper intended is intended for use by the Instant Bandit repo.
- * Implementors should create their own with their desired config.
- * @private
+ * Creates an `InstantBanditServer` you can use in your backend app.
  */
-let defaultBanditServer: InstantBanditServer
-export const getDefaultServer = (options?: InstantBanditServerOptions) => {
+let banditServer: InstantBanditServer
+export function getBanditServer(options?: Partial<InstantBanditServerOptions>) {
 
-  // Next.js will re-import modules during HMR. This ends up creating multiple
-  // spurious instances of module functions, database connections, etc.
+  // NOTE: Next.js will re-import modules during HMR.
+  // This ends up creating multiple spurious instances of module functions, state,
+  // network resources, database connections, etc.
   // A workaround is to attach an object to the global scope during dev.
   if (env.isDev()) {
-    if ((global as any).defaultBanditServer) {
-      defaultBanditServer = (global as any).defaultBanditServer;
+    if ((global as any).banditServer) {
+      banditServer = (global as any).defaultBanditServer;
     }
   }
 
-  if (!defaultBanditServer) {
-    console.debug(`[IB] Creating default InstantBanditServer helper...`)
-    defaultBanditServer = createInstantBanditServer(options);
+  if (!banditServer) {
+    console.debug(`[IB] Creating default InstantBanditServer...`)
+    banditServer = buildInstantBanditServer(options);
   }
 
   if (env.isDev()) {
-    (global as any).defaultBanditServer = defaultBanditServer;
+    (global as any).defaultBanditServer = banditServer;
   }
 
-  return defaultBanditServer
+  return banditServer
 }
-
 
 /**
  * Creates a Next.js endpoint for serving site configurations.
@@ -51,7 +49,7 @@ export function createSiteEndpoint(server: InstantBanditServer) {
   // Site are hydrated with variant probabilities inlined.
   // If a site is not found, the default site is returned.
   // If the user does not have a session, one is created.
-  // Session IDs are transmitted via headers. No cookies are used.
+  // Session IDs are transmitted via a 1st-party cookie.
 
   async function handleSiteRequest(req: NextApiRequest, res: NextApiResponse) {
     await server.init()
@@ -108,7 +106,7 @@ export function createMetricsEndpoint(server: InstantBanditServer) {
   // This endpoint accepts POST requests bearing batches of metrics to ingest.
   // In development environments, shows site metrics on GET
   async function handleMetricsRequest(req: NextApiRequest, res: NextApiResponse) {
-    const server = getDefaultServer(null as any)
+    const server = getBanditServer()
     await server.init()
 
 

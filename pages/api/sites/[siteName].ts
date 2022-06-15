@@ -1,4 +1,4 @@
-import { createSiteEndpoint, getDefaultServer } from "../../../lib/server/helpers"
+import { createSiteEndpoint, getBanditServer } from "../../../lib/server/server-helpers"
 
 // Creates the site endpoint using the same helper method exposed to package consumers
-export default createSiteEndpoint(getDefaultServer())
+export default createSiteEndpoint(getBanditServer())

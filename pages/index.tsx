@@ -7,7 +7,7 @@ import { InstantBanditOptions } from "../lib/types"
 import { Variant } from "../components/Variant"
 import { useInstantBandit } from "../lib/hooks"
 import { HEADER_SESSION_ID } from "../lib/constants"
-import { getDefaultServer } from "../lib/server/helpers"
+
 import styles from "../styles/Home.module.css"
 
 
