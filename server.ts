@@ -1,6 +1,7 @@
 import { IncomingMessage, ServerResponse } from "http"
 import { NextApiRequestCookies } from "next/dist/server/api-utils"
 
+import { InstantBanditServer } from "./lib/server/server-types"
 import { SessionDescriptor } from "./lib/types"
 import { createBanditContext, InstantBanditContext } from "./lib/contexts"
 import { createInstantBanditServer } from "./lib/server/server"
@@ -9,19 +10,16 @@ import { exists } from "./lib/utils"
 import { HEADER_SESSION_ID } from "./lib/constants"
 
 
-// New server with OOB defaults.
-// Endpoints should import this and await `init`.
-// See "[siteName].ts" and "metrics.ts" endpoints.
-export const server = createInstantBanditServer()
+// Utility method for creating servers
 
+export { createInstantBanditServer }
 
 /**
- * Serves a site via Next.js SSR, persisting the choice in the server's session store.
- * @param siteName 
- * @param req 
- * @param res 
+ * Handles details around serving a site in a manner suitable for an SSR render.
+ * The selection is persiste in the server's session store, and a session ID is
+ * returned to the user.
  */
-export async function serverSideRenderedSite(siteName: string, req: IncomingMessage & { cookies: NextApiRequestCookies }, res: ServerResponse) {
+export async function serverSideRenderedSite(server: InstantBanditServer, siteName: string, req: IncomingMessage & { cookies: NextApiRequestCookies }, res: ServerResponse) {
   await server.init()
 
   const validatedRequest = await validateUserRequest({
@@ -54,14 +52,14 @@ export async function serverSideRenderedSite(siteName: string, req: IncomingMess
       // Here we inject the session from the server's asynchronous session store into
       // the InstantBandit component's *synchronous* store. This is done for SSR.
       //
-      // In order to complete the render entirely on the server and avoid client-side hydration,
-      // the component needs to render synchronously in one pass.
+      // In order to complete the render entirely on the server and avoid client-side
+      // hydration, the component needs to render synchronously in one pass.
       //
       session: options => {
         return {
           getOrCreateSession: () => session,
           hasSeen(ctx: InstantBanditContext, experiment: string, variant: string) { },
-          persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) {},
+          persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) { },
         }
       }
     } as any
