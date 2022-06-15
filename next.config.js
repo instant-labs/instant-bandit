@@ -5,6 +5,8 @@ const nextConfig = {
   // However, be aware that this interntionally causes double renders,
   // and therefore can be confusing when diagnosing flicker/CLS issues.
   reactStrictMode: false,
+
+  swcMinify: true,
 }
 
 module.exports = nextConfig
