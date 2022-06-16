@@ -123,7 +123,7 @@ interface DebugState {
 type DebugCallbackProps = {
   ctx: InstantBanditContext
   debug: DebugState
-}
+};
 
 export const CountMountsAndRenders = () =>
   (<Debug onRender={() => ++renders} onEffect={() => ++mounts} />);

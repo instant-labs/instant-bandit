@@ -22,7 +22,7 @@ export type SiteProviderOptions = {
   baseUrl: string,
   sitePath: string,
   appendTimestamp?: boolean,
-}
+};
 
 
 export const DEFAULT_SITE_PROVIDER_OPTIONS: SiteProviderOptions = {

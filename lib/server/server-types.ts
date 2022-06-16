@@ -13,7 +13,7 @@ export type InstantBanditServerOptions = {
   models: ModelsBackend
   sessions: SessionsBackend
   clientOrigins: string | string[]
-}
+};
 
 /**
  * An InstantBanditServer is a small set of framework and platform agnostic helpers for 
@@ -28,7 +28,7 @@ export type InstantBanditServer = {
   init(): Promise<void>
   shutdown(): Promise<void>
   getSite(req: ValidatedRequest): Promise<ApiSiteResponse>
-}
+};
 
 /**
  * An API response including a site hydrated with probabilities, and some headers
@@ -37,14 +37,14 @@ export type InstantBanditServer = {
 export type ApiSiteResponse = {
   site: SiteMeta,
   responseHeaders: OutgoingHttpHeaders,
-}
+};
 
 /**
  * Functions for producing and consuming site configuration models
  */
 export type ModelsBackend<TOptions = unknown> = BackendFunctions<TOptions> & {
   getSiteConfig(req: ValidatedRequest): Promise<Site>
-}
+};
 
 /**
  * Functions for producing and consuming metrics for use in variant selection
@@ -53,7 +53,7 @@ export type MetricsBackend<TOptions = unknown> = BackendFunctions<TOptions> & {
   getMetricsBucket(siteName: string, experimentId: string, variantName: string): Promise<MetricsBucket>
   getMetricsForSite(site: Site, experiments: Experiment[]): Promise<Map<Variant, MetricsBucket>>
   ingestBatch(req: ValidatedRequest, batch: MetricsBatch): Promise<void>
-}
+};
 
 /**
  * Functions for working with anonymous user sessions and persisting variant selection
@@ -63,33 +63,33 @@ export type SessionsBackend = BackendFunctions & {
   getOrCreateSession(req: ValidatedRequest): Promise<SessionDescriptor>
   markVariantSeen(session: SessionDescriptor, experimentId: string, variantName: string)
     : Promise<SessionDescriptor>
-}
+};
 
 /**
  * A mapping between origin names and information about them.
  */
-export type Origins = Map<string, ClientSuppliedOrigin>
+export type Origins = Map<string, ClientSuppliedOrigin>;
 
 /**
  * Information about an origin in the wild
  */
 export type ClientSuppliedOrigin = {
   name: string
-}
+};
 
 /**
  * Framework-agnostic HTTP request headers
  */
 export type InstantBanditHeaders = {
   [HEADER_SESSION_ID]?: string,
-}
+};
 
 /**
  * An inbound request from an external framework such as Express, Koa, Next.js, et cetera
  */
 export type GenericRequest = {
   headers: InstantBanditHeaders
-}
+};
 
 /**
  * A request that has been validated to be well formed and matching an origin allowlist
@@ -100,7 +100,7 @@ export type ValidatedRequest = {
   origin: string
   session: ServerSession | null
   siteName: string
-}
+};
 
 /**
  * Request validation options for utilities
@@ -112,14 +112,14 @@ export type RequestValidationArgs = {
   allowNoSession: boolean
   requireOrigin?: boolean
   siteName: string | null
-}
+};
 
 /**
  * Server-only session information
  */
 export type ServerSession = SessionDescriptor & {
   lastSeen: number
-}
+};
 
 /**
  * Backend lifecycle functions that providers of server methods can opt into in order
@@ -128,9 +128,9 @@ export type ServerSession = SessionDescriptor & {
 export type BackendFunctions<TConnection = unknown> = {
   connect?(): Promise<TConnection>
   disconnect?(): Promise<TConnection>
-}
+};
 
 export type ConnectingBackendFunctions<TConnection = unknown> = {
   connect(): Promise<TConnection>
   disconnect(): Promise<TConnection>
-}
+};

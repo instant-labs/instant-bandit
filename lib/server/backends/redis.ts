@@ -30,7 +30,7 @@ export const DEFAULT_REDIS_OPTIONS: RedisBackendOptions = {
 
 export type RedisBackendOptions = RedisOptions & {
   disconnectWaitDuration: number,
-}
+};
 
 
 export type RedisArgs = {
@@ -40,14 +40,14 @@ export type RedisArgs = {
   experiment?: string
   variant?: string
   metric?: string
-}
+};
 
 export type RedisBackend = MetricsBackend & ConnectingBackendFunctions & {
   readonly client: Redis
-}
+};
 
 
-type Options = Partial<InstantBanditOptions & RedisBackendOptions>
+type Options = Partial<InstantBanditOptions & RedisBackendOptions>;
 
 export function getRedisBackend(initOptions: Options = {}): RedisBackend & SessionsBackend {
   const options = Object.freeze(Object.assign({}, DEFAULT_REDIS_OPTIONS, initOptions));

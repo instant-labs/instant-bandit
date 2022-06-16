@@ -5,7 +5,7 @@ import { deepFreeze, env } from "./utils";
 
 export type BaseOptions = {
   baseUrl: string
-}
+};
 
 export const DEFAULT_OPTIONS: BaseOptions = {
   baseUrl: env(constants.VARNAME_BASE_URL) ?? constants.DEFAULT_BASE_URL,
