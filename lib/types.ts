@@ -14,7 +14,7 @@ export type InstantBanditProps = {
   options?: InstantBanditOptions
   onReady?: (ctx: InstantBanditContext) => void
   onError?: (err?: Error, ctx?: InstantBanditContext) => void
-}
+};
 
 export type InstantBanditOptions = {
   baseUrl: string
@@ -22,16 +22,16 @@ export type InstantBanditOptions = {
   metricsPath: string
   appendTimestamp?: boolean
   providers: Providers
-}
+};
 
 export type SelectionArgs<TAlgoParams = unknown> = {
   site: Site
   algo: Algorithm | string
   params: TAlgoParams | null
   variants: readonly VariantModel[]
-}
+};
 
-export type Selection = { experiment: Experiment, variant: VariantModel }
+export type Selection = { experiment: Experiment, variant: VariantModel };
 
 export enum LoadState {
   PRELOAD = "pre",
@@ -54,20 +54,20 @@ export type SessionProvider = {
   getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): SessionDescriptor
   persistVariant(ctx: InstantBanditContext, experiment: string, variant: string): void
   hasSeen(ctx: InstantBanditContext, experiment: string, variant: string): boolean
-}
+};
 
 export type MetricsSinkOptions = BaseOptions & {
   metricsPath: string
   batchSize: number
   flushInterval: number
-}
+};
 
 export type MetricsProvider = {
   readonly pending: number
   sink(ctx: InstantBanditContext, metric: MetricsSample, flushImmediate?: boolean): void
   sinkEvent(ctx: InstantBanditContext, name: string, payload?: Metric, flush?: boolean): void
   flush(ctx: InstantBanditContext, flushAll?: boolean): Promise<void>
-}
+};
 
 export type SiteProvider = {
   state: LoadState
@@ -78,14 +78,14 @@ export type SiteProvider = {
   load(ctx: InstantBanditContext, siteName?: string, variant?: string): Promise<Site>
   init(ctx: InstantBanditContext, site: Site, select?: string): Site
   select(ctx: InstantBanditContext, selectVariant?: string): Selection
-}
+};
 
-export type ProviderFactory<T> = (options: InstantBanditOptions) => T
+export type ProviderFactory<T> = (options: InstantBanditOptions) => T;
 export type Providers = {
   loader: ProviderFactory<SiteProvider>
   session: ProviderFactory<SessionProvider>
   metrics: ProviderFactory<MetricsProvider>
-}
+};
 
 /**
  * Describes a user session, scoped per origin and site.
@@ -97,28 +97,28 @@ export type SessionDescriptor = {
 
   // Session and user IDs
   sid: string
-}
+};
 
-export type VariantName = string
-export type Probability = number
-export type ProbabilityDistribution = Record<VariantName, Probability>
+export type VariantName = string;
+export type Probability = number;
+export type ProbabilityDistribution = Record<VariantName, Probability>;
 
 export type Counts = {
   [variant: string]: number
-}
+};
 
 export type ProbabilitiesResponse = {
   name: string
   probabilities: ProbabilityDistribution | null
   pValue: PValue | null
-}
+};
 
 // p-value of difference between variants
-export type PValue = number
+export type PValue = number;
 
 // Node and DOM typings for `setTimeout` / `setInterval` differ
-export type TimerLike = number | NodeJS.Timeout
+export type TimerLike = number | NodeJS.Timeout;
 
 
-export type MetricName = DefaultMetrics | string
-export type Metric = string | number | object
+export type MetricName = DefaultMetrics | string;
+export type Metric = string | number | object;

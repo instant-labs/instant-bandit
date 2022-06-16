@@ -28,6 +28,7 @@
     "node": true
   },
   "rules": {
-    "semi": 2
+    "semi": "off",
+    "@typescript-eslint/semi": ["error"]
   }
 }

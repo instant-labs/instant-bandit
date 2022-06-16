@@ -18,7 +18,7 @@ const funcs = {
   isProduction: () => env.IB_MODE === "production",
 };
 
-export type Environment = typeof defaults & typeof funcs
+export type Environment = typeof defaults & typeof funcs;
 const env: Environment = Object.assign({}, defaults, funcs);
 
 // Pull from actual environment vars, or use the defaults above

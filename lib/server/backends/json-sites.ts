@@ -20,7 +20,7 @@ export type JsonSiteBackendOptions = {
    * Set to -1 for no reloading.
    */
   refreshInterval: number,
-}
+};
 
 /**
  * Serves sites from named JSON definitions on the server
