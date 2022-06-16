@@ -21,7 +21,7 @@ import {
   VariantMeta,
 } from "../models"
 import { getBaseUrl } from "../utils"
-import { getStaticSiteBackend } from "./backends/static-sites"
+import { getJsonSiteBackend } from "./backends/json-sites"
 import { normalizeOrigins } from "./server-utils"
 
 import { bandit } from "../bandit"
@@ -31,18 +31,22 @@ import { getRedisBackend, RedisBackend } from "./backends/redis"
 
 export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
   clientOrigins: (env.IB_ORIGINS_ALLOWLIST ?? ""),
-  models: getStaticSiteBackend(),
+  models: getJsonSiteBackend(),
   metrics: null as any,
   sessions: null as any,
 }
 
 /**
- * Provider framework-agnostic helper methods that expose configuration and handle
+ * Provides framework-agnostic helper methods that expose configuration and handle
  * initialization and shutdown of backend services for metrics, models, and sessions.
- * @param initOptions 
- * @returns 
+ * 
+ * Note: Implementers should call `getBanditServer` with their own config instead.
+ * 
+ * @private
  */
-export function createInstantBanditServer(initOptions?: Partial<InstantBanditServerOptions>): InstantBanditServer {
+export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServerOptions>): InstantBanditServer {
+  console.debug(`[IB] createInstantBanditServer invoked from ${__dirname}`)
+  
   const options = Object.assign({}, DEFAULT_SERVER_OPTIONS, initOptions)
 
   // Only instantiate the Redis backend if needed

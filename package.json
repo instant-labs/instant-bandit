@@ -1,21 +1,21 @@
 {
   "name": "@instantdomain/bandit",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/InstantDomain/instant-bandit"
+  },
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "exports": {
     ".": "./dist/index.js",
-    "./server": "./dist/server.js",
-    "./api": "./dist/api.js"
+    "./server": "./dist/server.js"
   },
   "files": [
-    "lib",
-    "components",
-    "api.js",
-    "server.js",
-    "pages/bandit-server.js",
-    "pages/api/metrics.js",
-    "pages/api/sites/[siteName].js",
+    "dist/index.js",
+    "dist/server.js",
+    "dist/lib",
+    "dist/components",
     "docker-compose.dev.yml"
   ],
   "scripts": {
@@ -29,15 +29,16 @@
     "build": "yarn clean && yarn compile && yarn minify",
     "start": "next start",
     "test": "jest --verbose",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "pack:test": "yarn build && yarn pack --dry-run && tar tvf instantdomain-bandit-v0.1.0.tgz"
   },
   "dependencies": {
     "ioredis": "^5.0.6",
     "tslib": "^2.4.0"
   },
   "peerDependencies": {
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@swc/cli": "^0.1.57",
@@ -53,8 +54,8 @@
     "jest-fetch-mock": "^3.0.3",
     "jest-localstorage-mock": "^2.4.14",
     "next": "^12.1.6",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "typescript": "^4.3.2"
   }
 }

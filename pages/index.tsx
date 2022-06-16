@@ -3,12 +3,11 @@ import { GetServerSideProps } from "next"
 import { useCallback } from "react"
 
 import { Default } from "../components/Default"
-import { InstantBandit } from "../components/InstantBanditComponent"
 import { InstantBanditOptions } from "../lib/types"
 import { Variant } from "../components/Variant"
 import { useInstantBandit } from "../lib/hooks"
-import { serverSideRenderedSite } from "../server"
 import { HEADER_SESSION_ID } from "../lib/constants"
+
 import styles from "../styles/Home.module.css"
 
 
@@ -16,7 +15,6 @@ const siteName = "demo"
 
 export default function Home(serverSideProps: InstantBanditOptions) {
   return (
-
     <div className={styles.container}>
       <Head>
         <title>Instant Bandit</title>
@@ -29,31 +27,29 @@ export default function Home(serverSideProps: InstantBanditOptions) {
         <link rel="preload" href={`/api/sites/${siteName}`} as="fetch" crossOrigin="anonymous" />
       </Head>
 
+
       <main className={styles.main}>
         <h1 className={styles.header}>Welcome to Instant Bandit</h1>
-        <InstantBandit {...serverSideProps}>
 
-          <Default>
-            <h2>You are currently viewing the default variant</h2>
-            <SignUpButton>Add Conversion</SignUpButton>
-          </Default>
+        <Default>
+          <h2>You are currently viewing the default variant</h2>
+          <SignUpButton>Add Conversion</SignUpButton>
+        </Default>
 
-          <Variant name="A">
-            <h2>You are currently viewing variant A</h2>
-            <SignUpButton>Add Conversion</SignUpButton>
-          </Variant>
+        <Variant name="A">
+          <h2>You are currently viewing variant A</h2>
+          <SignUpButton>Add Conversion</SignUpButton>
+        </Variant>
 
-          <Variant name="B">
-            <h2>You are currently viewing variant B</h2>
-            <SignUpButton>Add Conversion</SignUpButton>
-          </Variant>
+        <Variant name="B">
+          <h2>You are currently viewing variant B</h2>
+          <SignUpButton>Add Conversion</SignUpButton>
+        </Variant>
 
-          <Variant name="C">
-            <h2>You are currently viewing variant C</h2>
-            <SignUpButton>Add Conversion</SignUpButton>
-          </Variant>
-
-        </InstantBandit>
+        <Variant name="C">
+          <h2>You are currently viewing variant C</h2>
+          <SignUpButton>Add Conversion</SignUpButton>
+        </Variant>
       </main>
 
       <footer className={styles.footer}>
@@ -83,9 +79,11 @@ export function SignUpButton(props) {
 
 
 // Comment out to have loading done in the browser
+/*
 export const getServerSideProps: GetServerSideProps = async (context) => {
+  const server = getDefaultServer()
   const { req, res } = context
-  const { site, select } = await serverSideRenderedSite(siteName, req, res)
+  const { site, select } = await serverSideRenderedSite(server, siteName, req, res)
 
   return {
     props: {
@@ -95,3 +93,4 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
   }
 }
+*/

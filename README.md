@@ -14,9 +14,8 @@ Here's an example of an existing page:
   <Content>
     <p>... content ...</p>
     <SignUpButton />
-  </Content
+  </Content>
 </Page>
-)
 ```
 
 To add Instant Bandit to this page, you drop in the `InstantBandit` component and define your variants underneath it in JSX using the `Variant` and `Default` components, like so:
