@@ -1,9 +1,7 @@
 import Head from "next/head";
-import { GetServerSideProps } from "next";
-import { useCallback } from "react";
+import { ReactNode, useCallback } from "react";
 
 import { Default } from "../components/Default";
-import { InstantBanditOptions } from "../lib/types";
 import { Variant } from "../components/Variant";
 import { useInstantBandit } from "../lib/hooks";
 import { HEADER_SESSION_ID } from "../lib/constants";
@@ -13,7 +11,7 @@ import styles from "../styles/Home.module.css";
 
 const siteName = "demo";
 
-export default function Home(serverSideProps: InstantBanditOptions) {
+export default function Home(/* serverSideProps: InstantBanditOptions */) {
   return (
     <div className={styles.container}>
       <Head>
@@ -64,9 +62,9 @@ export default function Home(serverSideProps: InstantBanditOptions) {
   );
 }
 
-export function SignUpButton(props) {
+export function SignUpButton(props: { children?: ReactNode }) {
   const ctx = useInstantBandit();
-  const { site, metrics, experiment, variant } = ctx;
+  const { metrics, variant } = ctx;
 
   const onClick = useCallback(() => {
     metrics.sinkEvent(ctx, "conversions");
@@ -78,12 +76,14 @@ export function SignUpButton(props) {
 }
 
 
+// For SSR, put the InstantBandit component in this file and pass it the server props
+// from below.
 // Comment out to have loading done in the browser
 /*
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const server = getDefaultServer()
-  const { req, res } = context
-  const { site, select } = await serverSideRenderedSite(server, siteName, req, res)
+  const server = getInternalDevServer();
+  const { req, res } = context;
+  const { site, select } = await serverSideRenderedSite(server, siteName, req, res);
 
   return {
     props: {
@@ -91,6 +91,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       siteName,
       select,
     }
-  }
-}
+  };
+};
 */

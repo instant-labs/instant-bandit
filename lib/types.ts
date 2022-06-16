@@ -1,5 +1,6 @@
+import { BaseOptions } from "./defaults";
 import { DefaultMetrics } from "./constants";
-import { Experiment, MetricsBucket, MetricsSample, Site, Variant as VariantModel } from "./models";
+import { Experiment, MetricsSample, Site, Variant as VariantModel } from "./models";
 import { InstantBanditContext } from "./contexts";
 
 
@@ -21,10 +22,6 @@ export type InstantBanditOptions = {
   metricsPath: string
   appendTimestamp?: boolean
   providers: Providers
-}
-
-export type AlgorithmImpl<TAlgoArgs = unknown> = {
-  select<TAlgoArgs>(args: TAlgoArgs & SelectionArgs): Promise<AlgorithmResults>
 }
 
 export type SelectionArgs<TAlgoParams = unknown> = {
@@ -52,18 +49,17 @@ export enum Algorithm {
   MAB_EPSILON_GREEDY = "mab-epsilon-greedy",
 }
 
-export type Algorithms = Record<string, AlgorithmImpl>
-export type AlgorithmResults = {
-  pValue: number
-  metrics: MetricsBucket
-  winner: VariantModel
-}
-
 export type SessionProvider = {
   id: string | null
   getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): SessionDescriptor
   persistVariant(ctx: InstantBanditContext, experiment: string, variant: string): void
   hasSeen(ctx: InstantBanditContext, experiment: string, variant: string): boolean
+}
+
+export type MetricsSinkOptions = BaseOptions & {
+  metricsPath: string
+  batchSize: number
+  flushInterval: number
 }
 
 export type MetricsProvider = {
@@ -100,8 +96,7 @@ export type SessionDescriptor = {
   variants: { [experiment: string]: string[] }
 
   // Session and user IDs
-  sid?: string
-  uid?: string
+  sid: string
 }
 
 export type VariantName = string
@@ -122,7 +117,7 @@ export type ProbabilitiesResponse = {
 export type PValue = number
 
 // Node and DOM typings for `setTimeout` / `setInterval` differ
-export type TimerLike = any
+export type TimerLike = number | NodeJS.Timeout
 
 
 export type MetricName = DefaultMetrics | string

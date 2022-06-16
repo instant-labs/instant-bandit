@@ -1,12 +1,13 @@
 /**
  * @jest-environment jsdom
  */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import fetchMock from "jest-fetch-mock";
 
 import { InstantBanditContext, createBanditContext } from "../../lib/contexts";
 import { MetricsBatch, MetricsSample } from "../../lib/models";
-import { MetricsProvider } from "../../lib/types";
-import { getHttpMetricsSink, HttpMetricsSinkOptions } from "../../lib/providers/metrics";
+import { MetricsProvider, MetricsSinkOptions } from "../../lib/types";
+import { getHttpMetricsSink } from "../../lib/providers/metrics";
 import { exists } from "../../lib/utils";
 import { TEST_SITE_AB } from "../sites";
 import { DEFAULT_SITE } from "../../lib/defaults";
@@ -21,7 +22,7 @@ describe("metrics (client)", () => {
   const oldSendBeacon = navigator.sendBeacon;
   let sendBeaconContent: Promise<string>;
 
-  const TEST_OPTIONS: Partial<HttpMetricsSinkOptions> = {
+  const TEST_OPTIONS: Partial<MetricsSinkOptions> = {
     batchSize: 10,
     flushInterval: 10,
   };
@@ -65,9 +66,8 @@ describe("metrics (client)", () => {
 
   describe("sink", () => {
     it("sends a message to the metrics endpoint", async () => {
-      let json: MetricsBatch;
+      let json;
       fetchMock.mockResponseOnce(async req => {
-        url = new URL(req.url);
         ++fetches;
         if (req.body) {
           json = JSON.parse(req.body.toString());
@@ -78,9 +78,9 @@ describe("metrics (client)", () => {
       metrics.sink(ctx, TEST_METRIC);
       await metrics.flush(ctx);
 
-      expect(exists(json!)).toBe(true);
-      expect(json!.site).toBe(DEFAULT_SITE.name);
-      expect(json!.entries.length).toBeGreaterThan(0);
+      expect(exists(json)).toBe(true);
+      expect(json.site).toBe(DEFAULT_SITE.name);
+      expect(json.entries.length).toBeGreaterThan(0);
     });
 
     it("causes an asynchronous flush", async () => {
@@ -148,7 +148,7 @@ describe("metrics (client)", () => {
 
 
   function mockSendBeacon() {
-    (navigator as any)["sendBeacon"] = (url, content) => {
+    navigator.sendBeacon = (url, content) => {
       ++fetches;
       url = new URL(url);
       sendBeaconContent = readBlob(content);
@@ -157,20 +157,20 @@ describe("metrics (client)", () => {
   }
 
   function mockSendBeaconError() {
-    (navigator as any)["sendBeacon"] = (url, content) => {
+    navigator.sendBeacon = () => {
       throw new Error("FAKE-SENDBEACON-ERROR");
     };
   }
 
   function resetSendBeacon() {
-    (navigator as any)["sendBeacon"] = oldSendBeacon;
+    navigator.sendBeacon = oldSendBeacon;
   }
 
   function readBlob(blob) {
-    return new Promise<any>((resolve, rej) => {
+    return new Promise<string>((resolve) => {
       const reader = new FileReader();
-      reader.onload = function (event) {
-        resolve(reader.result);
+      reader.onload = function () {
+        resolve(reader.result as unknown as string);
       };
       reader.readAsText(blob);
     });

@@ -68,7 +68,7 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
       window.removeEventListener("beforeunload", flush);
       document.removeEventListener("onvisibilitychange", flush);
     } finally {
-      metrics.flush(ctx, true).catch(err => void 0);
+      metrics.flush(ctx, true).catch(() => void 0);
     }
   }, [ctx, metrics]);
 

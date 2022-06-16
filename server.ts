@@ -3,7 +3,7 @@ import { NextApiRequestCookies } from "next/dist/server/api-utils";
 
 import { InstantBanditServer } from "./lib/server/server-types";
 import { SessionDescriptor } from "./lib/types";
-import { createBanditContext, InstantBanditContext } from "./lib/contexts";
+import { createBanditContext, DEFAULT_BANDIT_OPTIONS } from "./lib/contexts";
 import { validateUserRequest } from "./lib/server/server-utils";
 import { exists } from "./lib/utils";
 import { HEADER_SESSION_ID } from "./lib/constants";
@@ -48,17 +48,24 @@ export async function serverSideRenderedSite(
   }
 
   const { sessions } = server;
-  let session: SessionDescriptor | null = null;
+  let session: SessionDescriptor;
 
   try {
     session = await sessions.getOrCreateSession(validatedRequest);
   } catch (err) {
     console.log(`[IB] Error fetching session for '${sid}': ${err}`);
+    session = {
+      sid: "",
+      site: siteName,
+      variants: {},
+    };
   }
 
-
+  const { loader, metrics } = DEFAULT_BANDIT_OPTIONS.providers;
   const ctx = createBanditContext({
     providers: {
+      loader,
+      metrics,
 
       //
       // Here we inject the session from the server's asynchronous session store into
@@ -67,23 +74,30 @@ export async function serverSideRenderedSite(
       // In order to complete the render entirely on the server and avoid client-side
       // hydration, the component needs to render synchronously in one pass.
       //
-      session: options => {
+      session: () => {
         return {
+          id: session.sid,
           getOrCreateSession: () => session,
-          hasSeen(ctx: InstantBanditContext, experiment: string, variant: string) { },
-          persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) { },
+          hasSeen() {
+            return false;
+          },
+          persistVariant() {
+            // We do this server side below
+            return;
+          },
         };
-      }
-    } as any
+      },
+    },
   });
 
   const site = await ctx.load(siteName);
   const { experiment, variant } = ctx;
 
-  await server.sessions.markVariantSeen(session!, experiment.id, variant.name)
+  // Skip awaiting to avoid a round-trip to some backend
+  server.sessions.markVariantSeen(session, experiment.id, variant.name)
     .catch(err => console.warn(`[IB]: Error marking variant '${variant.name}' seen: ${err}`));
 
-  res.setHeader(`Set-Cookie`, `${HEADER_SESSION_ID}=${session!.sid}`);
+  res.setHeader(`Set-Cookie`, `${HEADER_SESSION_ID}=${session.sid}`);
 
   return {
     site,

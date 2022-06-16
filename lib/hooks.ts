@@ -1,6 +1,5 @@
 import { useContext } from "react";
 
-import { Experiment, Site, Variant } from "./models";
 import { InstantBanditContext } from "./contexts";
 
 

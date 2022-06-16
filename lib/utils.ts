@@ -8,7 +8,7 @@ import * as constants from "./constants";
  * @param obj 
  * @returns 
  */
-export function deepFreeze<T extends object>(obj: T, seen = new WeakMap<T, any>()) {
+export function deepFreeze<T extends object>(obj: T, seen = new WeakMap<T, boolean>()) {
   if (!exists(obj)) {
     return obj;
   }
@@ -28,8 +28,8 @@ export function deepFreeze<T extends object>(obj: T, seen = new WeakMap<T, any>(
  * @param thing 
  * @returns 
  */
-export function exists(thing: unknown) {
-  return (thing !== undefined && thing !== null);
+export function exists<T>(thing: T): thing is NonNullable<T> {
+  return (thing !== null && thing !== undefined);
 }
 
 /**
@@ -69,9 +69,8 @@ export function getCookie(cookieName, str = ""): string | null {
     .map(cookie => cookie.trim())
     .filter(cookie => cookie.indexOf(cookieName) === 0)
     .map(cookie => cookie.substring(cookieName.length + 1, cookie.length))
-    .reverse()
-    [0];
-    
+    .reverse()[0];
+
   return cookie ?? null;
 }
 

@@ -11,6 +11,7 @@ import { MetricsBatch } from "../models";
 import { SessionDescriptor } from "../types";
 import { exists, getCookie } from "../utils";
 import { randomBytes, randomUUID } from "crypto";
+import { DEFAULT_SITE } from "../defaults";
 
 
 /**
@@ -30,12 +31,11 @@ export function normalizeOrigins(originsArg: string | string[], injected: string
     .split(",")
     .map(o => o.trim())
     .map(o => o.toLowerCase())
-    .map(o => o === "null" ? null : o)
-    .map(o => o!);
+    .map(o => o);
 
   const origins: Origins = new Map<string, ClientSuppliedOrigin>();
   originsList
-    .reduce((p, entry, i) => origins.set(entry!, { name: entry! }), origins);
+    .reduce((p, entry) => origins.set(entry, { name: entry }), origins);
 
   return origins;
 }
@@ -47,7 +47,7 @@ export function normalizeOrigins(originsArg: string | string[], injected: string
 export async function validateUserRequest(args: RequestValidationArgs): Promise<ValidatedRequest> {
   const { headers, allowedOrigins, allowNoSession, requireOrigin, siteName } = args;
 
-  const origin = headers["origin"] ?? null;
+  const origin = exists(headers["origin"]) ? headers["origin"] : null;
 
   // Null origins allowed by default
   if (origin !== null || requireOrigin === true) {
@@ -61,15 +61,15 @@ export async function validateUserRequest(args: RequestValidationArgs): Promise<
 
   // We don't populate the session here - just validate the ID is well formed
   const sid = await getSessionIdFromHeaders(headers);
-  if (!allowNoSession && (sid === null || sid.length !== 36)) {
+  if (!allowNoSession && !exists(sid)) {
     throw new Error(`Missing session`);
   }
 
   return {
-    sid: sid!,
-    origin: origin!,
+    sid: "",
+    origin: origin ?? "null",
     headers,
-    siteName,
+    siteName: siteName || DEFAULT_SITE.name,
     session: null,
   };
 }
@@ -104,10 +104,10 @@ export async function getSessionIdFromHeaders(headers: InstantBanditHeaders): Pr
  */
 export function validateClientReportedOrigin(allowedOrigins: Origins, origin: string | null | undefined): boolean {
   if (!exists(origin)) {
-    origin = null;
+    origin = "null";
   }
 
-  return allowedOrigins.has(origin!);
+  return allowedOrigins.has(origin);
 }
 
 /**
@@ -147,8 +147,8 @@ export function makeKey(pieces: string[]): string {
   }
 
   // Enforce a max key length
-  const length = pieces.reduce((length, piece, ix) => {
-    if (!piece) {
+  pieces.reduce((length, piece, ix) => {
+    if (!exists(piece)) {
       return length;
     }
     length += piece.length + ix;

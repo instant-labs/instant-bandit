@@ -35,6 +35,7 @@ describe("browser session provider", () => {
     it("saves a new session into local storage", async () => {
       const newSession = await provider.getOrCreateSession(ctx, {});
       expect(newSession).toStrictEqual({
+        sid: "",
         site: site.name,
         variants: {},
       });
@@ -47,10 +48,10 @@ describe("browser session provider", () => {
     });
 
     it("retrieves a session from local storage", async () => {
-      const newSession = await provider.getOrCreateSession(ctx, { uid: "1001" });
+      const newSession = await provider.getOrCreateSession(ctx, { sid: "1001" });
       expect(newSession).toStrictEqual({
+        sid: "1001",
         site: site.name,
-        uid: "1001",
         variants: {},
       });
       const storedSession = await provider.getOrCreateSession(ctx);
@@ -60,7 +61,7 @@ describe("browser session provider", () => {
 
   describe("hasSeen", () => {
     it("returns true when seen and false when not", async () => {
-      const sesh = await provider.getOrCreateSession(ctx);
+      await provider.getOrCreateSession(ctx);
       await provider.persistVariant(ctx, "A", "a");
       expect(await provider.hasSeen(ctx, "A", "a")).toBe(true);
       expect(await provider.hasSeen(ctx, "A", "b")).toBe(false);
@@ -77,6 +78,7 @@ describe("browser session provider", () => {
       sesh = await provider.getOrCreateSession(ctx);
 
       expect(sesh).toStrictEqual({
+        sid: "",
         site: site.name,
         variants: {
           "experiment-1": [
@@ -97,11 +99,12 @@ describe("browser session provider", () => {
       sesh = await provider.getOrCreateSession(ctx);
 
       expect(sesh).toStrictEqual({
+        sid: "",
         site: site.name,
         variants: {
           "experiment-1": [
             "a",
-          ]
+          ],
         },
       });
     });
@@ -116,16 +119,15 @@ describe("browser session provider", () => {
 
       sesh = await provider.getOrCreateSession(ctx);
 
-      expect(sesh).toStrictEqual(
-        {
-          site: site.name,
-          variants: {
-            "experiment-1": ["a"],
-            "experiment-2": ["b"],
-            "experiment-3": ["c"],
-          },
+      expect(sesh).toStrictEqual({
+        sid: "",
+        site: site.name,
+        variants: {
+          "experiment-1": ["a"],
+          "experiment-2": ["b"],
+          "experiment-3": ["c"],
         },
-      );
+      });
     });
   });
 });

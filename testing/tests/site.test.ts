@@ -1,11 +1,10 @@
 /**
  * @jest-environment jsdom
  */
-import { createBanditContext, InstantBanditContext } from "../../lib/contexts";
-import { DEFAULT_EXPERIMENT } from "../../lib/defaults";
+import { createBanditContext } from "../../lib/contexts";
 import { Experiment, Variant } from "../../lib/models";
 import { balanceProbabilities, selectWithProbabilities } from "../../lib/providers/site";
-import { ProbabilityDistribution, SiteProvider } from "../../lib/types";
+import { ProbabilityDistribution } from "../../lib/types";
 import { exists } from "../../lib/utils";
 import { TEST_SITE_AB } from "../sites";
 
@@ -52,7 +51,7 @@ describe("site provider", () => {
         { name: "C", prob: 0 },
       ];
       const winner = selectWithProbabilities({ variants } as Experiment);
-      expect(winner!.name).toBe("B");
+      expect(winner?.name).toBe("B");
     });
 
     it("selects a variant where sum probabilities === 0", () => {

@@ -1,7 +1,7 @@
 import { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 
 import { SessionDescriptor } from "../types";
-import { Experiment, MetricsBatch, MetricsBucket, Site, SiteMeta, Variant, VariantMeta } from "../models";
+import { Experiment, MetricsBatch, MetricsBucket, Site, SiteMeta, Variant } from "../models";
 import { HEADER_SESSION_ID } from "../constants";
 
 
@@ -99,7 +99,7 @@ export type ValidatedRequest = {
   headers: InstantBanditHeaders
   origin: string
   session: ServerSession | null
-  siteName: string | null
+  siteName: string
 }
 
 /**

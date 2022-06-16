@@ -10,26 +10,25 @@ import { TEST_SITE_AB } from "./sites";
 export let
   mounts: number,
   renders: number,
-  component: RenderResult | null = null;
+  component: RenderResult;
 
 
 export async function renderTest(tree: React.ReactElement): Promise<RenderResult> {
   await act(async () => { component = await render(tree); });
-  return component!;
+  return component;
 }
 
 export function siteLoadResponse(site = TEST_SITE_AB) {
-  return (req: Request) => Promise.resolve(JSON.stringify(site));
+  return () => Promise.resolve(JSON.stringify(site));
 }
 
 export function siteErrorResponse(errorText = "MOCK-ERROR") {
-  return (req: Request) => Promise.reject(new Error(errorText));
+  return () => Promise.reject(new Error(errorText));
 }
 
 export function resetDebugHelpers() {
   mounts = 0;
   renders = 0;
-  component = null;
 }
 
 export function expectMounts(num = 1) {
@@ -41,7 +40,7 @@ export function expectRenders(num = 1) {
 }
 
 function content() {
-  return component?.container.innerHTML ?? "";
+  return component.container.innerHTML ?? "";
 }
 
 export function expectHtml(html?: string) {
@@ -83,7 +82,7 @@ export const Debug = (props: React.PropsWithChildren<DebugProps> = {}) => {
     ++state.effects;
     setState(state);
 
-  }, [ctx, ctx.site, state, site, experiment, variant, ctx]);
+  }, [ctx, ctx.site, state, site, experiment, variant, log, onEffect, onFirstEffect]);
 
   const info: DebugCallbackProps = { ctx, debug: state };
   if (state.renders === 0 && onFirstRender) {
@@ -112,10 +111,10 @@ export interface DebugProps {
   label?: string
   msg?: string
   show?: boolean
-  onEffect?: (props: DebugCallbackProps) => any
-  onFirstEffect?: (props: DebugCallbackProps) => any
-  onFirstRender?: (props: DebugCallbackProps) => any
-  onRender?: (props: DebugCallbackProps) => any
+  onEffect?: (props: DebugCallbackProps) => unknown
+  onFirstEffect?: (props: DebugCallbackProps) => unknown
+  onFirstRender?: (props: DebugCallbackProps) => unknown
+  onRender?: (props: DebugCallbackProps) => unknown
 }
 interface DebugState {
   renders: number

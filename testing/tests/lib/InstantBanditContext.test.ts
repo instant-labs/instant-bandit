@@ -79,14 +79,14 @@ describe("InstantBanditContext", () => {
     it("does not include a timestamp by default", async () => {
       site = await loader.load(ctx);
       expect(count).toBe(1);
-      expect(url!.searchParams.get(constants.PARAM_TIMESTAMP)).toBe(null);
+      expect(url?.searchParams.get(constants.PARAM_TIMESTAMP)).toBe(null);
     });
 
     it("includes a timestamp if specified", async () => {
       ctx = createBanditContext({ appendTimestamp: true });
       loader = ctx.loader;
       site = await loader.load(ctx);
-      const ts = url!.searchParams.get(constants.PARAM_TIMESTAMP);
+      const ts = url?.searchParams.get(constants.PARAM_TIMESTAMP);
       expect(count).toBe(1);
       expect(ts).toBeDefined();
       expect(parseInt(ts + "")).toBeGreaterThan(0);
@@ -121,7 +121,7 @@ describe("InstantBanditContext", () => {
     });
 
     it("loads the default site from an invalid input", async () => {
-      site = await loader.init(ctx, null as any);
+      site = await loader.init(ctx, null as unknown as Site);
       expectReady();
       expectError();
       expectDefaultSite();
@@ -212,7 +212,7 @@ describe("InstantBanditContext", () => {
     describe("builtin defaults", () => {
       // Any sort of error during init means getting the builtins for fault-tolerance
       it("selects the builtin variant and experiment on error", async () => {
-        site = await loader.init(ctx, null as any);
+        site = await loader.init(ctx, null as unknown as Site);
         const { experiment, variant } = await loader.select(ctx, "active-1");
         expectError();
         expectDefaultExperiment(experiment, variant);
@@ -234,7 +234,7 @@ describe("InstantBanditContext", () => {
         expectNonBuiltinExperimentInstance(experiment);
         expect(experiment.id).toBe(DEFAULT_EXPERIMENT.id);
         expect(variant.name).toStrictEqual(DEFAULT_VARIANT.name);
-        expect(variant.props!.inDefaultExperiment).toBe(true);
+        expect(variant.props?.inDefaultExperiment).toBe(true);
       });
     });
 
@@ -245,7 +245,7 @@ describe("InstantBanditContext", () => {
         expectNonBuiltinExperimentInstance(experiment);
         expect(experiment.id).toEqual(DEFAULT_EXPERIMENT.id);
         expect(variant.name).toEqual("variant-in-configured-default");
-        expect(variant.props!.inDefaultExperiment).toBe(true);
+        expect(variant.props?.inDefaultExperiment).toBe(true);
       });
 
       it("can select a configured builtin variant from a configured builtin experiment", async () => {
@@ -254,7 +254,7 @@ describe("InstantBanditContext", () => {
         expectNonBuiltinExperimentInstance(experiment);
         expect(experiment.id).toStrictEqual(DEFAULT_EXPERIMENT.id);
         expect(variant.name).toStrictEqual(constants.DEFAULT_VARIANT_NAME);
-        expect(variant.props!.inDefaultExperiment).toBe(true);
+        expect(variant.props?.inDefaultExperiment).toBe(true);
       });
 
       // Ensures the right instance of experiment is selected, even though the builtin variant is used
@@ -306,7 +306,7 @@ describe("InstantBanditContext", () => {
       expectNoError();
       expectNonBuiltinExperimentInstance(experiment);
       expect(variant).toStrictEqual(site.experiments[2].variants[0]);
-      expect(variant.props!.correct).toBe(true);
+      expect(variant.props?.correct).toBe(true);
     });
   });
 

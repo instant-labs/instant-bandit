@@ -21,8 +21,8 @@ export function getBanditServer(options?: Partial<InstantBanditServerOptions>) {
   // network resources, database connections, etc.
   // A workaround is to attach an object to the global scope during dev.
   if (env.isDev()) {
-    if ((global as any).banditServer) {
-      banditServer = (global as any).defaultBanditServer;
+    if (global["defaultBanditServer"]) {
+      banditServer = global["defaultBanditServer"];
     }
   }
 
@@ -32,7 +32,7 @@ export function getBanditServer(options?: Partial<InstantBanditServerOptions>) {
   }
 
   if (env.isDev()) {
-    (global as any).defaultBanditServer = banditServer;
+    global["defaultBanditServer"] = banditServer;
   }
 
   return banditServer;
@@ -83,7 +83,7 @@ export function createSiteEndpoint(server: InstantBanditServer) {
 
     // Relay headers
     Object.keys(responseHeaders)
-      .forEach(header => res.setHeader(header, responseHeaders[header]!));
+      .forEach(header => res.setHeader(header, responseHeaders[header] ?? ""));
 
     if (env.isDev()) {
       res.status(200).send(JSON.stringify(site, null, 2));
@@ -106,9 +106,7 @@ export function createMetricsEndpoint(server: InstantBanditServer) {
   // This endpoint accepts POST requests bearing batches of metrics to ingest.
   // In development environments, shows site metrics on GET
   async function handleMetricsRequest(req: NextApiRequest, res: NextApiResponse) {
-    const server = getBanditServer();
     await server.init();
-
 
     // TODO: Respond to CORS preflights
 

@@ -4,15 +4,12 @@
 import React from "react";
 import fetchMock from "jest-fetch-mock";
 
-import { CountMountsAndRenders, Debug, ExpectBanditReady, expectRenders, resetDebugHelpers, siteLoadResponse } from "../../test-utils";
+import { CountMountsAndRenders, Debug, ExpectBanditReady, expectRenders, resetDebugHelpers } from "../../test-utils";
 import { InstantBandit } from "../../../components/InstantBanditComponent";
 import { exists } from "../../../lib/utils";
 import { expectMounts, renderTest } from "../../test-utils";
 import { TEST_SITE_AB } from "../../sites";
 import { Variant } from "../../../components/Variant";
-import { InstantBanditContext } from "../../../lib/contexts";
-import { SessionProvider } from "../../../lib/types";
-import { Experiment } from "../../../lib/models";
 
 
 describe("InstantBandit component", () => {
@@ -33,8 +30,8 @@ describe("InstantBandit component", () => {
   });
 
   function mockSiteResponses(count = 1) {
-    Array(count).fill(void 0).forEach(i =>
-      fetchMock.mockResponse(async (init) => {
+    Array(count).fill(void 0).forEach(() =>
+      fetchMock.mockResponse(async () => {
         ++fetches;
         return await JSON.stringify(TEST_SITE_AB);
       })
@@ -51,9 +48,9 @@ describe("InstantBandit component", () => {
     it("persists the chosen variant", async () => {
       fetchMock.resetMocks();
       mockSiteResponses(1);
-      let ctx: InstantBanditContext;
-      let session: SessionProvider;
-      let experiment: Experiment;
+      let ctx;
+      let session;
+      let experiment;
       await renderTest(
         <InstantBandit select="B">
           <Variant name="B">
@@ -66,8 +63,8 @@ describe("InstantBandit component", () => {
         </InstantBandit>
       );
 
-      expect(await session!.hasSeen(ctx!, experiment!.id, "A")).toBe(false);
-      expect(await session!.hasSeen(ctx!, experiment!.id, "B")).toBe(true);
+      expect(await session?.hasSeen(ctx, experiment.id, "A")).toBe(false);
+      expect(await session?.hasSeen(ctx, experiment.id, "B")).toBe(true);
     });
 
     it("invokes multiple load requests for the same site", async () => {

@@ -1,5 +1,4 @@
 import * as constants from "./constants";
-import { AlgorithmResults } from "./types";
 import { SiteMeta } from "./models";
 import { deepFreeze, env } from "./utils";
 
@@ -48,8 +47,3 @@ export const DEFAULT_SITE = deepFreeze<SiteMeta>({
 export const DEFAULT_EXPERIMENT = DEFAULT_SITE.experiments[0];
 export const DEFAULT_VARIANT = DEFAULT_EXPERIMENT.variants[0];
 export const DEFAULT_METRICS = DEFAULT_VARIANT.metrics;
-export const DEFAULT_ALGO_RESULTS: AlgorithmResults = deepFreeze({
-  winner: DEFAULT_VARIANT,
-  pValue: 0,
-  metrics: {},
-});
