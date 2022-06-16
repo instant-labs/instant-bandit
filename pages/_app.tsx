@@ -1,6 +1,6 @@
-import { InstantBandit } from '../components/InstantBanditComponent'
+import { InstantBandit } from '../components/InstantBanditComponent';
 
-import '../styles/globals.css'
+import '../styles/globals.css';
 
 
 function MyApp({ Component, pageProps }) {
@@ -8,7 +8,7 @@ function MyApp({ Component, pageProps }) {
     <InstantBandit siteName={"demo"}>
       <Component {...pageProps} />
     </InstantBandit>
-  )
+  );
 }
 
-export default MyApp
+export default MyApp;

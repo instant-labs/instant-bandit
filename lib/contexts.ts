@@ -1,17 +1,17 @@
-import React from "react"
+import React from "react";
 
-import * as constants from "./constants"
+import * as constants from "./constants";
 import {
   InstantBanditOptions,
   MetricsProvider,
   SessionProvider,
   SiteProvider,
-} from "./types"
-import { Experiment, Site, Variant } from "./models"
-import { getLocalStorageSessionProvider } from "./providers/session"
-import { getSiteProvider } from "./providers/site"
-import { DEFAULT_SITE_PROVIDER_OPTIONS } from "./providers/site"
-import { DEFAULT_METRICS_SINK_OPTIONS, getHttpMetricsSink } from "./providers/metrics"
+} from "./types";
+import { Experiment, Site, Variant } from "./models";
+import { getLocalStorageSessionProvider } from "./providers/session";
+import { getSiteProvider } from "./providers/site";
+import { DEFAULT_SITE_PROVIDER_OPTIONS } from "./providers/site";
+import { DEFAULT_METRICS_SINK_OPTIONS, getHttpMetricsSink } from "./providers/metrics";
 
 
 export interface InstantBanditContext {
@@ -32,12 +32,12 @@ export interface InstantBanditContext {
 
 export function createBanditContext(options?: Partial<InstantBanditOptions>, mixin?: Partial<InstantBanditContext>):
   InstantBanditContext {
-  const appliedOptions = mergeBanditOptions(DEFAULT_BANDIT_OPTIONS, options ?? {}) as InstantBanditOptions
+  const appliedOptions = mergeBanditOptions(DEFAULT_BANDIT_OPTIONS, options ?? {}) as InstantBanditOptions;
 
-  const { providers } = appliedOptions
-  const loader = providers.loader(appliedOptions)
-  const metrics = providers.metrics(appliedOptions)
-  const session = providers.session(appliedOptions)
+  const { providers } = appliedOptions;
+  const loader = providers.loader(appliedOptions);
+  const metrics = providers.metrics(appliedOptions);
+  const session = providers.session(appliedOptions);
 
   const ctx: InstantBanditContext = {
     origin: typeof location !== "undefined" ? location.origin : constants.DEFAULT_ORIGIN,
@@ -46,34 +46,34 @@ export function createBanditContext(options?: Partial<InstantBanditOptions>, mix
     metrics,
     session,
 
-    get site() { return loader.model },
-    get experiment() { return loader.experiment },
-    get variant() { return loader.variant },
+    get site() { return loader.model; },
+    get experiment() { return loader.experiment; },
+    get variant() { return loader.variant; },
 
     load: async (variant?: string) => {
-      return await loader.load(ctx, variant)
+      return await loader.load(ctx, variant);
     },
     init: async (site: Site, select?: string) => {
-      return await loader.init(ctx, site, select)
+      return await loader.init(ctx, site, select);
     },
     select: async (variant: string) => {
-      loader.select(ctx, variant)
-      session.persistVariant(ctx, loader.experiment.id, loader.variant.name)
-      return loader.model
+      loader.select(ctx, variant);
+      session.persistVariant(ctx, loader.experiment.id, loader.variant.name);
+      return loader.model;
     },
-  }
+  };
 
-  return ctx
+  return ctx;
 }
 
 export function mergeBanditOptions(a: Partial<InstantBanditOptions>, b: Partial<InstantBanditOptions>) {
-  const { providers: providersA } = a
-  const { providers: providersB } = b
+  const { providers: providersA } = a;
+  const { providers: providersB } = b;
 
-  const providers = Object.assign({}, providersA, providersB)
-  const merged = Object.assign({}, a, b, { providers })
+  const providers = Object.assign({}, providersA, providersB);
+  const merged = Object.assign({}, a, b, { providers });
 
-  return Object.freeze(merged)
+  return Object.freeze(merged);
 }
 
 export const DEFAULT_BANDIT_OPTIONS: InstantBanditOptions = {
@@ -84,7 +84,7 @@ export const DEFAULT_BANDIT_OPTIONS: InstantBanditOptions = {
     session: options => getLocalStorageSessionProvider(),
     metrics: options => getHttpMetricsSink(options),
   },
-} as const
-Object.freeze(DEFAULT_BANDIT_OPTIONS)
+} as const;
+Object.freeze(DEFAULT_BANDIT_OPTIONS);
 export const InstantBanditContext: React.Context<InstantBanditContext> =
-  React.createContext<InstantBanditContext>(createBanditContext())
+  React.createContext<InstantBanditContext>(createBanditContext());

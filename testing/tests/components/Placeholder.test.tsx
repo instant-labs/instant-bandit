@@ -1,13 +1,13 @@
 /**
  * @jest-environment jsdom
  */
-import React from "react"
-import fetchMock from "jest-fetch-mock"
+import React from "react";
+import fetchMock from "jest-fetch-mock";
 
-import { InstantBandit } from "../../../components/InstantBanditComponent"
-import { Placeholder } from "../../../components/Placeholder"
-import { Variant } from "../../../components/Variant"
-import { TEST_SITE_AB } from "../../sites"
+import { InstantBandit } from "../../../components/InstantBanditComponent";
+import { Placeholder } from "../../../components/Placeholder";
+import { Variant } from "../../../components/Variant";
+import { TEST_SITE_AB } from "../../sites";
 import {
   expectHtml,
   expectMounts,
@@ -18,13 +18,13 @@ import {
   CountMountsAndRenders,
   ExpectBanditWaiting,
   ExpectBanditReady
-} from "../../test-utils"
+} from "../../test-utils";
 
 
 describe("Placeholder", () => {
-  beforeAll(() => fetchMock.enableMocks())
-  afterAll(() => fetchMock.resetMocks())
-  beforeEach(() => { fetchMock.mockResponse(siteLoadResponse(TEST_SITE_AB)) })
+  beforeAll(() => fetchMock.enableMocks());
+  afterAll(() => fetchMock.resetMocks());
+  beforeEach(() => { fetchMock.mockResponse(siteLoadResponse(TEST_SITE_AB)); });
 
   // Currently skipped because the InstantBandit component is not rendering children while
   // in the waiting state.
@@ -43,12 +43,12 @@ describe("Placeholder", () => {
               AAA
             </Variant>
           </InstantBandit>
-        )
-        expectMounts(2)
-        expectRenders(2)
-        expectHtml("AAA")
-      })
-    })
+        );
+        expectMounts(2);
+        expectRenders(2);
+        expectHtml("AAA");
+      });
+    });
 
     describe("hidden", () => {
       it("when InstantBandit is ready", async () => {
@@ -59,11 +59,11 @@ describe("Placeholder", () => {
               PLACEHOLDER
             </Placeholder>
           </InstantBandit>
-        )
-        expectMounts(2)
-        expectRenders(2)
-        expectNoContent()
-      })
-    })
-  })
-})
+        );
+        expectMounts(2);
+        expectRenders(2);
+        expectNoContent();
+      });
+    });
+  });
+});

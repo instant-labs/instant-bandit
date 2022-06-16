@@ -1,6 +1,6 @@
-import { DefaultMetrics } from "./constants"
-import { Experiment, MetricsBucket, MetricsSample, Site, Variant as VariantModel } from "./models"
-import { InstantBanditContext } from "./contexts"
+import { DefaultMetrics } from "./constants";
+import { Experiment, MetricsBucket, MetricsSample, Site, Variant as VariantModel } from "./models";
+import { InstantBanditContext } from "./contexts";
 
 
 export type InstantBanditProps = {

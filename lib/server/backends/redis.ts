@@ -1,15 +1,15 @@
-import { randomBytes, randomUUID } from "crypto"
+import { randomBytes, randomUUID } from "crypto";
 import ioredis, {
   ChainableCommander,
   Pipeline,
   Redis,
   RedisCommander,
   RedisOptions,
-} from "ioredis"
+} from "ioredis";
 
-import env from "../environment"
-import * as constants from "../../constants"
-import { InstantBanditOptions, Metric, MetricName, SessionDescriptor, } from "../../types"
+import env from "../environment";
+import * as constants from "../../constants";
+import { InstantBanditOptions, Metric, MetricName, SessionDescriptor, } from "../../types";
 import {
   Experiment,
   MetricsBatch,
@@ -19,10 +19,10 @@ import {
   SiteMeta,
   Variant,
   VariantMeta
-} from "../../models"
-import { ConnectingBackendFunctions, MetricsBackend, SessionsBackend, ValidatedRequest } from "../server-types"
-import { makeKey, toNumber } from "../server-utils"
-import { exists } from "../../utils"
+} from "../../models";
+import { ConnectingBackendFunctions, MetricsBackend, SessionsBackend, ValidatedRequest } from "../server-types";
+import { makeKey, toNumber } from "../server-utils";
+import { exists } from "../../utils";
 
 
 export const DEFAULT_REDIS_OPTIONS: RedisBackendOptions = {
@@ -30,7 +30,7 @@ export const DEFAULT_REDIS_OPTIONS: RedisBackendOptions = {
   port: env.IB_REDIS_PORT,
   lazyConnect: true,
   disconnectWaitDuration: 50,
-}
+};
 
 export type RedisBackendOptions = RedisOptions & {
   disconnectWaitDuration: number,
@@ -54,30 +54,30 @@ export type RedisBackend = MetricsBackend & ConnectingBackendFunctions & {
 type Options = Partial<InstantBanditOptions & RedisBackendOptions>
 
 export function getRedisBackend(initOptions: Options = {}): RedisBackend & SessionsBackend {
-  const options = Object.freeze(Object.assign({}, DEFAULT_REDIS_OPTIONS, initOptions))
-  const redis = new ioredis(options)
+  const options = Object.freeze(Object.assign({}, DEFAULT_REDIS_OPTIONS, initOptions));
+  const redis = new ioredis(options);
   return {
-    get client() { return redis },
+    get client() { return redis; },
 
     async connect(): Promise<void> {
-      console.debug(`[IB] Connecting to redis...`)
+      console.debug(`[IB] Connecting to redis...`);
       switch (redis.status) {
         case "connecting":
         case "connect":
         case "ready":
-          return
+          return;
         default:
-          await redis.connect()
+          await redis.connect();
       }
     },
 
     async disconnect() {
       try {
-        console.debug(`[IB] Disconnecting from redis...`)
+        console.debug(`[IB] Disconnecting from redis...`);
         if (redis.status === "ready") {
-          await redis.quit()
+          await redis.quit();
         }
-        redis.disconnect()
+        redis.disconnect();
       } finally {
         // See: https://github.com/luin/ioredis/issues/1088
         while (redis.status === "ready") {
@@ -87,112 +87,112 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
     },
 
     async getMetricsForSite(site: Site, experiments: Experiment[]): Promise<Map<Variant, MetricsBucket>> {
-      return getMetricsForSite(redis, site, experiments)
+      return getMetricsForSite(redis, site, experiments);
     },
 
     async getMetricsBucket(siteId: string, experiment: string, variant: string): Promise<MetricsBucket> {
-      return getMetricsBucket(redis, siteId, experiment, variant)
+      return getMetricsBucket(redis, siteId, experiment, variant);
     },
 
     async ingestBatch(req: ValidatedRequest, batch: MetricsBatch): Promise<void> {
-      return ingestBatch(redis, req, batch)
+      return ingestBatch(redis, req, batch);
     },
 
     async getOrCreateSession(req: ValidatedRequest): Promise<SessionDescriptor> {
-      return getOrCreateSession(redis, req)
+      return getOrCreateSession(redis, req);
     },
 
     async markVariantSeen(session: SessionDescriptor, experimentId: string, variantName: string) {
-      return markVariantSeen(redis, session, experimentId, variantName)
+      return markVariantSeen(redis, session, experimentId, variantName);
     },
-  }
+  };
 }
 
 export async function getMetricsForSite(redis: Redis, site: Site, experiments: Experiment[])
   : Promise<Map<Variant, MetricsBucket>> {
 
-  const variantBuckets = new Map<Variant, MetricsBucket>()
+  const variantBuckets = new Map<Variant, MetricsBucket>();
 
   for (const exp of experiments) {
     for (const variant of exp.variants) {
-      const key = makeKey([site.name, exp.id, variant.name, "metrics"])
-      const bucket = await getMetricsBucket(redis, site.name, exp.id, variant.name)
-      variantBuckets.set(variant, bucket)
+      const key = makeKey([site.name, exp.id, variant.name, "metrics"]);
+      const bucket = await getMetricsBucket(redis, site.name, exp.id, variant.name);
+      variantBuckets.set(variant, bucket);
     }
   }
 
-  return variantBuckets
+  return variantBuckets;
 }
 
 export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): Promise<SessionDescriptor> {
-  const { headers, siteName } = req
-  let { sid } = req
+  const { headers, siteName } = req;
+  let { sid } = req;
 
-  const sessionsSetKey = makeKey([siteName!, "sessions"])
-  let session: SessionDescriptor | null = null
+  const sessionsSetKey = makeKey([siteName!, "sessions"]);
+  let session: SessionDescriptor | null = null;
 
   if (exists(sid)) {
-    const sessionKey = makeKey([siteName!, "session", sid])
-    const sessionRaw = await redis.get(sessionKey)
+    const sessionKey = makeKey([siteName!, "session", sid]);
+    const sessionRaw = await redis.get(sessionKey);
 
     if (!exists(sessionRaw)) {
-      console.warn(`[IB] Invalid or unknown session '${sessionKey}'`)
-      session = null
+      console.warn(`[IB] Invalid or unknown session '${sessionKey}'`);
+      session = null;
     } else {
-      session = JSON.parse(sessionRaw!)
-      return session!
+      session = JSON.parse(sessionRaw!);
+      return session!;
     }
   }
 
   if (!session) {
     if (!exists(siteName)) {
-      throw new Error(`Invalid session scope`)
+      throw new Error(`Invalid session scope`);
     }
-    sid = randomUUID()
+    sid = randomUUID();
     session = {
       sid,
       site: siteName,
       variants: {},
-    }
+    };
 
-    const serializedSession = JSON.stringify(session)
-    let pipe = redis.multi()
+    const serializedSession = JSON.stringify(session);
+    const pipe = redis.multi();
     try {
-      const sessionKey = makeKey([siteName!, "session", session.sid!])
-      pipe.sadd(sessionsSetKey, session.sid!)
-      pipe.set(sessionKey, serializedSession)
-      await pipe.exec()
+      const sessionKey = makeKey([siteName!, "session", session.sid!]);
+      pipe.sadd(sessionsSetKey, session.sid!);
+      pipe.set(sessionKey, serializedSession);
+      await pipe.exec();
     } catch (err) {
-      console.warn(`[IB] Error saving session '${sid}': ${err}`)
+      console.warn(`[IB] Error saving session '${sid}': ${err}`);
     }
   }
 
-  return session
+  return session;
 }
 
 export async function markVariantSeen(redis: Redis, session: SessionDescriptor, experimentId: string, variantName: string) {
-  let variants = session.variants[experimentId]
+  let variants = session.variants[experimentId];
   if (!exists(variants)) {
-    variants = session.variants[experimentId] = []
+    variants = session.variants[experimentId] = [];
   }
 
   // Put the most recently presented variant at the end
-  const ix = variants.indexOf(variantName)
+  const ix = variants.indexOf(variantName);
   if (ix > -1) {
-    variants.splice(ix, 1)
+    variants.splice(ix, 1);
   }
 
-  variants.push(variantName)
+  variants.push(variantName);
 
-  const serializedSession = JSON.stringify(session)
-  const sessionKey = makeKey([session.site!, "session", session.sid!])
+  const serializedSession = JSON.stringify(session);
+  const sessionKey = makeKey([session.site!, "session", session.sid!]);
   try {
-    await redis.set(sessionKey, serializedSession)
+    await redis.set(sessionKey, serializedSession);
   } catch (err) {
-    console.warn(`[IB] Error saving session '${session.sid}': ${err}`)
+    console.warn(`[IB] Error saving session '${session.sid}': ${err}`);
   }
 
-  return session
+  return session;
 }
 
 /**
@@ -203,80 +203,80 @@ export async function ingestBatch(redis: Redis, req: ValidatedRequest, batch: Me
 
   // Note: When using `sendBeacon` from the client, we can't attach outbound headers.
   // In this scenario, the session ID should be plucked from the batch.
-  const sid = req.sid ?? batch.session
+  const sid = req.sid ?? batch.session;
   if (!exists(sid)) {
-    throw new Error(`Missing session`)
+    throw new Error(`Missing session`);
   }
 
   if (exists(req.sid) && req.sid !== batch.session) {
-    console.warn(`Session mismatch: SID: ${req.sid} Batch: ${batch.session}`)
+    console.warn(`Session mismatch: SID: ${req.sid} Batch: ${batch.session}`);
   }
 
-  const { site, experiment, variant, entries: samples } = batch
-  const pipe = redis.pipeline()
-  let prevTs = 0
+  const { site, experiment, variant, entries: samples } = batch;
+  const pipe = redis.pipeline();
+  let prevTs = 0;
   samples
     .filter(isValidMetricsSample)
     .forEach(sample => {
-      const { ts, name } = sample
+      const { ts, name } = sample;
 
       // Ignore out of order timestamps
       if (ts < prevTs) {
-        return
+        return;
       }
 
-      incrementMetricInPipeline(pipe, site, experiment, variant, name, 1)
-      prevTs = ts
-    })
+      incrementMetricInPipeline(pipe, site, experiment, variant, name, 1);
+      prevTs = ts;
+    });
 
   try {
-    await pipe.exec()
+    await pipe.exec();
   } catch (err) {
-    console.error(`[IB] Error while pipelining ${samples.length} for '${sid}'`)
+    console.error(`[IB] Error while pipelining ${samples.length} for '${sid}'`);
   }
 }
 
 export function isValidMetricsSample(sample: MetricsSample) {
-  const { name, ts, payload } = sample
+  const { name, ts, payload } = sample;
 
   if (typeof ts !== "number") {
-    return false
+    return false;
   } else if (typeof payload === "string" && (payload as string).length > env.IB_MAX_METRICS_PAYLOAD_LEN) {
-    return false
+    return false;
   } else {
-    return true
+    return true;
   }
 }
 
 export function incrementMetricInPipeline(pipe: ChainableCommander, site: string, eid: string, variant: string, metric: MetricName, incBy = 1)
   : ChainableCommander {
   if (site === null || site === void 0) {
-    throw new Error(`Missing site ID in incrementExposure`)
+    throw new Error(`Missing site ID in incrementExposure`);
   }
 
-  const key = makeKey([site, eid, variant, "metrics"])
+  const key = makeKey([site, eid, variant, "metrics"]);
   // TODO: Note the loss of bits, TEST
   // NOTE: Conversion from an integer to a float can happen here.
   if (incBy % 1 === 0) {
-    pipe.hincrby(key, metric, incBy)
+    pipe.hincrby(key, metric, incBy);
   } else {
-    pipe.hincrbyfloat(key, metric, incBy)
+    pipe.hincrbyfloat(key, metric, incBy);
   }
 
-  return pipe
+  return pipe;
 }
 
 export async function getMetricsBucket(redis: Redis, siteId: string, eid: string, variant: string)
   : Promise<MetricsBucket> {
-  const key = makeKey([siteId, eid, variant, "metrics"])
-  const hmap = await redis.hgetall(key)
+  const key = makeKey([siteId, eid, variant, "metrics"]);
+  const hmap = await redis.hgetall(key);
 
   if (!exists(hmap)) {
-    return {}
+    return {};
   }
 
-  const bucket: MetricsBucket = {}
-  Object.keys(hmap).forEach(k => bucket[k] = toNumber(hmap[k]))
+  const bucket: MetricsBucket = {};
+  Object.keys(hmap).forEach(k => bucket[k] = toNumber(hmap[k]));
 
-  return bucket
+  return bucket;
 }

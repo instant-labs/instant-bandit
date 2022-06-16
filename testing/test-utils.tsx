@@ -1,111 +1,111 @@
-import React, { useContext, useEffect, useState } from "react"
-import { RenderResult, act, render } from "@testing-library/react"
+import React, { useContext, useEffect, useState } from "react";
+import { RenderResult, act, render } from "@testing-library/react";
 
-import { InstantBanditContext } from "../lib/contexts"
-import { LoadState } from "../lib/types"
-import { exists } from "../lib/utils"
-import { TEST_SITE_AB } from "./sites"
+import { InstantBanditContext } from "../lib/contexts";
+import { LoadState } from "../lib/types";
+import { exists } from "../lib/utils";
+import { TEST_SITE_AB } from "./sites";
 
 
 export let
   mounts: number,
   renders: number,
-  component: RenderResult | null = null
+  component: RenderResult | null = null;
 
 
 export async function renderTest(tree: React.ReactElement): Promise<RenderResult> {
-  await act(async () => { component = await render(tree) })
-  return component!
+  await act(async () => { component = await render(tree); });
+  return component!;
 }
 
 export function siteLoadResponse(site = TEST_SITE_AB) {
-  return (req: Request) => Promise.resolve(JSON.stringify(site))
+  return (req: Request) => Promise.resolve(JSON.stringify(site));
 }
 
 export function siteErrorResponse(errorText = "MOCK-ERROR") {
-  return (req: Request) => Promise.reject(new Error(errorText))
+  return (req: Request) => Promise.reject(new Error(errorText));
 }
 
 export function resetDebugHelpers() {
-  mounts = 0
-  renders = 0
-  component = null
+  mounts = 0;
+  renders = 0;
+  component = null;
 }
 
 export function expectMounts(num = 1) {
-  expect(mounts).toBe(num)
+  expect(mounts).toBe(num);
 }
 
 export function expectRenders(num = 1) {
-  expect(renders).toBe(num)
+  expect(renders).toBe(num);
 }
 
 function content() {
-  return component?.container.innerHTML ?? ""
+  return component?.container.innerHTML ?? "";
 }
 
 export function expectHtml(html?: string) {
   if (!exists(html)) {
-    expect(content()?.length > 0).toBe(true)
+    expect(content()?.length > 0).toBe(true);
   } else {
-    expect(content()).toBe(html)
+    expect(content()).toBe(html);
   }
 }
 
 export function expectNoContent() {
-  expectHtml("")
+  expectHtml("");
 }
 
 
 export const Debug = (props: React.PropsWithChildren<DebugProps> = {}) => {
-  const [state, setState] = useState({ renders: 0, effects: 0 })
-  const ctx = useContext(InstantBanditContext)
+  const [state, setState] = useState({ renders: 0, effects: 0 });
+  const ctx = useContext(InstantBanditContext);
 
-  const { loader } = ctx
-  const { model: site, experiment, variant } = loader
-  const { children, show, msg: log } = props
-  const { onEffect, onFirstEffect, onFirstRender, onRender } = props
+  const { loader } = ctx;
+  const { model: site, experiment, variant } = loader;
+  const { children, show, msg: log } = props;
+  const { onEffect, onFirstEffect, onFirstRender, onRender } = props;
 
   useEffect(() => {
-    const info: DebugCallbackProps = { ctx, debug: state }
+    const info: DebugCallbackProps = { ctx, debug: state };
     if (state.effects === 0 && onFirstEffect) {
-      onFirstEffect(info)
+      onFirstEffect(info);
     }
 
     if (onEffect) {
-      onEffect(info)
+      onEffect(info);
     }
 
     if (exists(log)) {
-      console.debug(`[IB] debug :: '${log}'`)
+      console.debug(`[IB] debug :: '${log}'`);
     }
 
-    ++state.effects
-    setState(state)
+    ++state.effects;
+    setState(state);
 
-  }, [ctx, ctx.site, state, site, experiment, variant, ctx])
+  }, [ctx, ctx.site, state, site, experiment, variant, ctx]);
 
-  const info: DebugCallbackProps = { ctx, debug: state }
+  const info: DebugCallbackProps = { ctx, debug: state };
   if (state.renders === 0 && onFirstRender) {
-    onFirstRender(info)
+    onFirstRender(info);
   }
 
-  ++state.renders
+  ++state.renders;
 
   if (onRender) {
-    onRender(info)
+    onRender(info);
   }
 
   if (!show) {
-    return <>{children}</>
+    return <>{children}</>;
   }
 
   return (
     <>
       {children}
     </>
-  )
-}
+  );
+};
 
 export interface DebugProps {
   testId?: string
@@ -127,16 +127,16 @@ type DebugCallbackProps = {
 }
 
 export const CountMountsAndRenders = () =>
-  (<Debug onRender={() => ++renders} onEffect={() => ++mounts} />)
+  (<Debug onRender={() => ++renders} onEffect={() => ++mounts} />);
 
 export const ThrowIfPresented = () =>
-  <Debug onRender={() => { throw new Error("This element should not be presented") }} />
+  <Debug onRender={() => { throw new Error("This element should not be presented"); }} />;
 
 export const ExpectBanditWaiting = () =>
-  <Debug onRender={({ ctx }) => { expect(ctx.loader.state).toStrictEqual(LoadState.WAIT) }} />
+  <Debug onRender={({ ctx }) => { expect(ctx.loader.state).toStrictEqual(LoadState.WAIT); }} />;
 
 export const ExpectBanditReady = () =>
-  <Debug onRender={({ ctx }) => { expect(ctx.loader.state).toStrictEqual(LoadState.READY) }} />
+  <Debug onRender={({ ctx }) => { expect(ctx.loader.state).toStrictEqual(LoadState.READY); }} />;
 
 export const Call = ({ onFirstEffect }) =>
-  <Debug onFirstEffect={onFirstEffect} />
+  <Debug onFirstEffect={onFirstEffect} />;

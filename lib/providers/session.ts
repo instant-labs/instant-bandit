@@ -1,35 +1,35 @@
-import { InstantBanditContext } from "../contexts"
-import { SessionDescriptor, SessionProvider } from "../types"
-import { exists, isBrowserEnvironment } from "../utils"
-import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../defaults"
+import { InstantBanditContext } from "../contexts";
+import { SessionDescriptor, SessionProvider } from "../types";
+import { exists, isBrowserEnvironment } from "../utils";
+import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../defaults";
 
 
 export function getLocalStorageKey(site: string) {
-  return `site.${site}`
+  return `site.${site}`;
 }
 
 export function getLocalStorageSessionProvider(): SessionProvider {
-  let id: string | null = null
+  let id: string | null = null;
   return {
-    get id() { return id },
+    get id() { return id; },
 
     /**
     * Gets an existing session for the given site, creating one with default
     * properties if it does not exist.
     */
     getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): SessionDescriptor {
-      const session = getOrCreateSession(ctx, props)
+      const session = getOrCreateSession(ctx, props);
       if (exists(session.sid!)) {
-        id = session.sid!
+        id = session.sid!;
       }
-      return session
+      return session;
     },
 
     /**
      * Records a variant exposure in the session in order to show the same one next time
      */
     persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) {
-      return persistVariant(ctx, experiment, variant)
+      return persistVariant(ctx, experiment, variant);
     },
 
     /**
@@ -37,87 +37,87 @@ export function getLocalStorageSessionProvider(): SessionProvider {
      * presented before
      */
     hasSeen(ctx: InstantBanditContext, experiment: string, variant: string) {
-      return hasSeen(ctx, experiment, variant)
+      return hasSeen(ctx, experiment, variant);
     }
-  }
+  };
 }
 
 
 function getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>) {
   if (!isBrowserEnvironment) {
-    return Object.assign({}, props) as SessionDescriptor
+    return Object.assign({}, props) as SessionDescriptor;
   }
 
-  let { site } = ctx
+  let { site } = ctx;
   if (!exists(site)) {
-    site = DEFAULT_SITE
+    site = DEFAULT_SITE;
   }
 
-  const storageKey = getLocalStorageKey(site.name)
-  const sessionJson = localStorage.getItem(storageKey)
+  const storageKey = getLocalStorageKey(site.name);
+  const sessionJson = localStorage.getItem(storageKey);
 
-  let session: SessionDescriptor
+  let session: SessionDescriptor;
   if (exists(sessionJson)) {
-    session = <SessionDescriptor>JSON.parse(sessionJson!)
+    session = <SessionDescriptor>JSON.parse(sessionJson!);
   } else {
     session = {
       site: site.name,
       variants: {},
-    }
+    };
   }
 
   if (props) {
-    Object.assign(session, props)
+    Object.assign(session, props);
   }
 
   try {
-    localStorage.setItem(storageKey, JSON.stringify(session))
+    localStorage.setItem(storageKey, JSON.stringify(session));
   } catch (err) {
-    handlePossibleQuotaError(err)
+    handlePossibleQuotaError(err);
   }
 
-  return session
+  return session;
 }
 
 function persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) {
   if (!isBrowserEnvironment) {
-    return
+    return;
   }
   if (experiment === DEFAULT_EXPERIMENT.id && variant === DEFAULT_VARIANT.name) {
-    return
+    return;
   }
 
-  const { site } = ctx
-  const storageKey = getLocalStorageKey(site.name)
-  const session = getOrCreateSession(ctx)
+  const { site } = ctx;
+  const storageKey = getLocalStorageKey(site.name);
+  const session = getOrCreateSession(ctx);
 
-  let variants = session.variants[experiment]
+  let variants = session.variants[experiment];
   if (!exists(variants)) {
-    variants = session.variants[experiment] = []
+    variants = session.variants[experiment] = [];
   }
 
   // Put the most recently presented variant at the end
-  const ix = variants.indexOf(variant)
+  const ix = variants.indexOf(variant);
   if (ix > -1) {
-    variants.splice(ix, 1)
+    variants.splice(ix, 1);
   }
 
-  variants.push(variant)
+  variants.push(variant);
 
   try {
-    localStorage.setItem(storageKey, JSON.stringify(session))
+    localStorage.setItem(storageKey, JSON.stringify(session));
   } catch (err) {
-    handlePossibleQuotaError(err)
+    handlePossibleQuotaError(err);
   }
 }
 
 function handlePossibleQuotaError(err: DOMException) {
   if (!isQuotaError(err)) {
-    console.warn(`[IB] Error updating session: ${err}`)
+    console.warn(`[IB] Error updating session: ${err}`);
   } else {
     // NOTE: This is almost certainly a quota issue, and the shape of which is not
     // consistent across browsers. Safe to suppress here.
-    console.debug(`[IB] Storage quota error: ${err}`)
+    console.debug(`[IB] Storage quota error: ${err}`);
   }
 }
 
@@ -126,36 +126,36 @@ function handlePossibleQuotaError(err: DOMException) {
  */
 function isQuotaError(err: DOMException): boolean {
   if (!err) {
-    return false
+    return false;
   }
 
   if (!exists(err.code)) {
-    return false
+    return false;
   } else {
     switch (err.code) {
 
       // Proper DOM code in most modern browsers
       case 22:
-        return true
+        return true;
 
       // Firefox
       case 1014:
         if (err.name === "NS_ERROR_DOM_QUOTA_REACHED") {
-          return true
+          return true;
         }
 
       default:
-        return false
+        return false;
     }
   }
 }
 
 function hasSeen(ctx: InstantBanditContext, experiment: string, variant: string) {
   if (!isBrowserEnvironment) {
-    return false
+    return false;
   }
 
-  const session = getOrCreateSession(ctx)
-  const variants = (session.variants || {})[experiment]
-  return exists(variants) && exists(variants.find(v => v === variant))
+  const session = getOrCreateSession(ctx);
+  const variants = (session.variants || {})[experiment];
+  return exists(variants) && exists(variants.find(v => v === variant));
 }

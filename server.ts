@@ -1,24 +1,24 @@
-import { IncomingMessage, ServerResponse } from "http"
-import { NextApiRequestCookies } from "next/dist/server/api-utils"
+import { IncomingMessage, ServerResponse } from "http";
+import { NextApiRequestCookies } from "next/dist/server/api-utils";
 
-import { InstantBanditServer } from "./lib/server/server-types"
-import { SessionDescriptor } from "./lib/types"
-import { createBanditContext, InstantBanditContext } from "./lib/contexts"
-import { validateUserRequest } from "./lib/server/server-utils"
-import { exists } from "./lib/utils"
-import { HEADER_SESSION_ID } from "./lib/constants"
+import { InstantBanditServer } from "./lib/server/server-types";
+import { SessionDescriptor } from "./lib/types";
+import { createBanditContext, InstantBanditContext } from "./lib/contexts";
+import { validateUserRequest } from "./lib/server/server-utils";
+import { exists } from "./lib/utils";
+import { HEADER_SESSION_ID } from "./lib/constants";
 
 
-import env from "./lib/server/environment"
-export { env }
+import env from "./lib/server/environment";
+export { env };
 
-export * from "./lib/server/server"
-export * from "./lib/server/environment"
-export * from "./lib/server/server-helpers"
-export * from "./lib/server/server-types"
-export * from "./lib/server/server-utils"
-export * from "./lib/server/backends/json-sites"
-export * from "./lib/server/backends/redis"
+export * from "./lib/server/server";
+export * from "./lib/server/environment";
+export * from "./lib/server/server-helpers";
+export * from "./lib/server/server-types";
+export * from "./lib/server/server-utils";
+export * from "./lib/server/backends/json-sites";
+export * from "./lib/server/backends/redis";
 
 
 /**
@@ -32,7 +32,7 @@ export async function serverSideRenderedSite(
   req: IncomingMessage & { cookies: NextApiRequestCookies },
   res: ServerResponse,
 ) {
-  await server.init()
+  await server.init();
 
   const validatedRequest = await validateUserRequest({
     allowNoSession: true,
@@ -40,20 +40,20 @@ export async function serverSideRenderedSite(
     headers: req.headers,
     siteName,
     url: req.url,
-  })
+  });
 
-  let sid: string | null = null
+  const sid: string | null = null;
   if (exists(req.cookies[HEADER_SESSION_ID])) {
-    validatedRequest.sid = req.cookies[HEADER_SESSION_ID]
+    validatedRequest.sid = req.cookies[HEADER_SESSION_ID];
   }
 
-  const { sessions } = server
-  let session: SessionDescriptor | null = null
+  const { sessions } = server;
+  let session: SessionDescriptor | null = null;
 
   try {
-    session = await sessions.getOrCreateSession(validatedRequest)
+    session = await sessions.getOrCreateSession(validatedRequest);
   } catch (err) {
-    console.log(`[IB] Error fetching session for '${sid}': ${err}`)
+    console.log(`[IB] Error fetching session for '${sid}': ${err}`);
   }
 
 
@@ -72,21 +72,21 @@ export async function serverSideRenderedSite(
           getOrCreateSession: () => session,
           hasSeen(ctx: InstantBanditContext, experiment: string, variant: string) { },
           persistVariant(ctx: InstantBanditContext, experiment: string, variant: string) { },
-        }
+        };
       }
     } as any
-  })
+  });
 
-  const site = await ctx.load(siteName)
-  const { experiment, variant } = ctx
+  const site = await ctx.load(siteName);
+  const { experiment, variant } = ctx;
 
   await server.sessions.markVariantSeen(session!, experiment.id, variant.name)
-    .catch(err => console.warn(`[IB]: Error marking variant '${variant.name}' seen: ${err}`))
+    .catch(err => console.warn(`[IB]: Error marking variant '${variant.name}' seen: ${err}`));
 
-  res.setHeader(`Set-Cookie`, `${HEADER_SESSION_ID}=${session!.sid}`)
+  res.setHeader(`Set-Cookie`, `${HEADER_SESSION_ID}=${session!.sid}`);
 
   return {
     site,
     select: variant.name,
-  }
+  };
 }

@@ -1,17 +1,17 @@
-import Head from "next/head"
-import { GetServerSideProps } from "next"
-import { useCallback } from "react"
+import Head from "next/head";
+import { GetServerSideProps } from "next";
+import { useCallback } from "react";
 
-import { Default } from "../components/Default"
-import { InstantBanditOptions } from "../lib/types"
-import { Variant } from "../components/Variant"
-import { useInstantBandit } from "../lib/hooks"
-import { HEADER_SESSION_ID } from "../lib/constants"
+import { Default } from "../components/Default";
+import { InstantBanditOptions } from "../lib/types";
+import { Variant } from "../components/Variant";
+import { useInstantBandit } from "../lib/hooks";
+import { HEADER_SESSION_ID } from "../lib/constants";
 
-import styles from "../styles/Home.module.css"
+import styles from "../styles/Home.module.css";
 
 
-const siteName = "demo"
+const siteName = "demo";
 
 export default function Home(serverSideProps: InstantBanditOptions) {
   return (
@@ -54,27 +54,27 @@ export default function Home(serverSideProps: InstantBanditOptions) {
 
       <footer className={styles.footer}>
         <button onClick={() => {
-          localStorage.clear()
-          document.cookie = `${HEADER_SESSION_ID}=""`
-          location.reload()
+          localStorage.clear();
+          document.cookie = `${HEADER_SESSION_ID}=""`;
+          location.reload();
         }}>Clear Session and Reload</button>
       </footer>
     </div>
 
-  )
+  );
 }
 
 export function SignUpButton(props) {
-  const ctx = useInstantBandit()
-  const { site, metrics, experiment, variant } = ctx
+  const ctx = useInstantBandit();
+  const { site, metrics, experiment, variant } = ctx;
 
   const onClick = useCallback(() => {
-    metrics.sinkEvent(ctx, "conversions")
-  }, [ctx, metrics])
+    metrics.sinkEvent(ctx, "conversions");
+  }, [ctx, metrics]);
 
   return (
     <button className={styles[variant.name]} onClick={onClick}>{props.children}</button>
-  )
+  );
 }
 
 

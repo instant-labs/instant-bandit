@@ -1,12 +1,12 @@
 /**
  * @jest-environment jsdom
  */
-import React from "react"
-import fetchMock from "jest-fetch-mock"
+import React from "react";
+import fetchMock from "jest-fetch-mock";
 
-import { InstantBandit } from "../../../components/InstantBanditComponent"
-import { Variant } from "../../../components/Variant"
-import { TEST_SITE_AB } from "../../sites"
+import { InstantBandit } from "../../../components/InstantBanditComponent";
+import { Variant } from "../../../components/Variant";
+import { TEST_SITE_AB } from "../../sites";
 import {
   expectHtml,
   expectMounts,
@@ -16,15 +16,15 @@ import {
   siteLoadResponse,
   CountMountsAndRenders,
   resetDebugHelpers,
-} from "../../test-utils"
-import { DEFAULT_VARIANT } from "../../../lib/defaults"
+} from "../../test-utils";
+import { DEFAULT_VARIANT } from "../../../lib/defaults";
 
 
 describe("Variant", () => {
-  beforeEach(resetDebugHelpers)
-  beforeAll(() => fetchMock.enableMocks())
-  afterAll(() => fetchMock.resetMocks())
-  beforeEach(() => { fetchMock.mockResponse(siteLoadResponse(TEST_SITE_AB)) })
+  beforeEach(resetDebugHelpers);
+  beforeAll(() => fetchMock.enableMocks());
+  afterAll(() => fetchMock.resetMocks());
+  beforeEach(() => { fetchMock.mockResponse(siteLoadResponse(TEST_SITE_AB)); });
 
   describe("visible", () => {
     it("when name matches selected variant", async () => {
@@ -35,11 +35,11 @@ describe("Variant", () => {
             VISIBLE
           </Variant>
         </InstantBandit>
-      )
-      expectMounts(1)
-      expectRenders(1)
-      expectHtml("VISIBLE")
-    })
+      );
+      expectMounts(1);
+      expectRenders(1);
+      expectHtml("VISIBLE");
+    });
 
     it("when default variant selected and name matches", async () => {
       await renderTest(
@@ -49,12 +49,12 @@ describe("Variant", () => {
             <CountMountsAndRenders />
           </Variant>
         </InstantBandit>
-      )
-      expectMounts(1)
-      expectRenders(1)
-      expectHtml("VISIBLE")
-    })
-  })
+      );
+      expectMounts(1);
+      expectRenders(1);
+      expectHtml("VISIBLE");
+    });
+  });
 
   describe("hidden", () => {
     it("when name does not match selected variant", async () => {
@@ -65,11 +65,11 @@ describe("Variant", () => {
             HIDDEN
           </Variant>
         </InstantBandit>
-      )
-      expectMounts(0)
-      expectRenders(0)
-      expectNoContent()
-    })
+      );
+      expectMounts(0);
+      expectRenders(0);
+      expectNoContent();
+    });
 
     it("when referencing an unknown variant", async () => {
       await renderTest(
@@ -79,11 +79,11 @@ describe("Variant", () => {
             <CountMountsAndRenders />
           </Variant>
         </InstantBandit>
-      )
-      expectMounts(0)
-      expectRenders(0)
-      expectNoContent()
-    })
+      );
+      expectMounts(0);
+      expectRenders(0);
+      expectNoContent();
+    });
 
     it("when default variant selected but name does not match", async () => {
       await renderTest(
@@ -93,11 +93,11 @@ describe("Variant", () => {
             <CountMountsAndRenders />
           </Variant>
         </InstantBandit>
-      )
-      expectMounts(0)
-      expectRenders(0)
-      expectNoContent()
-    })
+      );
+      expectMounts(0);
+      expectRenders(0);
+      expectNoContent();
+    });
 
     it("when not a descendant of an InstantBandit component", async () => {
       await renderTest(
@@ -107,10 +107,10 @@ describe("Variant", () => {
             VARIANT
           </Variant>
         </>
-      )
-      expectMounts(0)
-      expectRenders(0)
-      expectNoContent()
-    })
-  })
-})
+      );
+      expectMounts(0);
+      expectRenders(0);
+      expectNoContent();
+    });
+  });
+});
