@@ -1,4 +1,4 @@
-import { Counts, ProbabilityDistribution, VariantName } from "./types"
+import { Counts, ProbabilityDistribution, VariantName } from "./types";
 
 /**
  * This is an epsilon-greedy bandit algorithm.
@@ -10,12 +10,12 @@ export function bandit(
   conversions: Counts,
   epsilon = 0.2 // taken from common values in literature
 ): ProbabilityDistribution {
-  const rates = conversionRates(exposures, conversions)
-  const winningVariant = maxKey(rates)
+  const rates = conversionRates(exposures, conversions);
+  const winningVariant = maxKey(rates);
   return {
     [winningVariant]: 1 - epsilon,
     ...otherProbabilities(Object.keys(exposures), winningVariant, epsilon),
-  }
+  };
 }
 
 export function otherProbabilities(
@@ -23,16 +23,16 @@ export function otherProbabilities(
   winningVariant: VariantName,
   epsilon: number
 ) {
-  const otherVariants = variants.filter((v) => v !== winningVariant)
+  const otherVariants = variants.filter((v) => v !== winningVariant);
   return Object.fromEntries(
     otherVariants.map((v) => [v, epsilon / otherVariants.length])
-  )
+  );
 }
 
 export function maxKey(rates: Counts) {
   return Object.entries(rates).reduce(([v1, rate1], [v2, rate2]) =>
     rate1 > rate2 ? [v1, rate1] : [v2, rate2]
-  )[0]
+  )[0];
 }
 
 export function conversionRates(
@@ -44,5 +44,5 @@ export function conversionRates(
       v,
       (conversions[v] || 0) / count,
     ])
-  )
+  );
 }

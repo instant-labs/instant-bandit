@@ -1,7 +1,7 @@
-import * as constants from "./constants"
-import { AlgorithmResults } from "./types"
-import { SiteMeta } from "./models"
-import { deepFreeze, env } from "./utils"
+import * as constants from "./constants";
+import { AlgorithmResults } from "./types";
+import { SiteMeta } from "./models";
+import { deepFreeze, env } from "./utils";
 
 
 export type BaseOptions = {
@@ -10,7 +10,7 @@ export type BaseOptions = {
 
 export const DEFAULT_OPTIONS: BaseOptions = {
   baseUrl: env(constants.VARNAME_BASE_URL) ?? constants.DEFAULT_BASE_URL,
-}
+};
 
 /**
  * 
@@ -26,7 +26,7 @@ const {
   DEFAULT_EXPERIMENT_ID,
   DEFAULT_EXPERIMENT_NAME,
   DEFAULT_VARIANT_NAME,
-} = constants
+} = constants;
 
 export const DEFAULT_SITE = deepFreeze<SiteMeta>({
   name: DEFAULT_SITE_NAME,
@@ -43,13 +43,13 @@ export const DEFAULT_SITE = deepFreeze<SiteMeta>({
       props: {},
     }],
   }],
-})
+});
 
-export const DEFAULT_EXPERIMENT = DEFAULT_SITE.experiments[0]
-export const DEFAULT_VARIANT = DEFAULT_EXPERIMENT.variants[0]
-export const DEFAULT_METRICS = DEFAULT_VARIANT.metrics
+export const DEFAULT_EXPERIMENT = DEFAULT_SITE.experiments[0];
+export const DEFAULT_VARIANT = DEFAULT_EXPERIMENT.variants[0];
+export const DEFAULT_METRICS = DEFAULT_VARIANT.metrics;
 export const DEFAULT_ALGO_RESULTS: AlgorithmResults = deepFreeze({
   winner: DEFAULT_VARIANT,
   pValue: 0,
   metrics: {},
-})
+});

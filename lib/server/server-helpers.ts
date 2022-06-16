@@ -1,19 +1,19 @@
-import { NextApiRequest, NextApiResponse } from "next"
+import { NextApiRequest, NextApiResponse } from "next";
 
-import env from "./environment"
-import { HEADER_SESSION_ID } from "../constants"
-import { DEFAULT_SITE } from "../defaults"
-import { MetricsBatch } from "../models"
-import { InstantBanditHeaders, InstantBanditServer, InstantBanditServerOptions, ServerSession } from "./server-types"
-import { buildInstantBanditServer } from "./server"
-import { getSessionIdFromHeaders, validateUserRequest } from "./server-utils"
-import { exists } from "../utils"
+import env from "./environment";
+import { HEADER_SESSION_ID } from "../constants";
+import { DEFAULT_SITE } from "../defaults";
+import { MetricsBatch } from "../models";
+import { InstantBanditHeaders, InstantBanditServer, InstantBanditServerOptions, ServerSession } from "./server-types";
+import { buildInstantBanditServer } from "./server";
+import { getSessionIdFromHeaders, validateUserRequest } from "./server-utils";
+import { exists } from "../utils";
 
 
 /**
  * Creates an `InstantBanditServer` you can use in your backend app.
  */
-let banditServer: InstantBanditServer
+let banditServer: InstantBanditServer;
 export function getBanditServer(options?: Partial<InstantBanditServerOptions>) {
 
   // NOTE: Next.js will re-import modules during HMR.
@@ -27,7 +27,7 @@ export function getBanditServer(options?: Partial<InstantBanditServerOptions>) {
   }
 
   if (!banditServer) {
-    console.debug(`[IB] Creating default InstantBanditServer...`)
+    console.debug(`[IB] Creating default InstantBanditServer...`);
     banditServer = buildInstantBanditServer(options);
   }
 
@@ -35,7 +35,7 @@ export function getBanditServer(options?: Partial<InstantBanditServerOptions>) {
     (global as any).defaultBanditServer = banditServer;
   }
 
-  return banditServer
+  return banditServer;
 }
 
 /**
@@ -52,20 +52,20 @@ export function createSiteEndpoint(server: InstantBanditServer) {
   // Session IDs are transmitted via a 1st-party cookie.
 
   async function handleSiteRequest(req: NextApiRequest, res: NextApiResponse) {
-    await server.init()
+    await server.init();
 
     // TODO: Respond to CORS preflights
 
-    const { siteName: siteNameParam } = req.query
-    const { origins } = server
-    const { url, headers } = req
+    const { siteName: siteNameParam } = req.query;
+    const { origins } = server;
+    const { url, headers } = req;
 
-    let siteName = DEFAULT_SITE.name
+    let siteName = DEFAULT_SITE.name;
     if (exists(siteNameParam)) {
       if (Array.isArray(siteNameParam)) {
-        siteName = siteNameParam.join("")
+        siteName = siteNameParam.join("");
       } else {
-        siteName = siteNameParam
+        siteName = siteNameParam;
       }
     }
 
@@ -77,22 +77,22 @@ export function createSiteEndpoint(server: InstantBanditServer) {
 
       // No session required for a site request. One will be created if need be.
       allowNoSession: true,
-    })
+    });
 
-    const { site, responseHeaders } = await server.getSite(validatedRequest)
+    const { site, responseHeaders } = await server.getSite(validatedRequest);
 
     // Relay headers
     Object.keys(responseHeaders)
-      .forEach(header => res.setHeader(header, responseHeaders[header]!))
+      .forEach(header => res.setHeader(header, responseHeaders[header]!));
 
     if (env.isDev()) {
-      res.status(200).send(JSON.stringify(site, null, 2))
+      res.status(200).send(JSON.stringify(site, null, 2));
     } else {
-      res.status(200).send(site)
+      res.status(200).send(site);
     }
   }
 
-  return handleSiteRequest
+  return handleSiteRequest;
 }
 
 
@@ -106,24 +106,24 @@ export function createMetricsEndpoint(server: InstantBanditServer) {
   // This endpoint accepts POST requests bearing batches of metrics to ingest.
   // In development environments, shows site metrics on GET
   async function handleMetricsRequest(req: NextApiRequest, res: NextApiResponse) {
-    const server = getBanditServer()
-    await server.init()
+    const server = getBanditServer();
+    await server.init();
 
 
     // TODO: Respond to CORS preflights
 
-    const { metrics, origins, sessions } = server
-    const { method, headers } = req
+    const { metrics, origins, sessions } = server;
+    const { method, headers } = req;
 
     // No session? Politely do nothing.
-    let sid = await getSessionIdFromHeaders(headers as InstantBanditHeaders)
+    const sid = await getSessionIdFromHeaders(headers as InstantBanditHeaders);
     if (!sid || sid === "") {
-      res.status(200).json({ status: "OK" })
-      return
+      res.status(200).json({ status: "OK" });
+      return;
     }
 
     if (method === "POST") {
-      const batch = req.body as MetricsBatch
+      const batch = req.body as MetricsBatch;
 
       const validatedReq = await validateUserRequest({
         allowedOrigins: origins,
@@ -131,25 +131,25 @@ export function createMetricsEndpoint(server: InstantBanditServer) {
         url: req.url,
         allowNoSession: true,
         siteName: batch.site,
-      })
+      });
 
-      const session = await sessions.getOrCreateSession(validatedReq)
-      validatedReq.session = session as ServerSession
+      const session = await sessions.getOrCreateSession(validatedReq);
+      validatedReq.session = session as ServerSession;
 
       try {
-        await metrics.ingestBatch(validatedReq, req.body)
+        await metrics.ingestBatch(validatedReq, req.body);
       } finally {
-        res.removeHeader(`Set-Cookie`)
-        res.setHeader(`Set-Cookie`, `${HEADER_SESSION_ID}=${session.sid}`)
+        res.removeHeader(`Set-Cookie`);
+        res.setHeader(`Set-Cookie`, `${HEADER_SESSION_ID}=${session.sid}`);
       }
-      res.status(200).json({ status: "OK" })
-      return
+      res.status(200).json({ status: "OK" });
+      return;
 
     } else {
-      res.status(400)
-      return
+      res.status(400);
+      return;
     }
   }
 
-  return handleMetricsRequest
+  return handleMetricsRequest;
 }

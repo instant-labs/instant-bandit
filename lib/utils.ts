@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect } from "react"
+import { useEffect, useLayoutEffect } from "react";
 
-import * as constants from "./constants"
+import * as constants from "./constants";
 
 
 /**
@@ -10,17 +10,17 @@ import * as constants from "./constants"
  */
 export function deepFreeze<T extends object>(obj: T, seen = new WeakMap<T, any>()) {
   if (!exists(obj)) {
-    return obj
+    return obj;
   }
 
-  seen.set(obj, true)
+  seen.set(obj, true);
 
   Object.getOwnPropertyNames(obj)
     .filter(prop => !seen.has(obj[prop]))
     .filter(prop => obj[prop] && typeof obj[prop] === "object")
-    .forEach(prop => deepFreeze(obj[prop], seen))
+    .forEach(prop => deepFreeze(obj[prop], seen));
 
-  return Object.freeze<T>(obj)
+  return Object.freeze<T>(obj);
 }
 
 /**
@@ -29,7 +29,7 @@ export function deepFreeze<T extends object>(obj: T, seen = new WeakMap<T, any>(
  * @returns 
  */
 export function exists(thing: unknown) {
-  return (thing !== undefined && thing !== null)
+  return (thing !== undefined && thing !== null);
 }
 
 /**
@@ -40,11 +40,11 @@ export function exists(thing: unknown) {
  */
 export function env(name: string): string | undefined {
   if (typeof process === "undefined") {
-    return undefined
+    return undefined;
   } else if (isBrowserEnvironment) {
-    return process.env[constants.NEXTJS_PUBLIC_PREFIX + name]
+    return process.env[constants.NEXTJS_PUBLIC_PREFIX + name];
   } else {
-    return process.env[name]
+    return process.env[name];
   }
 }
 
@@ -55,13 +55,13 @@ export function env(name: string): string | undefined {
  * @returns 
  */
 export function getCookie(cookieName, str = ""): string | null {
-  let fullStr = ""
+  let fullStr = "";
   if (typeof document === "undefined" && str === "") {
-    return null
+    return null;
   } else if (str !== "") {
-    fullStr = str
+    fullStr = str;
   } else {
-    fullStr = document.cookie
+    fullStr = document.cookie;
   }
 
   const cookie = fullStr
@@ -70,9 +70,9 @@ export function getCookie(cookieName, str = ""): string | null {
     .filter(cookie => cookie.indexOf(cookieName) === 0)
     .map(cookie => cookie.substring(cookieName.length + 1, cookie.length))
     .reverse()
-    [0]
+    [0];
     
-  return cookie ?? null
+  return cookie ?? null;
 }
 
 /**
@@ -80,14 +80,14 @@ export function getCookie(cookieName, str = ""): string | null {
  * @returns 
  */
 export function getBaseUrl() {
-  return env(constants.VARNAME_BASE_URL) ?? constants.DEFAULT_BASE_URL
+  return env(constants.VARNAME_BASE_URL) ?? constants.DEFAULT_BASE_URL;
 }
 
 export const isBrowserEnvironment =
-  typeof window !== "undefined"
+  typeof window !== "undefined";
 
 export const useIsomorphicLayoutEffect =
-  isBrowserEnvironment ? useLayoutEffect : useEffect
+  isBrowserEnvironment ? useLayoutEffect : useEffect;
 
-export const flushPromises = async () => new Promise((resolve) => { scheduler(resolve) })
-const scheduler = typeof setImmediate === "function" ? setImmediate : setTimeout
+export const flushPromises = async () => new Promise((resolve) => { scheduler(resolve); });
+const scheduler = typeof setImmediate === "function" ? setImmediate : setTimeout;

@@ -1,4 +1,4 @@
-import { DEFAULT_BANDIT_OPTIONS, mergeBanditOptions } from "../../lib/contexts"
+import { DEFAULT_BANDIT_OPTIONS, mergeBanditOptions } from "../../lib/contexts";
 
 
 describe.skip("mergeBanditOptions", () => {
@@ -8,10 +8,10 @@ describe.skip("mergeBanditOptions", () => {
       providers: {
         session: null as any,
       } as any,
-    })
+    });
 
-    expect(merged.baseUrl).toEqual("new-base-url")
-    expect(merged.providers.session).toBe(null)
-    expect(merged.providers.metrics).toStrictEqual(DEFAULT_BANDIT_OPTIONS)
-  })
-})
+    expect(merged.baseUrl).toEqual("new-base-url");
+    expect(merged.providers.session).toBe(null);
+    expect(merged.providers.metrics).toStrictEqual(DEFAULT_BANDIT_OPTIONS);
+  });
+});
