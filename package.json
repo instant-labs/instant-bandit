@@ -28,7 +28,7 @@
     "minify": "swc ./dist -s false -d ./dist",
     "build": "yarn clean && yarn compile && yarn minify",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "yarn eslint .",
     "test": "jest --verbose",
     "clean": "rm -rf dist",
     "pack:test": "yarn build && yarn pack --dry-run && tar tvf instantdomain-bandit-v0.1.0.tgz"
@@ -52,7 +52,6 @@
     "@types/react": "^18.0.9",
     "@typescript-eslint/eslint-plugin": "^5.28.0",
     "@typescript-eslint/parser": "^5.28.0",
-    "babel-jest": "^27.0.2",
     "eslint": "^8.17.0",
     "eslint-config-next": "^12.1.6",
     "jest": "^27.0.3",
@@ -61,6 +60,6 @@
     "next": "^12.1.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "typescript": "^4.3.2"
+    "typescript": "^4.7.3"
   }
 }
