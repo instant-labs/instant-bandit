@@ -6,7 +6,6 @@ import env from "../environment";
 import { ModelsBackend, ValidatedRequest } from "../server-types";
 import { Site } from "../../models";
 import { DEFAULT_SITE } from "../../defaults";
-import { TimerLike } from "../../types";
 
 const asyncfs = fs.promises;
 
@@ -70,9 +69,9 @@ export function getJsonSiteBackend(initOptions: Partial<JsonSiteBackendOptions> 
         return DEFAULT_SITE;
       }
 
-      if (site.name !== siteName) {
-        console.warn(`[IB] Site '${siteName}'.json doesn't match name '${siteName}' in contents.`);
-        site.name = siteName!;
+      if (site.name !== siteNameOrDefault) {
+        console.warn(`[IB] Site '${siteNameOrDefault}'.json doesn't match name '${site.name}' in contents.`);
+        site.name = siteNameOrDefault;
       }
 
       return site;

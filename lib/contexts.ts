@@ -30,7 +30,7 @@ export interface InstantBanditContext {
 }
 
 
-export function createBanditContext(options?: Partial<InstantBanditOptions>, mixin?: Partial<InstantBanditContext>):
+export function createBanditContext(options?: Partial<InstantBanditOptions>):
   InstantBanditContext {
   const appliedOptions = mergeBanditOptions(DEFAULT_BANDIT_OPTIONS, options ?? {}) as InstantBanditOptions;
 
@@ -81,7 +81,7 @@ export const DEFAULT_BANDIT_OPTIONS: InstantBanditOptions = {
   ...DEFAULT_METRICS_SINK_OPTIONS,
   providers: {
     loader: options => getSiteProvider(options),
-    session: options => getLocalStorageSessionProvider(),
+    session: options => getLocalStorageSessionProvider(options),
     metrics: options => getHttpMetricsSink(options),
   },
 } as const;

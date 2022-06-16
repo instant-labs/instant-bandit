@@ -11,29 +11,27 @@ import {
   SessionsBackend,
 } from "./server-types";
 import {
-  Experiment,
   ExperimentMeta,
-  MetricsBatch,
-  MetricsBucket,
   Site,
   SiteMeta,
-  Variant,
   VariantMeta,
 } from "../models";
-import { getBaseUrl } from "../utils";
+import { exists, getBaseUrl } from "../utils";
 import { getJsonSiteBackend } from "./backends/json-sites";
 import { normalizeOrigins } from "./server-utils";
 
 import { bandit } from "../bandit";
 import { getRedisBackend, RedisBackend } from "./backends/redis";
+import { getStubSessionsBackend } from "./backends/sessions";
+import { getStubMetricsBackend } from "./backends/metrics";
 
 
 
 export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
   clientOrigins: (env.IB_ORIGINS_ALLOWLIST ?? ""),
+  metrics: getStubMetricsBackend(),
   models: getJsonSiteBackend(),
-  metrics: null as any,
-  sessions: null as any,
+  sessions: getStubSessionsBackend(),
 };
 
 /**
@@ -46,32 +44,30 @@ export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
  */
 export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServerOptions>): InstantBanditServer {
   console.debug(`[IB] createInstantBanditServer invoked from ${__dirname}`);
-  
+
   const options = Object.assign({}, DEFAULT_SERVER_OPTIONS, initOptions);
 
   // Only instantiate the Redis backend if needed
-  let defaultRedisBackend: RedisBackend & SessionsBackend | null;
+  let defaultRedisBackend: RedisBackend & SessionsBackend | null = null;
   if (!options.metrics) {
     options.metrics = defaultRedisBackend = getRedisBackend();
   }
   if (!options.sessions) {
-    options.sessions = defaultRedisBackend!
-      ? defaultRedisBackend
+    options.sessions = exists(defaultRedisBackend) ? defaultRedisBackend
       : (defaultRedisBackend = getRedisBackend());
   }
   Object.freeze(options);
 
   const { metrics, models, sessions } = options;
   const devOrigins = env.isDev() ? [getBaseUrl()] : [];
-  const allowedOrigins = normalizeOrigins(options.clientOrigins!, devOrigins);
+  const allowedOrigins = normalizeOrigins(options.clientOrigins ?? [], devOrigins);
   const backends = [metrics, models, sessions];
-  let initialized = false;
   let initPromise: Promise<void> | null;
   let shutdownPromise: Promise<void> | null;
 
   return {
     get metrics() { return metrics; },
-    get models() { return models!; },
+    get models() { return models; },
     get sessions() { return sessions; },
     get origins() { return allowedOrigins; },
 
@@ -82,7 +78,7 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
       }
 
       initPromise = Promise.all(
-        backends.filter(be => !!(be?.connect)).map(be => be!.connect!())
+        backends.filter(exists).map(be => be.connect?.())
       )
         .catch(err => console.warn(`[IB]: Error initializing: ${err}`))
         .then(() => void 0);
@@ -90,9 +86,6 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
       log(`Server initializing....`);
       await initPromise;
       log(`Server initialized`);
-
-      initialized = true;
-      return;
     },
 
     async shutdown() {
@@ -101,7 +94,7 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
       }
 
       shutdownPromise = Promise.all(
-        backends.filter(be => !!(be?.disconnect)).map(be => be!.disconnect!())
+        backends.filter(exists).map(be => be.disconnect?.())
       )
         .catch(err => console.warn(`[IB]: Error shutting down: ${err}`))
         .then(() => void 0);
@@ -109,8 +102,6 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
       log(`Server shutting down....`);
       await shutdownPromise;
       log(`Server shut down`);
-
-      initialized = false;
     },
 
     /**
@@ -168,7 +159,6 @@ export async function embedProbabilities(req: ValidatedRequest, origSite: Site, 
     }
 
     let probs: { [key: string]: number };
-    let pValue: number | null;
 
     if (Object.keys(exposures).length > 0 && Object.keys(conversions).length > 0) {
       probs = bandit(exposures, conversions || {});
@@ -190,6 +180,6 @@ export async function embedProbabilities(req: ValidatedRequest, origSite: Site, 
 }
 
 export const TAG = "[IB][server]";
-export const log = (...items: any[]) => {
+export const log = (...items: unknown[]) => {
   console.info(...[TAG, ...items]);
 };

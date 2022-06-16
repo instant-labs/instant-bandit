@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   InstantBanditServerOptions,
   MetricsBackend,
@@ -5,6 +6,8 @@ import {
   SessionsBackend,
 } from "../../../lib/server/server-types";
 import { buildInstantBanditServer } from "../../../lib/server/server";
+import { SessionDescriptor } from "../../../lib/types";
+import { DEFAULT_SITE } from "../../..";
 
 
 describe("server", () => {
@@ -22,8 +25,6 @@ describe("server", () => {
     server = buildInstantBanditServer(config);
   });
 
-  function makeStub() {
-  }
 
   describe("lifecycle", () => {
     let connectedMetrics = 0, disconnectedMetrics = 0;
@@ -98,25 +99,33 @@ describe("server", () => {
 
   function getStubSessions(): SessionsBackend {
     return {
-      async connect() { },
-      async disconnect() { },
-      async getOrCreateSession() { return void 0 as any; },
-      async markVariantSeen() { return void 0 as any; },
+      async connect() { return; },
+      async disconnect() { return; },
+      async getOrCreateSession() {
+        return {
+          sid: "",
+          site: DEFAULT_SITE.name,
+          variants: {},
+        };
+      },
+      async markVariantSeen(session: SessionDescriptor) {
+        return session;
+      },
     };
   }
 
   function getStubModels(): ModelsBackend {
     return {
-      async connect() { },
-      async disconnect() { },
-      getSiteConfig(req) { return void 0 as any; },
+      async connect() { return; },
+      async disconnect() { return; },
+      getSiteConfig() { return void 0 as any; },
     };
   }
 
   function getStubMetrics(): MetricsBackend {
     return {
-      async connect() { },
-      async disconnect() { },
+      async connect() { return; },
+      async disconnect() { return; },
       getMetricsBucket() { return void 0 as any; },
       getMetricsForSite() { return void 0 as any; },
       ingestBatch() { return void 0 as any; },

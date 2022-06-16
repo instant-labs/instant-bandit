@@ -1,7 +1,7 @@
 import { Redis } from "ioredis";
 
 import * as constants from "../../../lib/constants";
-import { getMetricsBucket, getRedisBackend } from "../../../lib/server/backends/redis";
+import { getRedisBackend } from "../../../lib/server/backends/redis";
 import { DefaultMetrics, DEFAULT_ORIGIN } from "../../../lib/constants";
 import { makeKey, toNumber } from "../../../lib/server/server-utils";
 import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../../../lib/defaults";
@@ -239,7 +239,7 @@ export async function incrementMetric(redis: Redis, site: string, eid: string, v
     val = parseFloat(await redis.hincrbyfloat(key, metric, incBy));
   }
 
-  return toNumber(val as any);
+  return toNumber(val);
 }
 
 

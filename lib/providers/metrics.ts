@@ -1,25 +1,20 @@
 import * as constants from "../constants";
-import { BaseOptions, DEFAULT_OPTIONS } from "../defaults";
+import { DEFAULT_OPTIONS } from "../defaults";
 import { InstantBanditContext } from "../contexts";
-import { Metric, MetricsProvider, TimerLike } from "../types";
+import { Metric, MetricsProvider, MetricsSinkOptions, TimerLike } from "../types";
 import { MetricsBatch, MetricsSample } from "../models";
 import { env, exists, getCookie } from "../utils";
 
 
-export type HttpMetricsSinkOptions = BaseOptions & {
-  metricsPath: string
-  batchSize: number
-  flushInterval: number
-}
 
-export const DEFAULT_METRICS_SINK_OPTIONS: HttpMetricsSinkOptions = {
+export const DEFAULT_METRICS_SINK_OPTIONS: MetricsSinkOptions = {
   ...DEFAULT_OPTIONS,
   metricsPath: env(constants.VARNAME_METRICS_PATH) ?? constants.DEFAULT_METRICS_PATH,
   batchSize: 10,
   flushInterval: 100,
 };
 
-export function getHttpMetricsSink(initOptions?: Partial<HttpMetricsSinkOptions>): MetricsProvider {
+export function getHttpMetricsSink(initOptions?: Partial<MetricsSinkOptions>): MetricsProvider {
   const options = Object.assign({}, DEFAULT_METRICS_SINK_OPTIONS, initOptions);
   const items: MetricsSample[] = [];
   let flushTimer: TimerLike | null = null;
@@ -27,7 +22,7 @@ export function getHttpMetricsSink(initOptions?: Partial<HttpMetricsSinkOptions>
   const provider = {
     get pending() { return items.length; },
 
-    sink(ctx: InstantBanditContext, sample: MetricsSample, forceFlush = false, useBeacon = false) {
+    sink(ctx: InstantBanditContext, sample: MetricsSample, forceFlush = false) {
       items.push(sample);
 
       if (forceFlush) {
@@ -84,7 +79,7 @@ export function getHttpMetricsSink(initOptions?: Partial<HttpMetricsSinkOptions>
       const batch: MetricsBatch = {
         session: sessionId,
         site: site.name,
-        experiment: experiment.id!,
+        experiment: experiment.id,
         variant: variant.name,
         entries: entries,
       };
@@ -108,15 +103,13 @@ export function getHttpMetricsSink(initOptions?: Partial<HttpMetricsSinkOptions>
         items.splice(0, count);
 
         if (flushTimer) {
-          clearTimeout(flushTimer);
+          clearTimeout(flushTimer as number);
           flushTimer = null;
         }
 
         if (items.length > 0) {
           provider.scheduleFlush(ctx);
         }
-
-        return;
       }
     }
   };

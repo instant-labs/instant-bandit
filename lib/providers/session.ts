@@ -8,7 +8,8 @@ export function getLocalStorageKey(site: string) {
   return `site.${site}`;
 }
 
-export function getLocalStorageSessionProvider(): SessionProvider {
+export function getLocalStorageSessionProvider(options?): SessionProvider {
+  options;
   let id: string | null = null;
   return {
     get id() { return id; },
@@ -19,8 +20,8 @@ export function getLocalStorageSessionProvider(): SessionProvider {
     */
     getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): SessionDescriptor {
       const session = getOrCreateSession(ctx, props);
-      if (exists(session.sid!)) {
-        id = session.sid!;
+      if (exists(session.sid)) {
+        id = session.sid;
       }
       return session;
     },
@@ -58,9 +59,10 @@ function getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDe
 
   let session: SessionDescriptor;
   if (exists(sessionJson)) {
-    session = <SessionDescriptor>JSON.parse(sessionJson!);
+    session = <SessionDescriptor>JSON.parse(sessionJson);
   } else {
     session = {
+      sid: "",
       site: site.name,
       variants: {},
     };
@@ -140,9 +142,7 @@ function isQuotaError(err: DOMException): boolean {
 
       // Firefox
       case 1014:
-        if (err.name === "NS_ERROR_DOM_QUOTA_REACHED") {
-          return true;
-        }
+        return err.name === "NS_ERROR_DOM_QUOTA_REACHED";
 
       default:
         return false;

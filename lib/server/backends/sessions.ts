@@ -1,6 +1,5 @@
 import { randomUUID } from "crypto";
 
-import * as constants from "../../constants";
 import { SessionsBackend, ValidatedRequest } from "../server-types";
 import { SessionDescriptor } from "../../types";
 import { exists } from "../../utils";
@@ -11,7 +10,7 @@ export function getStubSessionsBackend(): SessionsBackend {
   return {
 
     async getOrCreateSession(req: ValidatedRequest): Promise<SessionDescriptor> {
-      const { headers, siteName } = req;
+      const { siteName } = req;
       let { sid } = req;
 
       if (!exists(siteName)) {
@@ -19,8 +18,8 @@ export function getStubSessionsBackend(): SessionsBackend {
       }
 
       let session: SessionDescriptor | null = null;
-      if (exists(sid)) {
-        session = sessions[sid!];
+      if (exists(sid) && sid.trim() !== "") {
+        session = sessions[sid];
         if (!exists(session)) {
           console.warn(`[IB] Missing or expired session '${sid}'`);
           session = null;

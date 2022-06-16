@@ -25,6 +25,6 @@ const env: Environment = Object.assign({}, defaults, funcs);
 Object
   .keys(defaults)
   .filter(key => typeof process.env[key] !== "undefined")
-  .forEach(key => (env as any)[key] = process.env[key]);
+  .forEach(key => env[key] = process.env[key]);
 
 export default env;

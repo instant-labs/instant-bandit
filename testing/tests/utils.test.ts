@@ -12,7 +12,7 @@ describe("utils", () => {
   });
 
   describe("deepFreeze", () => {
-    let obj: { a: { b: { c: {} } } };
+    let obj: { a: { b: { c } } };
     beforeEach(() => obj = { a: { b: { c: {} } } });
 
     it("freezes nested objects", () => {

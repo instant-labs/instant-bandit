@@ -1,24 +1,20 @@
-import { randomBytes, randomUUID } from "crypto";
+import { randomUUID } from "crypto";
 import ioredis, {
   ChainableCommander,
   Pipeline,
   Redis,
-  RedisCommander,
   RedisOptions,
 } from "ioredis";
 
 import env from "../environment";
-import * as constants from "../../constants";
-import { InstantBanditOptions, Metric, MetricName, SessionDescriptor, } from "../../types";
+import { InstantBanditOptions, MetricName, SessionDescriptor, } from "../../types";
 import {
   Experiment,
   MetricsBatch,
   MetricsBucket,
   MetricsSample,
   Site,
-  SiteMeta,
   Variant,
-  VariantMeta
 } from "../../models";
 import { ConnectingBackendFunctions, MetricsBackend, SessionsBackend, ValidatedRequest } from "../server-types";
 import { makeKey, toNumber } from "../server-utils";
@@ -115,7 +111,6 @@ export async function getMetricsForSite(redis: Redis, site: Site, experiments: E
 
   for (const exp of experiments) {
     for (const variant of exp.variants) {
-      const key = makeKey([site.name, exp.id, variant.name, "metrics"]);
       const bucket = await getMetricsBucket(redis, site.name, exp.id, variant.name);
       variantBuckets.set(variant, bucket);
     }
@@ -125,26 +120,25 @@ export async function getMetricsForSite(redis: Redis, site: Site, experiments: E
 }
 
 export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): Promise<SessionDescriptor> {
-  const { headers, siteName } = req;
+  const { siteName } = req;
   let { sid } = req;
 
-  const sessionsSetKey = makeKey([siteName!, "sessions"]);
+  const sessionsSetKey = makeKey([siteName, "sessions"]);
   let session: SessionDescriptor | null = null;
 
   if (exists(sid)) {
-    const sessionKey = makeKey([siteName!, "session", sid]);
+    const sessionKey = makeKey([siteName, "session", sid]);
     const sessionRaw = await redis.get(sessionKey);
 
     if (!exists(sessionRaw)) {
       console.warn(`[IB] Invalid or unknown session '${sessionKey}'`);
-      session = null;
     } else {
-      session = JSON.parse(sessionRaw!);
-      return session!;
+      session = JSON.parse(sessionRaw) as SessionDescriptor;
+      return session;
     }
   }
 
-  if (!session) {
+  if (!exists(session)) {
     if (!exists(siteName)) {
       throw new Error(`Invalid session scope`);
     }
@@ -158,8 +152,8 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
     const serializedSession = JSON.stringify(session);
     const pipe = redis.multi();
     try {
-      const sessionKey = makeKey([siteName!, "session", session.sid!]);
-      pipe.sadd(sessionsSetKey, session.sid!);
+      const sessionKey = makeKey([siteName, "session", session.sid]);
+      pipe.sadd(sessionsSetKey, session.sid);
       pipe.set(sessionKey, serializedSession);
       await pipe.exec();
     } catch (err) {
@@ -171,6 +165,10 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
 }
 
 export async function markVariantSeen(redis: Redis, session: SessionDescriptor, experimentId: string, variantName: string) {
+  if (!exists(session.site)) {
+    return session;
+  }
+
   let variants = session.variants[experimentId];
   if (!exists(variants)) {
     variants = session.variants[experimentId] = [];
@@ -185,7 +183,7 @@ export async function markVariantSeen(redis: Redis, session: SessionDescriptor, 
   variants.push(variantName);
 
   const serializedSession = JSON.stringify(session);
-  const sessionKey = makeKey([session.site!, "session", session.sid!]);
+  const sessionKey = makeKey([session.site, "session", session.sid]);
   try {
     await redis.set(sessionKey, serializedSession);
   } catch (err) {
@@ -237,7 +235,7 @@ export async function ingestBatch(redis: Redis, req: ValidatedRequest, batch: Me
 }
 
 export function isValidMetricsSample(sample: MetricsSample) {
-  const { name, ts, payload } = sample;
+  const { ts, payload } = sample;
 
   if (typeof ts !== "number") {
     return false;

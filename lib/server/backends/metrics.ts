@@ -1,17 +1,14 @@
-import { Experiment, MetricsBatch, MetricsBucket, Site, Variant } from "../../models";
 import { MetricsBackend, ValidatedRequest } from "../server-types";
+import { MetricsBatch, MetricsBucket, Variant } from "../../models";
 
 
-export function getStubMetricsBackend(initOptions: any = {}): MetricsBackend {
+export function getStubMetricsBackend(): MetricsBackend {
   return {
-    async connect() { },
-    async disconnect() { },
-
-    async getMetricsForSite(site: Site, experiments: Experiment[]) {
+    async getMetricsForSite() {
       return new Map<Variant, MetricsBucket>();
     },
 
-    async getMetricsBucket(siteId: string, experiment: string, variant: string) {
+    async getMetricsBucket() {
       return {};
     },
 

@@ -1,10 +1,7 @@
 import {
   Variant,
-  VariantMeta,
   Site,
-  SiteMeta
 } from "../lib/models";
-import { DEFAULT_ORIGIN } from "../lib/constants";
 
 
 export const TEST_SITE_A: Site = {

@@ -85,7 +85,7 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
 
         const headers = new Headers();
         if (exists(sid)) {
-          headers.append(constants.HEADER_SESSION_ID, sid!);
+          headers.append(constants.HEADER_SESSION_ID, sid);
         }
 
         const req: RequestInit = {
@@ -106,8 +106,8 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
 
       } finally {
         state = LoadState.READY;
-        return site;
       }
+      return site;
     },
 
     /**
@@ -178,8 +178,8 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
         let variant: Variant | null = null;
         const { session } = ctx;
 
-        if (exists(selection)) {
-          const result = provider.selectSpecific(experiment, selection!);
+        if (exists(selection) && selection) {
+          const result = provider.selectSpecific(experiment, selection);
           experiment = result.experiment;
           variant = result.variant;
         } else if (session) {
@@ -191,16 +191,12 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
         }
 
         if (!variant) {
-          const { variants } = experiment;
           variant = selectWithProbabilities(experiment);
         }
 
         if (!variant) {
           variant = DEFAULT_VARIANT;
         }
-
-        experiment = experiment;
-        variant = variant;
 
         return { experiment, variant };
 
@@ -229,7 +225,7 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
       // Check in the specified experiment
       let selected = experiment.variants.find(v => v.name === variant);
       if (selected) {
-        return { experiment, variant: selected! };
+        return { experiment, variant: selected };
       } else {
 
         // Check in an explicitly configured default experiment, should one exist
@@ -272,7 +268,7 @@ export function selectWithProbabilities(experiment: Experiment): Variant | null 
     const [name, prob] = pair;
     cumulativeProb += prob;
     if (rand <= cumulativeProb) {
-      winner = variants.find(v => v.name === name)!;
+      winner = variants.find(v => v.name === name) ?? null;
       break;
     }
   }
@@ -293,7 +289,8 @@ export function balanceProbabilities(variants: Variant[]): ProbabilityDistributi
   const results: ProbabilityDistribution = {};
 
   for (const v of variants) {
-    if (!exists(v.prob) || isNaN(v.prob!) || v.prob === 0) {
+
+    if (!exists(v.prob) || isNaN(v.prob) || v.prob === 0) {
       results[v.name] = 0;
     }
 
@@ -303,8 +300,8 @@ export function balanceProbabilities(variants: Variant[]): ProbabilityDistributi
       );
     } else {
       const ratio = 1 / sum;
-      results[v.name] = parseFloat(
-        (v.prob! * ratio).toPrecision(constants.PROBABILITY_PRECISION)
+      results[v.name] = !exists(v.prob) ? 0 : parseFloat(
+        (v.prob * ratio).toPrecision(constants.PROBABILITY_PRECISION)
       );
     }
   }

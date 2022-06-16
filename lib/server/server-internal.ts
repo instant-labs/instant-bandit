@@ -15,8 +15,8 @@ import { buildInstantBanditServer } from "./server";
 let internalBanditServer: InstantBanditServer;
 export function getInternalDevServer(options?: InstantBanditServerOptions) {
   if (env.isDev()) {
-    if ((global as any).internalBanditServer) {
-      internalBanditServer = (global as any).internalBanditServer;
+    if (global["internalBanditServer"]) {
+      internalBanditServer = global["internalBanditServer"];
     }
   }
 
@@ -24,9 +24,9 @@ export function getInternalDevServer(options?: InstantBanditServerOptions) {
     console.debug(`[IB] Creating internal InstantBanditServer helper...`);
     internalBanditServer = buildInstantBanditServer(options);
   }
-  
+
   if (env.isDev()) {
-    (global as any).internalBanditServer = internalBanditServer;
+    global["internalBanditServer"] = internalBanditServer;
   }
 
   return internalBanditServer;
