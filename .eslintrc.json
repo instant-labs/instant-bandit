@@ -5,6 +5,14 @@
     "next/core-web-vitals"
   ],
   "parser": "@typescript-eslint/parser",
+  "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [
+        ".ts",
+        ".tsx"
+      ]
+    }
+  },
   "plugins": [
     "@typescript-eslint"
   ],
@@ -20,7 +28,6 @@
     "node": true
   },
   "rules": {
-    "semi": 2,
-    "@typescript-eslint/rule-name": "error"
+    "semi": 2
   }
 }
