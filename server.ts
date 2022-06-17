@@ -1,10 +1,11 @@
 import { IncomingMessage, ServerResponse } from "http";
 import { NextApiRequestCookies } from "next/dist/server/api-utils";
+import { randomUUID } from "crypto";
 
 import { InstantBanditServer } from "./lib/server/server-types";
 import { SessionDescriptor } from "./lib/types";
 import { createBanditContext, DEFAULT_BANDIT_OPTIONS } from "./lib/contexts";
-import { validateUserRequest } from "./lib/server/server-utils";
+import { emitCookie, validateUserRequest } from "./lib/server/server-utils";
 import { exists } from "./lib/utils";
 import { HEADER_SESSION_ID } from "./lib/constants";
 
@@ -90,14 +91,27 @@ export async function serverSideRenderedSite(
     },
   });
 
-  const site = await ctx.load(siteName);
+  // Call the backend directly for the site and skip an HTTP request
+  const siteConfig = await server.models.getSiteConfig(validatedRequest);
+  const site = await ctx.init(siteConfig);
+
   const { experiment, variant } = ctx;
+
+  if (!session) {
+    session = {
+      sid: randomUUID(),
+      site: siteName,
+      variants: {
+        [experiment.id]: [variant.name],
+      },
+    };
+  }
 
   // Skip awaiting to avoid a round-trip to some backend
   server.sessions.markVariantSeen(session, experiment.id, variant.name)
     .catch(err => console.warn(`[IB]: Error marking variant '${variant.name}' seen: ${err}`));
 
-  res.setHeader(`Set-Cookie`, `${HEADER_SESSION_ID}=${session.sid}`);
+  res.setHeader(`Set-Cookie`, emitCookie(validatedRequest, session));
 
   return {
     site,
