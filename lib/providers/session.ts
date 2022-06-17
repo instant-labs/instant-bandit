@@ -20,7 +20,7 @@ export function getLocalStorageSessionProvider(options?): SessionProvider {
     */
     getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): SessionDescriptor {
       const session = getOrCreateSession(ctx, props);
-      if (exists(session.sid && session.sid !== "")) {
+      if (exists(session.sid)) {
         id = session.sid;
       }
       return session;

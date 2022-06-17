@@ -199,16 +199,9 @@ export async function markVariantSeen(redis: Redis, session: SessionDescriptor, 
  * @param redis 
  */
 export async function ingestBatch(redis: Redis, req: ValidatedRequest, batch: MetricsBatch) {
-
-  // Note: When using `sendBeacon` from the client, we can't attach outbound headers.
-  // In this scenario, the session ID should be plucked from the batch.
-  const sid = req.sid ?? batch.session;
+  const { sid } = req;
   if (!exists(sid)) {
     throw new Error(`Missing session`);
-  }
-
-  if (exists(req.sid) && req.sid !== batch.session) {
-    console.warn(`Session mismatch: SID: ${req.sid} Batch: ${batch.session}`);
   }
 
   const { site, experiment, variant, entries: samples } = batch;
