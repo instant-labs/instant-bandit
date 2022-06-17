@@ -19,7 +19,7 @@
     "docker-compose.dev.yml"
   ],
   "scripts": {
-    "dc": "docker-compose -f docker-compose.dev.yml --env-file .env.local",
+    "dc": "docker-compose -f docker-compose.dev.yml",
     "up": "yarn dc up -d",
     "rc": "yarn dc exec redis redis-cli",
     "rct": "yarn dc exec redis-testing redis-cli",
