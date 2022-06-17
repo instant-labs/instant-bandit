@@ -72,28 +72,10 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
           url.searchParams.append(constants.PARAM_TIMESTAMP, new Date().getTime() + "");
         }
 
-        // Attach our session ID if we have one
-        let sid = getCookie(constants.HEADER_SESSION_ID);
-        let session: SessionDescriptor;
-        if (!exists(ctx.session.id)) {
-          session = await ctx.session.getOrCreateSession(ctx);
-          sid = session.sid ?? null;
-        }
-
         siteUrl = url.toString();
         state = LoadState.WAIT;
 
-        const headers = new Headers();
-        if (exists(sid)) {
-          headers.append(constants.HEADER_SESSION_ID, sid);
-        }
-
-        const req: RequestInit = {
-          headers,
-        };
-        const resp = await fetch(siteUrl, req);
-
-
+        const resp = await fetch(siteUrl);
         const siteJson = await resp.json() as Site;
         site = await provider.init(ctx, siteJson, variant);
 

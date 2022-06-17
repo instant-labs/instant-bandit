@@ -93,7 +93,6 @@ export interface MetricsSample {
  */
 
 export interface MetricsBatch {
-  session: string
   site: string
   experiment: string
   variant: string

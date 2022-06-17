@@ -130,8 +130,8 @@ export function validateClientReportedOrigin(allowedOrigins: Origins, origin: st
 export function validateMetricsBatch(req: ValidatedRequest, batch: MetricsBatch) {
   const { sid } = req;
 
-  if (exists(sid) && sid !== batch.session) {
-    throw new Error(`Missing or mismatched session`);
+  if (!exists(sid)) {
+    throw new Error(`Missing or invalid session for metrics`);
   }
 
   return batch;

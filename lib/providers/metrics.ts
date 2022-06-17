@@ -77,7 +77,6 @@ export function getHttpMetricsSink(initOptions?: Partial<MetricsSinkOptions>): M
       const entries = items.slice(0, count);
       const sessionId = session.id ?? getCookie(constants.HEADER_SESSION_ID) ?? "";
       const batch: MetricsBatch = {
-        session: sessionId,
         site: site.name,
         experiment: experiment.id,
         variant: variant.name,
