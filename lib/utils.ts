@@ -49,7 +49,7 @@ export function env(name: string): string | undefined {
 }
 
 /**
- * Extracts a cookie by name from a cookie header string
+ * Extracts a cookie by name from a request header value
  * @param cookieName 
  * @param str 
  * @returns 
@@ -69,7 +69,7 @@ export function getCookie(cookieName, str = ""): string | null {
     .map(cookie => cookie.trim())
     .filter(cookie => cookie.indexOf(cookieName) === 0)
     .map(cookie => cookie.substring(cookieName.length + 1, cookie.length))
-    .reverse()[0];
+    .pop();
 
   return cookie ?? null;
 }

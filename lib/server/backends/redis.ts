@@ -56,13 +56,14 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
     get client() { return redis; },
 
     async connect(): Promise<void> {
-      console.debug(`[IB] Connecting to redis...`);
       switch (redis.status) {
         case "connecting":
         case "connect":
         case "ready":
           return;
+
         default:
+          console.debug(`[IB] Connecting to redis...`);
           await redis.connect();
       }
     },
@@ -126,7 +127,7 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
   const sessionsSetKey = makeKey([siteName, "sessions"]);
   let session: SessionDescriptor | null = null;
 
-  if (exists(sid)) {
+  if (exists(sid) && sid !== "") {
     const sessionKey = makeKey([siteName, "session", sid]);
     const sessionRaw = await redis.get(sessionKey);
 
