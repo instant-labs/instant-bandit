@@ -184,3 +184,31 @@ export const TAG = "[IB][server]";
 export const log = (...items: unknown[]) => {
   console.info(...[TAG, ...items]);
 };
+
+/**
+ * Creates an `InstantBanditServer` you can use in your backend app.
+ */
+let banditServer: InstantBanditServer;
+export function getBanditServer(options?: Partial<InstantBanditServerOptions>) {
+
+  // NOTE: Next.js will re-import modules during HMR.
+  // This ends up creating multiple spurious instances of module functions, state,
+  // network resources, database connections, etc.
+  // A workaround is to attach an object to the global scope during dev.
+  if (env.isDev()) {
+    if (global["defaultBanditServer"]) {
+      banditServer = global["defaultBanditServer"];
+    }
+  }
+
+  if (!banditServer) {
+    console.debug(`[IB] Creating default InstantBanditServer...`);
+    banditServer = buildInstantBanditServer(options);
+  }
+
+  if (env.isDev()) {
+    global["defaultBanditServer"] = banditServer;
+  }
+
+  return banditServer;
+}

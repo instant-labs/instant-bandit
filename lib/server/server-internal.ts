@@ -1,6 +1,6 @@
 import env from "./environment";
 import { InstantBanditServer, InstantBanditServerOptions } from "./server-types";
-import { buildInstantBanditServer } from "./server";
+import { buildInstantBanditServer } from "./server-core";
 import { getJsonSiteBackend } from "./backends/json-sites";
 import { getRedisBackend } from "./backends/redis";
 

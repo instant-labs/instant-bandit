@@ -1,3 +1,5 @@
+import { randomBytes, randomUUID } from "crypto";
+
 import env from "./environment";
 import * as constants from "../constants";
 import {
@@ -10,7 +12,6 @@ import {
 import { MetricsBatch } from "../models";
 import { SessionDescriptor } from "../types";
 import { exists, getCookie } from "../utils";
-import { randomBytes, randomUUID } from "crypto";
 import { DEFAULT_SITE } from "../defaults";
 
 

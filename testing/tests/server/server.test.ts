@@ -5,9 +5,10 @@ import {
   ModelsBackend,
   SessionsBackend,
 } from "../../../lib/server/server-types";
-import { buildInstantBanditServer } from "../../../lib/server/server";
+import { buildInstantBanditServer } from "../../../lib/server/server-core";
 import { SessionDescriptor } from "../../../lib/types";
-import { DEFAULT_SITE } from "../../..";
+import { makeNewSession } from "../../../lib/utils";
+import { DEFAULT_SITE } from "../../../lib/defaults";
 
 
 describe("server", () => {

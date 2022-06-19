@@ -13,14 +13,15 @@ import { HEADER_SESSION_ID } from "./lib/constants";
 import env from "./lib/server/environment";
 export { env };
 
-export * from "./lib/server/server";
 export * from "./lib/server/environment";
-export * from "./lib/server/server-helpers";
+export * from "./lib/server/server-core";
 export * from "./lib/server/server-types";
 export * from "./lib/server/server-utils";
 export * from "./lib/server/backends/json-sites";
 export * from "./lib/server/backends/redis";
 
+export { createSiteEndpoint } from "./pages/api/sites/[siteName]";
+export { createMetricsEndpoint } from "./pages/api/metrics";
 
 /**
  * Handles details around serving a site in a manner suitable for a full SSR render.
