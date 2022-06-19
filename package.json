@@ -21,8 +21,8 @@
   "scripts": {
     "dc": "docker-compose -f docker-compose.dev.yml",
     "up": "yarn dc up -d",
-    "rc": "yarn dc exec redis redis-cli",
-    "rct": "yarn dc exec redis-testing redis-cli",
+    "rc": "yarn -s dc exec -T redis redis-cli",
+    "rct": "yarn -s dc exec -T redis-testing redis-cli",
     "dev": "NODE_OPTIONS='--inspect=localhost:9229' next dev && yarn dc up -d",
     "compile": "tsc -p tsconfig.publish.json",
     "minify": "swc ./dist -s false -d ./dist",

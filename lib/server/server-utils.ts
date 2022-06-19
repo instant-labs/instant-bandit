@@ -11,7 +11,7 @@ import {
 } from "./server-types";
 import { MetricsBatch } from "../models";
 import { SessionDescriptor } from "../types";
-import { exists, getCookie } from "../utils";
+import { exists, getCookie, makeNewSession } from "../utils";
 import { DEFAULT_SITE } from "../defaults";
 
 
@@ -88,14 +88,9 @@ export async function validateUserRequest(args: RequestValidationArgs): Promise<
 }
 
 
-export async function createNewClientSession(origin: string, site: string): Promise<SessionDescriptor> {
+export async function createNewClientSession(): Promise<SessionDescriptor> {
   const sid = randomUUID();
-  const session: SessionDescriptor = {
-    site,
-    sid,
-    variants: {},
-  };
-
+  const session = makeNewSession(sid);
   return session;
 }
 

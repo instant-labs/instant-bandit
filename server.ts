@@ -6,7 +6,7 @@ import { InstantBanditServer } from "./lib/server/server-types";
 import { SessionDescriptor } from "./lib/types";
 import { createBanditContext, DEFAULT_BANDIT_OPTIONS } from "./lib/contexts";
 import { emitCookie, validateUserRequest } from "./lib/server/server-utils";
-import { exists } from "./lib/utils";
+import { exists, makeNewSession } from "./lib/utils";
 import { HEADER_SESSION_ID } from "./lib/constants";
 
 
@@ -56,12 +56,9 @@ export async function serverSideRenderedSite(
     session = await sessions.getOrCreateSession(validatedRequest);
   } catch (err) {
     console.log(`[IB] Error fetching session for '${sid}': ${err}`);
-    session = {
-      sid: "",
-      site: siteName,
-      variants: {},
-    };
+    session = makeNewSession();
   }
+
 
   const { loader, metrics } = DEFAULT_BANDIT_OPTIONS.providers;
   const ctx = createBanditContext({
@@ -87,6 +84,7 @@ export async function serverSideRenderedSite(
             // We do this server side below
             return;
           },
+          save: () => session,
         };
       },
     },
@@ -99,17 +97,14 @@ export async function serverSideRenderedSite(
   const { experiment, variant } = ctx;
 
   if (!session) {
-    session = {
-      sid: randomUUID(),
-      site: siteName,
-      variants: {
-        [experiment.id]: [variant.name],
-      },
+    session = makeNewSession(randomUUID());
+    session.selections[site.name] = {
+      [experiment.id]: [variant.name],
     };
   }
 
   // Skip awaiting to avoid a round-trip to some backend
-  server.sessions.markVariantSeen(session, experiment.id, variant.name)
+  server.sessions.markVariantSeen(session, site, experiment.id, variant.name)
     .catch(err => console.warn(`[IB]: Error marking variant '${variant.name}' seen: ${err}`));
 
   res.setHeader(`Set-Cookie`, emitCookie(validatedRequest, session));

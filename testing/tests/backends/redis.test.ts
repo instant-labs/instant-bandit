@@ -5,7 +5,7 @@ import { getRedisBackend } from "../../../lib/server/backends/redis";
 import { DefaultMetrics, DEFAULT_ORIGIN } from "../../../lib/constants";
 import { makeKey, toNumber } from "../../../lib/server/server-utils";
 import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../../../lib/defaults";
-import { exists } from "../../../lib/utils";
+import { exists, makeNewSession } from "../../../lib/utils";
 import { MetricsBatch, MetricsSample } from "../../../lib/models";
 import { randomBytes, randomUUID } from "crypto";
 import { ValidatedRequest } from "../../../lib/server/server-types";
@@ -27,9 +27,8 @@ const TEST_REQ: ValidatedRequest = {
   },
   session: {
     sid: TEST_SESH,
-    site: DEFAULT_SITE.name,
     lastSeen: new Date().getTime(),
-    variants: {}
+    selections: {}
   }
 };
 
@@ -203,6 +202,7 @@ describe("backend", () => {
   function makeBatch(props: Partial<MetricsBatch> = {}, entries: Partial<MetricsSample>[] = []) {
     const def: MetricsBatch = {
       site: DEFAULT_SITE.name,
+      session: makeNewSession(),
       experiment: DEFAULT_EXPERIMENT.name,
       variant: DEFAULT_VARIANT.name,
       entries: [],

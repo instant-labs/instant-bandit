@@ -1,7 +1,48 @@
 import { useEffect, useLayoutEffect } from "react";
 
 import * as constants from "./constants";
+import { SessionDescriptor } from "./types";
 
+
+export function makeNewSession(sid = "") {
+  const session: SessionDescriptor = {
+    sid,
+    selections: {},
+  };
+
+  return session;
+}
+
+export function markVariantInSession(
+  session: SessionDescriptor,
+  site: string, experiment: string,
+  variant: string) {
+
+  let sites = session.selections;
+  if (!sites) {
+    sites = session.selections = {};
+  }
+
+  let experiments = sites[site];
+  if (!experiments) {
+    experiments = sites[site] = {
+      [experiment]: [],
+    };
+  }
+
+  let variants = experiments[experiment];
+  if (!exists(variants)) {
+    variants = experiments[experiment] = [];
+  }
+
+  // Put the most recently presented variant at the end
+  const ix = variants.indexOf(variant);
+  if (ix > -1) {
+    variants.splice(ix, 1);
+  }
+
+  variants.push(variant);
+}
 
 /**
  * Freezes an entire object tree

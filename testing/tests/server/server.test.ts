@@ -103,11 +103,7 @@ describe("server", () => {
       async connect() { return; },
       async disconnect() { return; },
       async getOrCreateSession() {
-        return {
-          sid: "",
-          site: DEFAULT_SITE.name,
-          variants: {},
-        };
+        return makeNewSession();
       },
       async markVariantSeen(session: SessionDescriptor) {
         return session;

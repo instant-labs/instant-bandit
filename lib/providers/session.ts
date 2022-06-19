@@ -1,11 +1,12 @@
 import { InstantBanditContext } from "../contexts";
 import { SessionDescriptor, SessionProvider } from "../types";
-import { exists, isBrowserEnvironment } from "../utils";
+import { exists, isBrowserEnvironment, makeNewSession, markVariantInSession } from "../utils";
 import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../defaults";
+import { HEADER_SESSION_ID } from "../constants";
 
 
-export function getLocalStorageKey(site: string) {
-  return `site.${site}`;
+export function getLocalStorageKey() {
+  return HEADER_SESSION_ID;
 }
 
 export function getLocalStorageSessionProvider(options?): SessionProvider {
@@ -39,6 +40,22 @@ export function getLocalStorageSessionProvider(options?): SessionProvider {
      */
     hasSeen(ctx: InstantBanditContext, experiment: string, variant: string) {
       return hasSeen(ctx, experiment, variant);
+    },
+
+    /**
+     * Persists a new version of the session from the server
+     * @param ctx 
+     * @param session 
+     */
+    save(ctx: InstantBanditContext, session: SessionDescriptor) {
+      id = session.sid;
+      const storageKey = getLocalStorageKey();
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(session));
+      } catch (err) {
+        handlePossibleQuotaError(err);
+      }
+      return session;
     }
   };
 }
@@ -46,7 +63,7 @@ export function getLocalStorageSessionProvider(options?): SessionProvider {
 
 function getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>) {
   if (!isBrowserEnvironment) {
-    return Object.assign({}, props) as SessionDescriptor;
+    return Object.assign(makeNewSession(), props) as SessionDescriptor;
   }
 
   let { site } = ctx;
@@ -54,18 +71,14 @@ function getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDe
     site = DEFAULT_SITE;
   }
 
-  const storageKey = getLocalStorageKey(site.name);
+  const storageKey = getLocalStorageKey();
   const sessionJson = localStorage.getItem(storageKey);
 
   let session: SessionDescriptor;
   if (exists(sessionJson)) {
     session = <SessionDescriptor>JSON.parse(sessionJson);
   } else {
-    session = {
-      sid: "",
-      site: site.name,
-      variants: {},
-    };
+    session = makeNewSession();
   }
 
   if (props) {
@@ -85,26 +98,17 @@ function persistVariant(ctx: InstantBanditContext, experiment: string, variant: 
   if (!isBrowserEnvironment) {
     return;
   }
+
+  // Defaults are implicit, no need to have them persisted
   if (experiment === DEFAULT_EXPERIMENT.id && variant === DEFAULT_VARIANT.name) {
     return;
   }
 
   const { site } = ctx;
-  const storageKey = getLocalStorageKey(site.name);
+  const storageKey = getLocalStorageKey();
   const session = getOrCreateSession(ctx);
 
-  let variants = session.variants[experiment];
-  if (!exists(variants)) {
-    variants = session.variants[experiment] = [];
-  }
-
-  // Put the most recently presented variant at the end
-  const ix = variants.indexOf(variant);
-  if (ix > -1) {
-    variants.splice(ix, 1);
-  }
-
-  variants.push(variant);
+  markVariantInSession(session, site.name, experiment, variant);
 
   try {
     localStorage.setItem(storageKey, JSON.stringify(session));
@@ -155,7 +159,8 @@ function hasSeen(ctx: InstantBanditContext, experiment: string, variant: string)
     return false;
   }
 
+  const { site } = ctx;
   const session = getOrCreateSession(ctx);
-  const variants = (session.variants || {})[experiment];
-  return exists(variants) && exists(variants.find(v => v === variant));
+  const seenVariants = session.selections?.[site.name]?.[experiment];
+  return exists(seenVariants) && exists(seenVariants.find(v => v === variant));
 }

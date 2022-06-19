@@ -5,6 +5,7 @@ import { InstantBanditContext } from "../../lib/contexts";
 import { Site } from "../../lib/models";
 import { getLocalStorageSessionProvider, getLocalStorageKey } from "../../lib/providers/session";
 import { SessionProvider } from "../../lib/types";
+import { makeNewSession } from "../../lib/utils";
 import { TEST_SITE_AB } from "../sites";
 
 
@@ -36,11 +37,10 @@ describe("browser session provider", () => {
       const newSession = await provider.getOrCreateSession(ctx, {});
       expect(newSession).toStrictEqual({
         sid: "",
-        site: site.name,
-        variants: {},
+        selections: {},
       });
 
-      const k = getLocalStorageKey(site.name);
+      const k = getLocalStorageKey();
       const storedJson = localStorage.getItem(k) ?? "{}";
       const storedSession = JSON.parse(storedJson);
 
@@ -51,8 +51,7 @@ describe("browser session provider", () => {
       const newSession = await provider.getOrCreateSession(ctx, { sid: "1001" });
       expect(newSession).toStrictEqual({
         sid: "1001",
-        site: site.name,
-        variants: {},
+        selections: {},
       });
       const storedSession = await provider.getOrCreateSession(ctx);
       expect(storedSession).toStrictEqual(newSession);
@@ -72,25 +71,23 @@ describe("browser session provider", () => {
   describe("persistVariant", () => {
     it("persists a variant", async () => {
       let sesh = await provider.getOrCreateSession(ctx, {});
-      expect(sesh.variants).toStrictEqual({});
-
       await provider.persistVariant(ctx, "experiment-1", "a");
       sesh = await provider.getOrCreateSession(ctx);
 
       expect(sesh).toStrictEqual({
         sid: "",
-        site: site.name,
-        variants: {
-          "experiment-1": [
-            "a",
-          ]
+        selections: {
+          [site.name]: {
+            "experiment-1": [
+              "a",
+            ],
+          },
         },
       });
     });
 
     it("doesn't persist duplicates", async () => {
       let sesh = await provider.getOrCreateSession(ctx, {});
-      expect(sesh.variants).toStrictEqual({});
 
       await provider.persistVariant(ctx, "experiment-1", "a");
       await provider.persistVariant(ctx, "experiment-1", "a");
@@ -100,18 +97,18 @@ describe("browser session provider", () => {
 
       expect(sesh).toStrictEqual({
         sid: "",
-        site: site.name,
-        variants: {
-          "experiment-1": [
-            "a",
-          ],
+        selections: {
+          [site.name]: {
+            "experiment-1": [
+              "a",
+            ],
+          },
         },
       });
     });
 
     it("persists exposures across multiple experiments and variants", async () => {
       let sesh = await provider.getOrCreateSession(ctx, {});
-      expect(sesh.variants).toStrictEqual({});
 
       await provider.persistVariant(ctx, "experiment-1", "a");
       await provider.persistVariant(ctx, "experiment-2", "b");
@@ -121,13 +118,27 @@ describe("browser session provider", () => {
 
       expect(sesh).toStrictEqual({
         sid: "",
-        site: site.name,
-        variants: {
-          "experiment-1": ["a"],
-          "experiment-2": ["b"],
-          "experiment-3": ["c"],
+        selections: {
+          [site.name]: {
+            "experiment-1": ["a"],
+            "experiment-2": ["b"],
+            "experiment-3": ["c"],
+          },
         },
       });
+    });
+  });
+
+  describe("save", () => {
+    it("sets the id on the provider", async () => {
+      const oldSession = makeNewSession();
+      const newSession = makeNewSession("000");
+      provider.save(ctx, oldSession);
+      let saved = provider.getOrCreateSession(ctx);
+      expect(saved.sid).toBe("");
+      provider.save(ctx, newSession);
+      saved = provider.getOrCreateSession(ctx);
+      expect(saved.sid).toBe("000");
     });
   });
 });

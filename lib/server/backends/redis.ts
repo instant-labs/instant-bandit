@@ -100,8 +100,8 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
       return getOrCreateSession(redis, req);
     },
 
-    async markVariantSeen(session: SessionDescriptor, experimentId: string, variantName: string) {
-      return markVariantSeen(redis, session, experimentId, variantName);
+    async markVariantSeen(session: SessionDescriptor, site: Site, experimentId: string, variantName: string) {
+      return markVariantSeen(redis, session, site, experimentId, variantName);
     },
   };
 }
@@ -125,7 +125,7 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
   const { siteName } = req;
   let { sid } = req;
 
-  const sessionsSetKey = makeKey([siteName, "sessions"]);
+  const sessionsSetKey = makeKey(["sessions"]);
   let session: SessionDescriptor | null = null;
 
   if (exists(sid) && sid.length === UUID_LENGTH) {
@@ -147,14 +147,13 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
     sid = randomUUID();
     session = {
       sid,
-      site: siteName,
-      variants: {},
+      selections: {},
     };
 
     const serializedSession = JSON.stringify(session);
     const pipe = redis.multi();
     try {
-      const sessionKey = makeKey([siteName, "session", session.sid]);
+      const sessionKey = makeKey(["session", session.sid]);
       pipe.sadd(sessionsSetKey, session.sid);
       pipe.set(sessionKey, serializedSession);
       await pipe.exec();
@@ -166,26 +165,12 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
   return session;
 }
 
-export async function markVariantSeen(redis: Redis, session: SessionDescriptor, experimentId: string, variantName: string) {
-  if (!exists(session.site)) {
-    return session;
-  }
+export async function markVariantSeen(redis: Redis, session: SessionDescriptor, site: Site, experimentId: string, variantName: string) {
 
-  let variants = session.variants[experimentId];
-  if (!exists(variants)) {
-    variants = session.variants[experimentId] = [];
-  }
-
-  // Put the most recently presented variant at the end
-  const ix = variants.indexOf(variantName);
-  if (ix > -1) {
-    variants.splice(ix, 1);
-  }
-
-  variants.push(variantName);
+  markVariantInSession(session, site.name, experimentId, variantName);
 
   const serializedSession = JSON.stringify(session);
-  const sessionKey = makeKey([session.site, "session", session.sid]);
+  const sessionKey = makeKey(["session", session.sid]);
   try {
     await redis.set(sessionKey, serializedSession);
   } catch (err) {
