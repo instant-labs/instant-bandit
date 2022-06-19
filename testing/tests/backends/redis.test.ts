@@ -202,7 +202,6 @@ describe("backend", () => {
   function makeBatch(props: Partial<MetricsBatch> = {}, entries: Partial<MetricsSample>[] = []) {
     const def: MetricsBatch = {
       site: DEFAULT_SITE.name,
-      session: makeNewSession(),
       experiment: DEFAULT_EXPERIMENT.name,
       variant: DEFAULT_VARIANT.name,
       entries: [],

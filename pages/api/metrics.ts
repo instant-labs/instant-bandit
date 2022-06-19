@@ -50,7 +50,7 @@ export function createMetricsEndpoint(server?: InstantBanditServer) {
       validatedReq.session = session as ServerSession;
 
       await metrics.ingestBatch(validatedReq, req.body);
-      res.status(200).json({ status: "OK" });
+      res.status(200).json(session);
       return;
 
     } else {

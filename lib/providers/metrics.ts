@@ -1,7 +1,7 @@
 import * as constants from "../constants";
 import { DEFAULT_OPTIONS } from "../defaults";
 import { InstantBanditContext } from "../contexts";
-import { Metric, MetricsProvider, MetricsSinkOptions, TimerLike } from "../types";
+import { Metric, MetricsProvider, MetricsSinkOptions, SessionDescriptor, TimerLike } from "../types";
 import { MetricsBatch, MetricsSample } from "../models";
 import { env, exists, getCookie } from "../utils";
 
@@ -56,7 +56,7 @@ export function getHttpMetricsSink(initOptions?: Partial<MetricsSinkOptions>): M
           .flush(ctx)
           .catch(err => console.warn(err))
         , options.flushInterval
-        );
+      );
     },
 
     async flush(ctx: InstantBanditContext, flushAll = false): Promise<void> {
@@ -94,7 +94,10 @@ export function getHttpMetricsSink(initOptions?: Partial<MetricsSinkOptions>): M
           typeof navigator.sendBeacon !== "undefined") {
           sendBatchViaBeacon(url, batch);
         } else {
-          await sendBatchViaFetch(url, sessionId, batch);
+          const session = await sendBatchViaFetch(url, sessionId, batch);
+          if (exists(session.sid)) {
+            ctx.session.save(ctx, session);
+          }
         }
       } catch (err) {
         console.warn(`Error occurred while flushing metrics: ${err}`);
@@ -128,8 +131,9 @@ export function sendBatchViaBeacon(url: URL, batch: MetricsBatch) {
   return navigator.sendBeacon(url + "", blob);
 }
 
-export async function sendBatchViaFetch(url: URL, sessionId: string, batch: MetricsBatch) {
-  await fetch(url.toString(), {
+export async function sendBatchViaFetch(url: URL, sessionId: string, batch: MetricsBatch)
+  : Promise<SessionDescriptor> {
+  const resp = await fetch(url.toString(), {
     method: "POST",
     headers: {
       "Accept": "application/json",
@@ -139,5 +143,6 @@ export async function sendBatchViaFetch(url: URL, sessionId: string, batch: Metr
     body: JSON.stringify(batch),
   });
 
-  return true;
+  const session = await resp.json() as SessionDescriptor;
+  return session;
 }
