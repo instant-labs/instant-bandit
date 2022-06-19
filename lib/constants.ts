@@ -25,6 +25,7 @@ export const PARAM_TIMESTAMP = "ts";
 export const PARAM_SELECT = "select";
 export const HEADER_SESSION_ID = "ibsession";
 
+export const DEFAULT_TIMEOUT = 1000;
 export const PROBABILITY_PRECISION = 4;
 export const UUID_LENGTH = 36;
 export const MAX_STORAGE_KEY_LENGTH = 256;

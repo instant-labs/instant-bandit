@@ -4,12 +4,20 @@
 import React from "react";
 import fetchMock from "jest-fetch-mock";
 
-import { CountMountsAndRenders, Debug, ExpectBanditReady, expectRenders, resetDebugHelpers } from "../../test-utils";
+import {
+  CountMountsAndRenders,
+  Debug,
+  ExpectBanditReady,
+  expectHtml,
+  expectRenders,
+  resetDebugHelpers,
+} from "../../test-utils";
+import { Default } from "../../../components/Default";
 import { InstantBandit } from "../../../components/InstantBanditComponent";
+import { Variant } from "../../../components/Variant";
 import { exists } from "../../../lib/utils";
 import { expectMounts, renderTest } from "../../test-utils";
 import { TEST_SITE_AB } from "../../sites";
-import { Variant } from "../../../components/Variant";
 
 
 describe("InstantBandit component", () => {
@@ -27,6 +35,10 @@ describe("InstantBandit component", () => {
     fetches = 0;
     resetDebugHelpers();
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   function mockSiteResponses(count = 1) {
@@ -180,7 +192,7 @@ describe("InstantBandit component", () => {
       let pending = 0;
       await renderTest(
         <InstantBandit onReady={ctx => {
-         pending = ctx.metrics.pending;
+          pending = ctx.metrics.pending;
         }} />
       );
       expect(pending).toBe(1);
@@ -198,6 +210,32 @@ describe("InstantBandit component", () => {
       expect(flushes).toBe(0);
       component.unmount();
       expect(flushes).toBe(1);
+    });
+  });
+
+  describe("timeout", () => {
+    it("presents the default site on timeout", async () => {
+      fetchMock.mockResponseOnce(async () => {  
+        jest.runAllTimers();
+        return JSON.stringify(TEST_SITE_AB);
+      });
+
+      jest.useFakeTimers();
+      const events: string[] = [];
+      await renderTest(
+        <InstantBandit siteName={TEST_SITE_AB.name} select="A" timeout={100}
+          onError={(err) => events.push("error", err + "")}
+          onReady={(ctx) => events.push("ready", ctx.site.name)}>
+
+          <Default>DEFAULT</Default>
+          <Variant name="A">AAA</Variant>
+        </InstantBandit>
+      );
+
+      // We expect ready then error because we must present ASAP
+      expect(events.slice(0, 3)).toStrictEqual(["ready", "default", "error"]);
+      expect(events.pop()?.toLowerCase().indexOf("timed out")).toBeGreaterThan(-1);
+      await expectHtml("DEFAULT");
     });
   });
 });

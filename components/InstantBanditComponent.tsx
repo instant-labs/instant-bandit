@@ -1,9 +1,9 @@
 import React, { PropsWithChildren, useCallback, useEffect, useState } from "react";
 
-import { DefaultMetrics } from "../lib/constants";
-import { InstantBanditProps, LoadState } from "../lib/types";
+import { DefaultMetrics, DEFAULT_TIMEOUT } from "../lib/constants";
+import { InstantBanditProps, LoadState, TimerLike } from "../lib/types";
 import { InstantBanditContext, createBanditContext } from "../lib/contexts";
-import { isBrowserEnvironment, useIsomorphicLayoutEffect } from "../lib/utils";
+import { exists, isBrowserEnvironment, useIsomorphicLayoutEffect } from "../lib/utils";
 import { DEFAULT_SITE } from "../lib/defaults";
 
 
@@ -11,11 +11,18 @@ import { DEFAULT_SITE } from "../lib/defaults";
  * Enables Instant Bandit in your apps and websites.
  */
 const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) => {
+
   const [ready, setReady] = useState(false);
   const [loadState, setLoadState] = useState({
     recordedExposure: false,
     state: LoadState.PRELOAD,
+    loadTimeStart: new Date().getTime(),
+    loadTimeEnd: 0,
+    loadDuration: 0,
+    loadTimedOut: false,
+    loadTimeoutTimer: null as null | TimerLike,
   });
+
   const [ctx, setBanditState] = useState(() => {
     const { options: config, siteName } = props || {};
     const ctx = createBanditContext(config);
@@ -37,9 +44,16 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     return ctx as InstantBanditContext;
   });
 
-  const { select, site: siteProp, siteName, onError, onReady } = props;
+  const {
+    select,
+    site: siteProp,
+    siteName,
+    timeout: propsTimeout,
+    onError,
+    onReady,
+  } = props;
   const { loader, metrics, session } = ctx;
-
+  const timeout = exists(propsTimeout) ? propsTimeout : DEFAULT_TIMEOUT;
 
   // Rather than setting state as soon as we are ready, we defer it to the layout effect.
   const readyCallback = useCallback(() => {
@@ -109,6 +123,20 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     }
   }
 
+
+  const timeoutCallback = useCallback(() => {
+    if (loadState.state === LoadState.READY) {
+      return;
+    }
+
+    loadState.loadTimedOut = true;
+    loadState.loadTimeEnd = new Date().getTime();
+    loadState.loadDuration = loadState.loadTimeEnd - loadState.loadTimeStart;
+
+    return () => clearTimeout(loadState.loadTimeoutTimer as NodeJS.Timeout);
+  }, [loadState]);
+
+
   // Kick off site loading ASAP
   if (loader && loadState.state === LoadState.PRELOAD) {
 
@@ -118,18 +146,31 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
     // Note: In order to load in SSR without flicker, we must initialize *synchronously*.
     if (siteProp) {
       loader.init(ctx, siteProp, select);
-      setLoadState({ recordedExposure: true, state: LoadState.READY });
+      setLoadState({ ...loadState, state: LoadState.READY });
       markVariantPresented(ctx);
       broadcastReadyState();
       if (loader.error) {
         handleError(loader.error, ctx);
       }
     } else {
+      if (!exists(loadState.loadTimeoutTimer) && exists(timeout)) {
+        loadState.loadTimeoutTimer = setTimeout(timeoutCallback, timeout);
+      }
+
       loader.load(ctx, siteName, select)
+        .then(() => {
+          if (loadState.loadTimedOut) {
+            ctx.init(DEFAULT_SITE);
+            markVariantPresented(ctx);
+            setLoadState({ ...loadState });
+            broadcastReadyState();
+            throw new Error(`[IB] Timed out waiting for site @ ${loadState.loadDuration} ms.`);
+          }
+        })
 
         // This will invoke a layout effect, which will do our primary state update in
         .then(() => markVariantPresented(ctx))
-        .then(() => setLoadState({ recordedExposure: true, state: LoadState.READY }))
+        .then(() => setLoadState({ ...loadState, state: LoadState.READY }))
         .then(broadcastReadyState)
         .then(() => loader.error ? handleError(loader.error, ctx) : void 0)
         .catch(err => handleError(err, ctx));
