@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { MetricsBatch } from "../../lib/models";
 import { getInternalDevServer } from "../../lib/server/server-internal";
 import { InstantBanditHeaders, InstantBanditServer, ServerSession } from "../../lib/server/server-types";
-import { getSessionIdFromHeaders, validateUserRequest  } from "../../lib/server/server-utils";
+import { emitCookie, getSessionIdFromHeaders, validateUserRequest  } from "../../lib/server/server-utils";
 
 
 const MetricsEndpoint = createMetricsEndpoint();
@@ -28,13 +28,8 @@ export function createMetricsEndpoint(server?: InstantBanditServer) {
     const { metrics, origins, sessions } = server;
     const { method, headers } = req;
 
-
-    // No session? Politely do nothing.
     const sid = await getSessionIdFromHeaders(headers as InstantBanditHeaders);
-    if (!sid || sid === "") {
-      res.status(200).json({ status: "OK" });
-      return;
-    }
+    const needsSession = (!sid || sid === "");
 
     if (method === "POST") {
       const batch = req.body as MetricsBatch;
@@ -50,6 +45,11 @@ export function createMetricsEndpoint(server?: InstantBanditServer) {
       validatedReq.session = session as ServerSession;
 
       await metrics.ingestBatch(validatedReq, req.body);
+
+      if (needsSession) {
+        res.setHeader("Set-Cookie", emitCookie(validatedReq, session));
+      }
+
       res.status(200).json(session);
       return;
 

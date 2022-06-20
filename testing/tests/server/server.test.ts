@@ -8,7 +8,6 @@ import {
 import { buildInstantBanditServer } from "../../../lib/server/server-core";
 import { SessionDescriptor } from "../../../lib/types";
 import { makeNewSession } from "../../../lib/utils";
-import { DEFAULT_SITE } from "../../../lib/defaults";
 
 
 describe("server", () => {

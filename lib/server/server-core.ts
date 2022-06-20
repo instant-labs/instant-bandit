@@ -108,19 +108,13 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
      * Produces a site object bearing probabilities and ready for consumer selection
      */
     async getSite(req: ValidatedRequest): Promise<ApiSiteResponse> {
-      const { getOrCreateSession } = sessions;
       const { getSiteConfig } = models;
 
-      const session = await getOrCreateSession(req);
       const siteConfig = await getSiteConfig(req);
       const siteWithProbs = await embedProbabilities(req, siteConfig, metrics);
 
-      const responseHeaders: OutgoingHttpHeaders = {
-        "Set-Cookie": emitCookie(req, session)
-      };
-
       return {
-        responseHeaders,
+        responseHeaders: {},
         site: siteWithProbs,
       };
     }

@@ -81,7 +81,7 @@ export function SignUpButton(props: { children?: ReactNode }) {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const server = getInternalDevServer();
   const { req, res } = context;
-  const { site, select } = await serverSideRenderedSite(server, siteName, req, res);
+  const { site, select } = await serverSideRenderedSite(server, siteName, req);
 
   return {
     props: {

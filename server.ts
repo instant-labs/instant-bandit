@@ -32,7 +32,6 @@ export async function serverSideRenderedSite(
   server: InstantBanditServer,
   siteName: string,
   req: IncomingMessage & { cookies: NextApiRequestCookies },
-  res: ServerResponse,
 ) {
   await server.init();
 
@@ -52,11 +51,17 @@ export async function serverSideRenderedSite(
   const { sessions } = server;
   let session: SessionDescriptor;
 
-  try {
-    session = await sessions.getOrCreateSession(validatedRequest);
-  } catch (err) {
-    console.log(`[IB] Error fetching session for '${sid}': ${err}`);
-    session = makeNewSession();
+  // First time visitors and robots get a blank session.
+  // The POST to the metrics endpoint when IB mounts will create a real one.
+  if (!exists(sid) || sid === "") {
+    session = makeNewSession(sid ?? "");
+  } else {
+    try {
+      session = await sessions.getOrCreateSession(validatedRequest);
+    } catch (err) {
+      console.log(`[IB] Error fetching session for '${sid}': ${err}`);
+      session = makeNewSession();
+    }
   }
 
 
@@ -106,8 +111,6 @@ export async function serverSideRenderedSite(
   // Skip awaiting to avoid a round-trip to some backend
   server.sessions.markVariantSeen(session, site, experiment.id, variant.name)
     .catch(err => console.warn(`[IB]: Error marking variant '${variant.name}' seen: ${err}`));
-
-  res.setHeader(`Set-Cookie`, emitCookie(validatedRequest, session));
 
   return {
     site,
