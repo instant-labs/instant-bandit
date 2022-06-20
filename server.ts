@@ -92,7 +92,7 @@ export async function serverSideRenderedSite(
   });
 
   // Call the backend directly for the site and skip an HTTP request
-  const siteConfig = await server.models.getSiteConfig(validatedRequest);
+  const { site: siteConfig } = await server.getSite(validatedRequest);
   const site = await ctx.init(siteConfig);
 
   const { experiment, variant } = ctx;
