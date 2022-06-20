@@ -55,14 +55,6 @@ export default function Home(serverSideProps: InstantBanditOptions) {
             <SignUpButton>Add Conversion</SignUpButton>
           </Variant>
         </main>
-
-        <footer className={styles.footer}>
-          <button onClick={() => {
-            localStorage.clear();
-            document.cookie = `${HEADER_SESSION_ID}=""`;
-            location.reload();
-          }}>Clear Session and Reload</button>
-        </footer>
       </div>
     </InstantBandit>
   );

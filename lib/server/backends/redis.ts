@@ -19,6 +19,7 @@ import {
 import { ConnectingBackendFunctions, MetricsBackend, SessionsBackend, ValidatedRequest } from "../server-types";
 import { makeKey, toNumber } from "../server-utils";
 import { exists } from "../../utils";
+import { UUID_LENGTH } from "../../constants";
 
 
 export const DEFAULT_REDIS_OPTIONS: RedisBackendOptions = {
@@ -127,7 +128,7 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
   const sessionsSetKey = makeKey([siteName, "sessions"]);
   let session: SessionDescriptor | null = null;
 
-  if (exists(sid) && sid !== "") {
+  if (exists(sid) && sid.length === UUID_LENGTH) {
     const sessionKey = makeKey([siteName, "session", sid]);
     const sessionRaw = await redis.get(sessionKey);
 
