@@ -34,8 +34,8 @@ export function getStubSessionsBackend(): SessionsBackend {
       return session;
     },
 
-    async markVariantSeen(session: SessionDescriptor, site: Site, experiment: string, variant: string) {
-      markVariantInSession(session, site.name, experiment, variant);
+    async markVariantSeen(session: SessionDescriptor, site: string, experiment: string, variant: string) {
+      markVariantInSession(session, site, experiment, variant);
 
       return session;
     }

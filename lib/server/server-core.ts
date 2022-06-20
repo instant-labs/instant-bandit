@@ -39,8 +39,6 @@ export const DEFAULT_SERVER_OPTIONS: Partial<InstantBanditServerOptions> = {
  * @private
  */
 export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServerOptions>): InstantBanditServer {
-  console.debug(`[IB] createInstantBanditServer invoked from ${__dirname}`);
-
   const options = Object.assign({}, DEFAULT_SERVER_OPTIONS, initOptions);
 
   // Only instantiate the backends if needed

@@ -64,7 +64,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
           return;
 
         default:
-          console.debug(`[IB] Connecting to redis...`);
+          console.debug(`[IB] Connecting to redis on ${options.host}:${options.port}...`);
           await redis.connect();
       }
     },
@@ -100,7 +100,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
       return getOrCreateSession(redis, req);
     },
 
-    async markVariantSeen(session: SessionDescriptor, site: Site, experimentId: string, variantName: string) {
+    async markVariantSeen(session: SessionDescriptor, site: string, experimentId: string, variantName: string) {
       return markVariantSeen(redis, session, site, experimentId, variantName);
     },
   };
@@ -165,9 +165,9 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
   return session;
 }
 
-export async function markVariantSeen(redis: Redis, session: SessionDescriptor, site: Site, experimentId: string, variantName: string) {
+export async function markVariantSeen(redis: Redis, session: SessionDescriptor, site: string, experimentId: string, variantName: string) {
 
-  markVariantInSession(session, site.name, experimentId, variantName);
+  markVariantInSession(session, site, experimentId, variantName);
 
   const serializedSession = JSON.stringify(session);
   const sessionKey = makeKey(["session", session.sid]);
@@ -191,6 +191,10 @@ export async function ingestBatch(redis: Redis, req: ValidatedRequest, batch: Me
   }
 
   const { site, experiment, variant, entries: samples } = batch;
+
+  const session = req.session ?? await getOrCreateSession(redis, req);
+  await markVariantSeen(redis, session, site, experiment, variant);
+
   const pipe = redis.pipeline();
   let prevTs = 0;
   samples

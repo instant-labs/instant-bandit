@@ -167,7 +167,7 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
           const userSession = session.getOrCreateSession(ctx);
           const { selections } = userSession;
           const selectedSite = selections[site.name];
-          const mostRecentSeenVariant = selectedSite?.[experiment.id]?.reverse()[0];
+          const mostRecentSeenVariant = selectedSite?.[experiment.id]?.slice().reverse()[0];
           variant = experiment.variants.find(v => v.name === mostRecentSeenVariant) ?? null;
         }
 

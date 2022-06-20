@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { MetricsBatch } from "../../lib/models";
 import { getInternalDevServer } from "../../lib/server/server-internal";
 import { InstantBanditHeaders, InstantBanditServer, ServerSession } from "../../lib/server/server-types";
-import { emitCookie, getSessionIdFromHeaders, validateUserRequest  } from "../../lib/server/server-utils";
+import { emitCookie, getSessionIdFromHeaders, validateUserRequest } from "../../lib/server/server-utils";
 
 
 const MetricsEndpoint = createMetricsEndpoint();
@@ -46,7 +46,8 @@ export function createMetricsEndpoint(server?: InstantBanditServer) {
 
       await metrics.ingestBatch(validatedReq, req.body);
 
-      if (needsSession) {
+      // Grant a session if the request needs one (is new), or if we created a new one
+      if (needsSession || session.sid !== sid) {
         res.setHeader("Set-Cookie", emitCookie(validatedReq, session));
       }
 

@@ -61,7 +61,7 @@ export type MetricsBackend<TOptions = unknown> = BackendFunctions<TOptions> & {
  */
 export type SessionsBackend = BackendFunctions & {
   getOrCreateSession(req: ValidatedRequest): Promise<SessionDescriptor>
-  markVariantSeen(session: SessionDescriptor, site: Site, experimentId: string, variantId: string)
+  markVariantSeen(session: SessionDescriptor, site: string, experimentId: string, variantId: string)
     : Promise<SessionDescriptor>
 };
 
