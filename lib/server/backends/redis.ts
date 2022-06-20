@@ -18,7 +18,7 @@ import {
 } from "../../models";
 import { ConnectingBackendFunctions, MetricsBackend, SessionsBackend, ValidatedRequest } from "../server-types";
 import { makeKey, toNumber } from "../server-utils";
-import { exists } from "../../utils";
+import { exists, markVariantInSession } from "../../utils";
 import { UUID_LENGTH } from "../../constants";
 
 
@@ -129,7 +129,7 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
   let session: SessionDescriptor | null = null;
 
   if (exists(sid) && sid.length === UUID_LENGTH) {
-    const sessionKey = makeKey([siteName, "session", sid]);
+    const sessionKey = makeKey(["session", sid]);
     const sessionRaw = await redis.get(sessionKey);
 
     if (!exists(sessionRaw)) {
@@ -168,7 +168,6 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
 export async function markVariantSeen(redis: Redis, session: SessionDescriptor, site: string, experimentId: string, variantName: string) {
 
   markVariantInSession(session, site, experimentId, variantName);
-
   const serializedSession = JSON.stringify(session);
   const sessionKey = makeKey(["session", session.sid]);
   try {

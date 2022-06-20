@@ -1,3 +1,4 @@
+import { randomBytes, randomUUID } from "crypto";
 import { Redis } from "ioredis";
 
 import * as constants from "../../../lib/constants";
@@ -7,7 +8,6 @@ import { makeKey, toNumber } from "../../../lib/server/server-utils";
 import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../../../lib/defaults";
 import { exists, makeNewSession } from "../../../lib/utils";
 import { MetricsBatch, MetricsSample } from "../../../lib/models";
-import { randomBytes, randomUUID } from "crypto";
 import { ValidatedRequest } from "../../../lib/server/server-types";
 import { MetricName } from "../../../lib/types";
 
