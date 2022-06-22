@@ -26,6 +26,11 @@ export function createMetricsEndpoint(server?: InstantBanditServer) {
     const { metrics, origins, sessions } = server;
     const { method, headers } = req;
 
+    if (server.isBackendConnected(metrics) === false) {
+      res.status(503).end();
+      return
+    }
+
     const sid = await getSessionIdFromHeaders(headers as InstantBanditHeaders);
     const needsSession = (!sid || sid === "");
 
@@ -53,7 +58,7 @@ export function createMetricsEndpoint(server?: InstantBanditServer) {
       return;
 
     } else {
-      res.status(400);
+      res.status(400).end();
       return;
     }
   }
