@@ -26,7 +26,7 @@ export async function serverSideRenderedSite(
     url: req.url,
   });
 
-  const sid: string | null = null;
+  let sid: string | null = null;
   if (exists(req.cookies[HEADER_SESSION_ID])) {
     validatedRequest.sid = req.cookies[HEADER_SESSION_ID];
   }
@@ -34,7 +34,13 @@ export async function serverSideRenderedSite(
   const { sessions } = server;
   let session: SessionDescriptor;
   try {
-    session = await sessions.getOrCreateSession(validatedRequest);
+    // If we have a SID specified, and the sessions backend is connected, use it.
+    // Otherwise, use a temporary session.
+    if (exists(sid) && server.isBackendConnected(server.sessions)) {
+      session = await sessions.getOrCreateSession(validatedRequest);
+    } else {
+      session = makeNewSession();
+    }
   } catch (err) {
     console.log(`[IB] Error fetching session for '${sid}': ${err}`);
     session = makeNewSession();
@@ -70,10 +76,13 @@ export async function serverSideRenderedSite(
     },
   });
 
-  // Call the backend directly for the site and skip an HTTP request
-  const { site: siteConfig } = await server.getSite(validatedRequest);
-  const site = await ctx.init(siteConfig);
+  // Fall back to default site if the metrics or sessions backends aren't connected
+  const { site: siteConfig } = server.isBackendConnected(server.metrics)
+    ? await server.getSite(validatedRequest)
+    : await server.getSite(Object.assign({}, validatedRequest, { siteName: "default" }));
+    
 
+  const site = await ctx.init(siteConfig);
   const { experiment, variant } = ctx;
 
 

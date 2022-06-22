@@ -9,6 +9,8 @@ import {
   ApiSiteResponse,
   MetricsBackend,
   SessionsBackend,
+  BackendFunctions,
+  ConnectingBackendFunctions,
 } from "./server-types";
 import {
   ExperimentMeta,
@@ -69,6 +71,16 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
     get sessions() { return sessions; },
     get origins() { return allowedOrigins; },
 
+
+    isBackendConnected(backend: BackendFunctions | ConnectingBackendFunctions) {
+
+      // Backends that don't implement connection logic are considered "connected"
+      if (!exists(backend.connected)) {
+        return true;
+      } else {
+        return backend.connected;
+      }
+    },
 
     async init() {
       if (initPromise) {
