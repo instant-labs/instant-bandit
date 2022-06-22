@@ -25,6 +25,17 @@ import { UUID_LENGTH } from "../../constants";
 export const DEFAULT_REDIS_OPTIONS: RedisBackendOptions = {
   lazyConnect: true,
   disconnectWaitDuration: 50,
+
+  retryStrategy(count: number) {
+    const maxAttempts = parseInt(env.IB_REDIS_RETRY_COUNT + "");
+    const interval = parseInt(env.IB_REDIS_RETRY_INTERVAL + "");
+    console.log(`Connecting to Redis attempt # ${count} out of ${maxAttempts}`);
+    if (count >= maxAttempts) {
+      return null;
+    } else {
+      return interval;
+    }
+  },
 };
 
 export type RedisBackendOptions = RedisOptions & {
@@ -44,6 +55,7 @@ export type RedisArgs = {
 export type RedisBackend = MetricsBackend & ConnectingBackendFunctions & {
   readonly client: Redis
   readonly connected: boolean
+  connect(block?: boolean): Promise<void>
 };
 
 
@@ -57,21 +69,48 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
     get client() { return redis; },
     get connected() { return connected; },
 
-    async connect(): Promise<void> {
-      switch (redis.status) {
-        case "connecting":
-        case "connect":
-        case "ready":
+    async connect(block = false): Promise<void> {
+      return new Promise<void>((resolve, reject) => {
+        if (connected === true) {
+          resolve();
           return;
+        }
 
-        default:
-          console.debug(`[IB] Connecting to redis...`);
-          redis.connect()
-            .then(() => connected = true)
-            .then(() => console.log(`[IB] Connected to Redis`))
-            .catch(err => console.error(`Error connecting to Redis: ${err}`));
-          return;
-      }
+        switch (redis.status) {
+          case "connecting":
+          case "connect":
+          case "ready":
+            resolve();
+            return;
+
+          default:
+            console.info(`[IB] Connecting to redis...`);
+            redis
+              .on("error", err => {
+                console.error(`[IB] Error connecting to Redis: ${err}`);
+                reject(err);
+                return;
+              })
+              .on("close", () => {
+                console.log("[IB] Redis connection closed");
+                connected = false;
+                reject();
+              })
+              .on("connect", () => {
+                connected = true;
+                if (block) {
+                  resolve();
+                }
+                return;
+              })
+              .connect();
+
+            if (!block) {
+              resolve();
+            }
+            return;
+        }
+      });
     },
 
     async disconnect() {
@@ -80,8 +119,8 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
         if (redis.status === "ready") {
           await redis.quit();
         }
-        redis.disconnect();
         connected = false;
+        redis.disconnect();
       } finally {
 
         // See: https://github.com/luin/ioredis/issues/1088
@@ -245,7 +284,8 @@ export function isValidMetricsSample(sample: MetricsSample) {
 
   if (typeof ts !== "number") {
     return false;
-  } else if (typeof payload === "string" && (payload as string).length > env.IB_MAX_METRICS_PAYLOAD_LEN) {
+  } else if (typeof payload === "string" &&
+    (payload as string).length > parseInt(env.IB_MAX_METRICS_PAYLOAD_LEN + "")) {
     return false;
   } else {
     return true;
