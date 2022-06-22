@@ -30,7 +30,6 @@ export function createSiteEndpoint(server?: InstantBanditServer) {
     }
     await server.init();
 
-    // TODO: Respond to CORS preflights
 
     const { siteName: siteNameParam } = req.query;
     const { origins } = server;

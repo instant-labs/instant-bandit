@@ -23,8 +23,6 @@ export function createMetricsEndpoint(server?: InstantBanditServer) {
     }
     await server.init();
 
-    // TODO: Respond to CORS preflights
-
     const { metrics, origins, sessions } = server;
     const { method, headers } = req;
 

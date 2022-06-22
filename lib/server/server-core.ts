@@ -18,7 +18,7 @@ import {
 } from "../models";
 import { exists, getBaseUrl } from "../utils";
 import { getJsonSiteBackend } from "./backends/json-sites";
-import { emitCookie, normalizeOrigins } from "./server-utils";
+import { normalizeOrigins } from "./server-utils";
 
 import { bandit } from "../bandit";
 import { getRedisBackend, RedisBackend } from "./backends/redis";
