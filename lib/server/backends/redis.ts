@@ -18,7 +18,7 @@ import {
 } from "../../models";
 import { ConnectingBackendFunctions, MetricsBackend, SessionsBackend, ValidatedRequest } from "../server-types";
 import { makeKey, toNumber } from "../server-utils";
-import { exists } from "../../utils";
+import { exists, markVariantInSession } from "../../utils";
 import { UUID_LENGTH } from "../../constants";
 
 
@@ -64,7 +64,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
           return;
 
         default:
-          console.debug(`[IB] Connecting to redis...`);
+          console.debug(`[IB] Connecting to redis on ${options.host}:${options.port}...`);
           await redis.connect();
       }
     },
@@ -100,8 +100,8 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
       return getOrCreateSession(redis, req);
     },
 
-    async markVariantSeen(session: SessionDescriptor, experimentId: string, variantName: string) {
-      return markVariantSeen(redis, session, experimentId, variantName);
+    async markVariantSeen(session: SessionDescriptor, site: string, experimentId: string, variantName: string) {
+      return markVariantSeen(redis, session, site, experimentId, variantName);
     },
   };
 }
@@ -125,11 +125,11 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
   const { siteName } = req;
   let { sid } = req;
 
-  const sessionsSetKey = makeKey([siteName, "sessions"]);
+  const sessionsSetKey = makeKey(["sessions"]);
   let session: SessionDescriptor | null = null;
 
   if (exists(sid) && sid.length === UUID_LENGTH) {
-    const sessionKey = makeKey([siteName, "session", sid]);
+    const sessionKey = makeKey(["session", sid]);
     const sessionRaw = await redis.get(sessionKey);
 
     if (!exists(sessionRaw)) {
@@ -147,14 +147,13 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
     sid = randomUUID();
     session = {
       sid,
-      site: siteName,
-      variants: {},
+      selections: {},
     };
 
     const serializedSession = JSON.stringify(session);
     const pipe = redis.multi();
     try {
-      const sessionKey = makeKey([siteName, "session", session.sid]);
+      const sessionKey = makeKey(["session", session.sid]);
       pipe.sadd(sessionsSetKey, session.sid);
       pipe.set(sessionKey, serializedSession);
       await pipe.exec();
@@ -166,26 +165,11 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
   return session;
 }
 
-export async function markVariantSeen(redis: Redis, session: SessionDescriptor, experimentId: string, variantName: string) {
-  if (!exists(session.site)) {
-    return session;
-  }
+export async function markVariantSeen(redis: Redis, session: SessionDescriptor, site: string, experimentId: string, variantName: string) {
 
-  let variants = session.variants[experimentId];
-  if (!exists(variants)) {
-    variants = session.variants[experimentId] = [];
-  }
-
-  // Put the most recently presented variant at the end
-  const ix = variants.indexOf(variantName);
-  if (ix > -1) {
-    variants.splice(ix, 1);
-  }
-
-  variants.push(variantName);
-
+  markVariantInSession(session, site, experimentId, variantName);
   const serializedSession = JSON.stringify(session);
-  const sessionKey = makeKey([session.site, "session", session.sid]);
+  const sessionKey = makeKey(["session", session.sid]);
   try {
     await redis.set(sessionKey, serializedSession);
   } catch (err) {
@@ -206,6 +190,10 @@ export async function ingestBatch(redis: Redis, req: ValidatedRequest, batch: Me
   }
 
   const { site, experiment, variant, entries: samples } = batch;
+
+  const session = req.session ?? await getOrCreateSession(redis, req);
+  await markVariantSeen(redis, session, site, experiment, variant);
+
   const pipe = redis.pipeline();
   let prevTs = 0;
   samples

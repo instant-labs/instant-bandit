@@ -2,7 +2,8 @@ import { randomUUID } from "crypto";
 
 import { SessionsBackend, ValidatedRequest } from "../server-types";
 import { SessionDescriptor } from "../../types";
-import { exists } from "../../utils";
+import { exists, makeNewSession, markVariantInSession } from "../../utils";
+import { Site } from "../../models";
 
 
 export function getStubSessionsBackend(): SessionsBackend {
@@ -11,7 +12,7 @@ export function getStubSessionsBackend(): SessionsBackend {
 
     async getOrCreateSession(req: ValidatedRequest): Promise<SessionDescriptor> {
       const { siteName } = req;
-      let { sid } = req;
+      const { sid } = req;
 
       if (!exists(siteName)) {
         throw new Error(`Invalid session scope`);
@@ -27,25 +28,14 @@ export function getStubSessionsBackend(): SessionsBackend {
       }
 
       if (!session) {
-        sid = randomUUID();
-        session = sessions[sid] = {
-          sid,
-          site: siteName ?? null,
-          variants: {},
-        };
+        return makeNewSession(randomUUID());
       }
+
       return session;
     },
 
-    async markVariantSeen(session: SessionDescriptor, experimentId: string, variantName: string) {
-      const variants = session.variants[experimentId] || [];
-
-      // Put the most recently presented variant at the end
-      const ix = variants.indexOf(variantName);
-      if (ix > -1) {
-        variants.splice(ix, 1);
-      }
-      variants.push(variantName);
+    async markVariantSeen(session: SessionDescriptor, site: string, experiment: string, variant: string) {
+      markVariantInSession(session, site, experiment, variant);
 
       return session;
     }

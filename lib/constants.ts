@@ -3,6 +3,7 @@ export const DEFAULT_SITE_ID = DEFAULT_NAME;
 export const DEFAULT_SITE_NAME = DEFAULT_NAME;
 export const DEFAULT_EXPERIMENT_ID = DEFAULT_NAME;
 export const DEFAULT_EXPERIMENT_NAME = DEFAULT_NAME;
+export const DEFAULT_VARIANT_ID = DEFAULT_NAME;
 export const DEFAULT_VARIANT_NAME = DEFAULT_NAME;
 export const DEFAULT_ORIGIN = "localhost";
 export const DEFAULT_BASE_URL = "http://localhost:3000";

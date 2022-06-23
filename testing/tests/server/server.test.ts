@@ -8,7 +8,6 @@ import {
 import { buildInstantBanditServer } from "../../../lib/server/server-core";
 import { SessionDescriptor } from "../../../lib/types";
 import { makeNewSession } from "../../../lib/utils";
-import { DEFAULT_SITE } from "../../../lib/defaults";
 
 
 describe("server", () => {
@@ -103,11 +102,7 @@ describe("server", () => {
       async connect() { return; },
       async disconnect() { return; },
       async getOrCreateSession() {
-        return {
-          sid: "",
-          site: DEFAULT_SITE.name,
-          variants: {},
-        };
+        return makeNewSession();
       },
       async markVariantSeen(session: SessionDescriptor) {
         return session;

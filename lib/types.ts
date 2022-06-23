@@ -54,6 +54,7 @@ export type SessionProvider = {
   getOrCreateSession(ctx: InstantBanditContext, props?: Partial<SessionDescriptor>): SessionDescriptor
   persistVariant(ctx: InstantBanditContext, experiment: string, variant: string): void
   hasSeen(ctx: InstantBanditContext, experiment: string, variant: string): boolean
+  save(ctx: InstantBanditContext, session: SessionDescriptor): SessionDescriptor
 };
 
 export type MetricsSinkOptions = BaseOptions & {
@@ -88,15 +89,15 @@ export type Providers = {
 };
 
 /**
- * Describes a user session, scoped per origin and site.
- * Includes the selected variant for the current site.
+ * Describes a user session and the Instant Bandit sites/experiments/variants presented to them.
  */
 export type SessionDescriptor = {
-  site: string | null
-  variants: { [experiment: string]: string[] }
-
-  // Session and user IDs
-  sid: string
+  sid: string;
+  selections: {
+    [siteId: string]: {
+      [experimentId: string]: string[],
+    };
+  };
 };
 
 export type VariantName = string;
@@ -107,11 +108,6 @@ export type Counts = {
   [variant: string]: number
 };
 
-export type ProbabilitiesResponse = {
-  name: string
-  probabilities: ProbabilityDistribution | null
-  pValue: PValue | null
-};
 
 // p-value of difference between variants
 export type PValue = number;

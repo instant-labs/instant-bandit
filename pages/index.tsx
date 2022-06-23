@@ -8,7 +8,7 @@ import { Variant } from "../components/Variant";
 import { useInstantBandit } from "../lib/hooks";
 import { HEADER_SESSION_ID } from "../lib/constants";
 import { getInternalDevServer } from "../lib/server/server-internal";
-import { serverSideRenderedSite } from "../server";
+import { serverSideRenderedSite } from "../lib/server/server-rendering";
 import { InstantBanditOptions } from "../lib/types";
 
 import styles from "../styles/Home.module.css";
@@ -81,7 +81,7 @@ export function SignUpButton(props: { children?: ReactNode }) {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const server = getInternalDevServer();
   const { req, res } = context;
-  const { site, select } = await serverSideRenderedSite(server, siteName, req, res);
+  const { site, select } = await serverSideRenderedSite(server, siteName, req);
 
   return {
     props: {

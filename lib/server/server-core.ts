@@ -39,8 +39,6 @@ export const DEFAULT_SERVER_OPTIONS: Partial<InstantBanditServerOptions> = {
  * @private
  */
 export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServerOptions>): InstantBanditServer {
-  console.debug(`[IB] createInstantBanditServer invoked from ${__dirname}`);
-
   const options = Object.assign({}, DEFAULT_SERVER_OPTIONS, initOptions);
 
   // Only instantiate the backends if needed
@@ -108,19 +106,13 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
      * Produces a site object bearing probabilities and ready for consumer selection
      */
     async getSite(req: ValidatedRequest): Promise<ApiSiteResponse> {
-      const { getOrCreateSession } = sessions;
       const { getSiteConfig } = models;
 
-      const session = await getOrCreateSession(req);
       const siteConfig = await getSiteConfig(req);
       const siteWithProbs = await embedProbabilities(req, siteConfig, metrics);
 
-      const responseHeaders: OutgoingHttpHeaders = {
-        "Set-Cookie": emitCookie(req, session)
-      };
-
       return {
-        responseHeaders,
+        responseHeaders: {},
         site: siteWithProbs,
       };
     }

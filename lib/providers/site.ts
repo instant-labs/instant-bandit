@@ -2,14 +2,13 @@
 import * as constants from "../constants";
 import {
   LoadState,
-  SessionDescriptor,
   Selection,
   SiteProvider,
   ProbabilityDistribution,
 } from "../types";
 import { Experiment, Site, Variant } from "../models";
 import { InstantBanditContext } from "../contexts";
-import { env, exists, getCookie, isBrowserEnvironment } from "../utils";
+import { env, exists, isBrowserEnvironment } from "../utils";
 import {
   DEFAULT_EXPERIMENT,
   DEFAULT_OPTIONS,
@@ -166,10 +165,10 @@ export function getSiteProvider(initOptions: Partial<SiteProviderOptions> = {}):
           variant = result.variant;
         } else if (session) {
           const userSession = session.getOrCreateSession(ctx);
-          const { variants } = userSession;
-          const variantsSeenForExperiment = variants?.[experiment.id];
-          const previouslySeenVariant = variantsSeenForExperiment?.reverse()[0];
-          variant = experiment.variants.find(v => v.name === previouslySeenVariant) ?? null;
+          const { selections } = userSession;
+          const selectedSite = selections[site.name];
+          const mostRecentSeenVariant = selectedSite?.[experiment.id]?.slice().reverse()[0];
+          variant = experiment.variants.find(v => v.name === mostRecentSeenVariant) ?? null;
         }
 
         if (!variant) {
