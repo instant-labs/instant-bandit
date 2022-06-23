@@ -71,7 +71,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
 
     async connect(block = false): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        if (connected === true) {
+        if (connected) {
           resolve();
           return;
         }
@@ -88,13 +88,20 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
             redis
               .on("error", err => {
                 console.error(`[IB] Error connecting to Redis: ${err}`);
-                reject(err);
+                connected = false;
+
+                if (block) {
+                  reject(err);
+                }
                 return;
               })
               .on("close", () => {
                 console.log("[IB] Redis connection closed");
                 connected = false;
-                reject();
+                if (block) {
+                  reject();
+                }
+                return;
               })
               .on("connect", () => {
                 connected = true;

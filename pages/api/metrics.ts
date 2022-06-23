@@ -28,7 +28,7 @@ export function createMetricsEndpoint(server?: InstantBanditServer) {
 
     if (server.isBackendConnected(metrics) === false) {
       res.status(503).end();
-      return
+      return;
     }
 
     const sid = await getSessionIdFromHeaders(headers as InstantBanditHeaders);
