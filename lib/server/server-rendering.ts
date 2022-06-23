@@ -1,7 +1,7 @@
 import { IncomingMessage } from "http";
 import { InstantBanditServer } from "./server-types";
 import { HEADER_SESSION_ID } from "../constants";
-import { createBanditContext, DEFAULT_BANDIT_OPTIONS } from "../contexts";
+import { InstantBanditContext, createBanditContext, DEFAULT_BANDIT_OPTIONS } from "../contexts";
 import { SessionDescriptor } from "../types";
 import { exists, makeNewSession } from "../utils";
 import { validateUserRequest } from "./server-utils";
@@ -26,63 +26,78 @@ export async function serverSideRenderedSite(
     url: req.url,
   });
 
-  const sid: string | null = null;
   if (exists(req.cookies[HEADER_SESSION_ID])) {
     validatedRequest.sid = req.cookies[HEADER_SESSION_ID];
   }
 
+  const { sid } = validatedRequest;
   const { sessions } = server;
+
   let session: SessionDescriptor;
   try {
-    session = await sessions.getOrCreateSession(validatedRequest);
+    // If we have a SID specified, and the sessions backend is connected, use it.
+    // Otherwise, use a temporary session.
+    if (exists(sid) && server.isBackendConnected(server.sessions)) {
+      session = await sessions.getOrCreateSession(validatedRequest);
+    } else {
+      session = makeNewSession();
+    }
   } catch (err) {
     console.log(`[IB] Error fetching session for '${sid}': ${err}`);
     session = makeNewSession();
   }
 
-  const { loader, metrics } = DEFAULT_BANDIT_OPTIONS.providers;
-  const ctx = createBanditContext({
-    providers: {
-      loader,
-      metrics,
+  const { loader, metrics, session: sessionProvider } = DEFAULT_BANDIT_OPTIONS.providers;
 
-      //
-      // Here we inject the session from the server's asynchronous session store into
-      // the InstantBandit component's *synchronous* store. This is done for SSR.
-      //
-      // In order to complete the render entirely on the server and avoid client-side
-      // hydration, the component needs to render synchronously in one pass.
-      //
-      session: () => {
-        return {
-          id: session.sid,
-          getOrCreateSession: () => session,
-          hasSeen() {
-            return false;
-          },
-          persistVariant() {
-            // We do this server side below
-            return;
-          },
-          save: () => session,
-        };
+  let ctx: InstantBanditContext;
+  if (!server.isBackendConnected(server.sessions)) {
+    ctx = createBanditContext();
+  } else {
+
+    ctx = createBanditContext({
+      providers: {
+        loader,
+        metrics,
+
+        //
+        // Here we inject the session from the server's asynchronous session store into
+        // the InstantBandit component's *synchronous* store. This is done for SSR.
+        //
+        // In order to complete the render entirely on the server and avoid client-side
+        // hydration, the component needs to render synchronously in one pass.
+        //
+        session: () => {
+          return {
+            id: session.sid,
+            getOrCreateSession: () => session,
+            hasSeen() {
+              return false;
+            },
+            persistVariant() {
+              // We do this server side below
+              return;
+            },
+            save: () => session,
+          };
+        },
       },
-    },
-  });
+    });
+  }
 
-  // Call the backend directly for the site and skip an HTTP request
+  // Fall back to default site if the metrics or sessions backends aren't connected
   const { site: siteConfig } = await server.getSite(validatedRequest);
   const site = await ctx.init(siteConfig);
-
   const { experiment, variant } = ctx;
 
-
-  // Skip awaiting to avoid a round-trip to some backend
-  server.sessions.markVariantSeen(session, site.name, experiment.id, variant.name)
+  await server.sessions.markVariantSeen(session, site.name, experiment.id, variant.name)
     .catch(err => console.warn(`[IB]: Error marking variant '${variant.name}' seen: ${err}`));
+
+  // Allow the client to select if sessions is down
+  const defer = server.isBackendConnected(sessions) === false;
 
   return {
     site,
-    select: variant.name,
+    select: defer ? null : variant.name,
+    defer,
   };
 }

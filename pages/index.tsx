@@ -80,14 +80,15 @@ export function SignUpButton(props: { children?: ReactNode }) {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const server = getInternalDevServer();
-  const { req, res } = context;
-  const { site, select } = await serverSideRenderedSite(server, siteName, req);
+  const { req } = context;
+  const { site, select, defer } = await serverSideRenderedSite(server, siteName, req);
 
   return {
     props: {
       site,
       siteName,
       select,
-    }
+      defer,
+    },
   };
 };

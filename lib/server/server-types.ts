@@ -28,6 +28,7 @@ export type InstantBanditServer = {
   init(): Promise<void>
   shutdown(): Promise<void>
   getSite(req: ValidatedRequest): Promise<ApiSiteResponse>
+  isBackendConnected(backend: BackendFunctions | ConnectingBackendFunctions)
 };
 
 /**
@@ -126,11 +127,13 @@ export type ServerSession = SessionDescriptor & {
  * to set up or teardown connections to external services
  */
 export type BackendFunctions<TConnection = unknown> = {
+  connected?: boolean
   connect?(): Promise<TConnection>
   disconnect?(): Promise<TConnection>
 };
 
 export type ConnectingBackendFunctions<TConnection = unknown> = {
+  connected: boolean
   connect(): Promise<TConnection>
   disconnect(): Promise<TConnection>
 };

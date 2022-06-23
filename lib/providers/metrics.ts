@@ -94,7 +94,7 @@ export function getHttpMetricsSink(initOptions?: Partial<MetricsSinkOptions>): M
           typeof navigator.sendBeacon !== "undefined") {
           sendBatchViaBeacon(url, batch);
         } else {
-          const session = await sendBatchViaFetch(url, sessionId, batch);
+          const session = await sendBatchViaFetch(url, sessionId, batch) as SessionDescriptor;
           if (exists(session.sid)) {
             ctx.session.save(ctx, session);
           }
@@ -132,7 +132,7 @@ export function sendBatchViaBeacon(url: URL, batch: MetricsBatch) {
 }
 
 export async function sendBatchViaFetch(url: URL, sessionId: string, batch: MetricsBatch)
-  : Promise<SessionDescriptor> {
+  : Promise<SessionDescriptor | { status: number, statusText: string }> {
   const resp = await fetch(url.toString(), {
     method: "POST",
     headers: {
@@ -143,6 +143,11 @@ export async function sendBatchViaFetch(url: URL, sessionId: string, batch: Metr
     body: JSON.stringify(batch),
   });
 
-  const session = await resp.json() as SessionDescriptor;
-  return session;
+  const { status, statusText } = resp;
+  if (status === 200) {
+    const session = await resp.json() as SessionDescriptor;
+    return session;
+  } else {
+    return { status, statusText };
+  }
 }

@@ -10,6 +10,7 @@ export type InstantBanditProps = {
   siteName?: string
   select?: string
   site?: Site
+  defer?: boolean
   debug?: boolean
   options?: InstantBanditOptions
   timeout?: number

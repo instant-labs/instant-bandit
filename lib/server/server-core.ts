@@ -9,6 +9,8 @@ import {
   ApiSiteResponse,
   MetricsBackend,
   SessionsBackend,
+  BackendFunctions,
+  ConnectingBackendFunctions,
 } from "./server-types";
 import {
   ExperimentMeta,
@@ -18,7 +20,7 @@ import {
 } from "../models";
 import { exists, getBaseUrl } from "../utils";
 import { getJsonSiteBackend } from "./backends/json-sites";
-import { emitCookie, normalizeOrigins } from "./server-utils";
+import { normalizeOrigins } from "./server-utils";
 
 import { bandit } from "../bandit";
 import { getRedisBackend, RedisBackend } from "./backends/redis";
@@ -69,6 +71,16 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
     get sessions() { return sessions; },
     get origins() { return allowedOrigins; },
 
+
+    isBackendConnected(backend: BackendFunctions | ConnectingBackendFunctions) {
+
+      // Backends that don't implement connection logic are considered "connected"
+      if (!exists(backend.connected)) {
+        return true;
+      } else {
+        return backend.connected;
+      }
+    },
 
     async init() {
       if (initPromise) {
