@@ -25,10 +25,7 @@ describe("failover", () => {
     server = getInternalDevServer();
     await server.init();
     redisBackend = server.metrics as RedisBackend;
-
-    // Connect in blocking mode, which is not used by default otherwise it would block endpoints
-    // if the provider was down.
-    await redisBackend.connect(true);
+    await redisBackend.connect();
   });
 
   afterAll(async () => {

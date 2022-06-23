@@ -55,7 +55,6 @@ export type RedisArgs = {
 export type RedisBackend = MetricsBackend & ConnectingBackendFunctions & {
   readonly client: Redis
   readonly connected: boolean
-  connect(block?: boolean): Promise<void>
 };
 
 
@@ -69,7 +68,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
     get client() { return redis; },
     get connected() { return connected; },
 
-    async connect(block = false): Promise<void> {
+    async connect(): Promise<void> {
       return new Promise<void>((resolve, reject) => {
         if (connected) {
           resolve();
@@ -99,9 +98,6 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
               .on("connect", () => {
                 connected = true;
                 console.log("[IB] Redis connection opened");
-                if (block) {
-                  resolve();
-                }
                 return;
               })
               .connect()
@@ -110,9 +106,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
               // Suppress, because it's handled above.
               .catch(err => void 0);
 
-            if (!block) {
               resolve();
-            }
             return;
         }
       });
