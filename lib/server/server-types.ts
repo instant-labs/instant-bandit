@@ -80,7 +80,7 @@ export type ClientSuppliedOrigin = {
 /**
  * Framework-agnostic HTTP request headers
  */
-export type InstantBanditHeaders = {
+export type InstantBanditHeaders = IncomingHttpHeaders & {
   [HEADER_SESSION_ID]?: string,
 };
 

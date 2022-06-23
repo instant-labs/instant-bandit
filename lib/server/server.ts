@@ -18,21 +18,17 @@ import {
 } from "../models";
 import { exists, getBaseUrl } from "../utils";
 import { getJsonSiteBackend } from "./backends/json-sites";
-import { normalizeOrigins } from "./server-utils";
+import { emitCookie, normalizeOrigins } from "./server-utils";
 
 import { bandit } from "../bandit";
 import { getRedisBackend, RedisBackend } from "./backends/redis";
-import { getStubSessionsBackend } from "./backends/sessions";
-import { getStubMetricsBackend } from "./backends/metrics";
 
 
 
-export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
+export const DEFAULT_SERVER_OPTIONS: Partial<InstantBanditServerOptions> = {
   clientOrigins: (env.IB_ORIGINS_ALLOWLIST ?? ""),
-  metrics: getStubMetricsBackend(),
-  models: getJsonSiteBackend(),
-  sessions: getStubSessionsBackend(),
 };
+
 
 /**
  * Provides framework-agnostic helper methods that expose configuration and handle
@@ -47,8 +43,12 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
 
   const options = Object.assign({}, DEFAULT_SERVER_OPTIONS, initOptions);
 
-  // Only instantiate the Redis backend if needed
+  // Only instantiate the backends if needed
   let defaultRedisBackend: RedisBackend & SessionsBackend | null = null;
+
+  if (!options.models) {
+    options.models = getJsonSiteBackend();
+  }
   if (!options.metrics) {
     options.metrics = defaultRedisBackend = getRedisBackend();
   }
@@ -114,8 +114,9 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
       const session = await getOrCreateSession(req);
       const siteConfig = await getSiteConfig(req);
       const siteWithProbs = await embedProbabilities(req, siteConfig, metrics);
+
       const responseHeaders: OutgoingHttpHeaders = {
-        "Set-Cookie": `${constants.HEADER_SESSION_ID}=${session.sid}`,
+        "Set-Cookie": emitCookie(req, session)
       };
 
       return {

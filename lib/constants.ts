@@ -6,6 +6,7 @@ export const DEFAULT_EXPERIMENT_NAME = DEFAULT_NAME;
 export const DEFAULT_VARIANT_NAME = DEFAULT_NAME;
 export const DEFAULT_ORIGIN = "localhost";
 export const DEFAULT_BASE_URL = "http://localhost:3000";
+export const DEFAULT_COOKIE_SETTINGS = "Path=/; SameSite=Strict; Max-Age=2147483647; HttpOnly";
 export const DEFAULT_SITE_PATH = "api/sites";
 export const DEFAULT_METRICS_PATH = "api/metrics";
 
@@ -21,7 +22,7 @@ export const VARNAME_METRICS_PATH = "DEFAULT_METRICS_PATH";
 
 export const PARAM_TIMESTAMP = "ts";
 export const PARAM_SELECT = "select";
-export const HEADER_SESSION_ID = "x-ib-session";
+export const HEADER_SESSION_ID = "ibsession";
 
 export const PROBABILITY_PRECISION = 4;
 export const UUID_LENGTH = 36;

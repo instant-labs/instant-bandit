@@ -1,4 +1,4 @@
-
+import env from "./environment";
 import * as constants from "../constants";
 import {
   ClientSuppliedOrigin,
@@ -13,6 +13,16 @@ import { exists, getCookie } from "../utils";
 import { randomBytes, randomUUID } from "crypto";
 import { DEFAULT_SITE } from "../defaults";
 
+
+/**
+ * Emits a cookie for the session including any configured settings for cookies
+ * @param session 
+ * @returns 
+ */
+export function emitCookie(req: ValidatedRequest, session: SessionDescriptor) {
+  const settings = env.IB_COOKIE_SETTINGS;
+  return `${constants.HEADER_SESSION_ID}=${session.sid}; ${settings}`;
+}
 
 /**
  * Normalizes an array of origins and produces a map for quick lookup.
@@ -54,8 +64,10 @@ export async function validateUserRequest(args: RequestValidationArgs): Promise<
     const allowed = validateClientReportedOrigin(allowedOrigins, origin);
     if (!allowed) {
 
-      // Intentionally vague on error messaging
-      throw new Error(`Invalid Request`);
+      console.warn(`[IB] Invalid request for '${args.url}' from origin '${origin}'`);
+
+      // Intentionally vague on error response
+      throw new Error(`Invalid origin`);
     }
   }
 
@@ -66,7 +78,7 @@ export async function validateUserRequest(args: RequestValidationArgs): Promise<
   }
 
   return {
-    sid: "",
+    sid: sid || "",
     origin: origin ?? "null",
     headers,
     siteName: siteName || DEFAULT_SITE.name,
@@ -83,7 +95,6 @@ export async function createNewClientSession(origin: string, site: string): Prom
     variants: {},
   };
 
-  console.log(`[IB] Created new session '${sid}' for origin '${origin}'`);
   return session;
 }
 
@@ -119,8 +130,8 @@ export function validateClientReportedOrigin(allowedOrigins: Origins, origin: st
 export function validateMetricsBatch(req: ValidatedRequest, batch: MetricsBatch) {
   const { sid } = req;
 
-  if (exists(sid) && sid !== batch.session) {
-    throw new Error(`Missing or mismatched session`);
+  if (!exists(sid)) {
+    throw new Error(`Missing or invalid session for metrics`);
   }
 
   return batch;

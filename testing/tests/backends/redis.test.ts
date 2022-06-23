@@ -205,7 +205,6 @@ describe("backend", () => {
       site: DEFAULT_SITE.name,
       experiment: DEFAULT_EXPERIMENT.name,
       variant: DEFAULT_VARIANT.name,
-      session: TEST_SESH,
       entries: [],
     };
 

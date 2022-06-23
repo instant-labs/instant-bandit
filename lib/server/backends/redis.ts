@@ -19,6 +19,7 @@ import {
 import { ConnectingBackendFunctions, MetricsBackend, SessionsBackend, ValidatedRequest } from "../server-types";
 import { makeKey, toNumber } from "../server-utils";
 import { exists } from "../../utils";
+import { UUID_LENGTH } from "../../constants";
 
 
 export const DEFAULT_REDIS_OPTIONS: RedisBackendOptions = {
@@ -56,13 +57,14 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
     get client() { return redis; },
 
     async connect(): Promise<void> {
-      console.debug(`[IB] Connecting to redis...`);
       switch (redis.status) {
         case "connecting":
         case "connect":
         case "ready":
           return;
+
         default:
+          console.debug(`[IB] Connecting to redis...`);
           await redis.connect();
       }
     },
@@ -126,7 +128,7 @@ export async function getOrCreateSession(redis: Redis, req: ValidatedRequest): P
   const sessionsSetKey = makeKey([siteName, "sessions"]);
   let session: SessionDescriptor | null = null;
 
-  if (exists(sid)) {
+  if (exists(sid) && sid.length === UUID_LENGTH) {
     const sessionKey = makeKey([siteName, "session", sid]);
     const sessionRaw = await redis.get(sessionKey);
 
@@ -198,16 +200,9 @@ export async function markVariantSeen(redis: Redis, session: SessionDescriptor, 
  * @param redis 
  */
 export async function ingestBatch(redis: Redis, req: ValidatedRequest, batch: MetricsBatch) {
-
-  // Note: When using `sendBeacon` from the client, we can't attach outbound headers.
-  // In this scenario, the session ID should be plucked from the batch.
-  const sid = req.sid ?? batch.session;
+  const { sid } = req;
   if (!exists(sid)) {
     throw new Error(`Missing session`);
-  }
-
-  if (exists(req.sid) && req.sid !== batch.session) {
-    console.warn(`Session mismatch: SID: ${req.sid} Batch: ${batch.session}`);
   }
 
   const { site, experiment, variant, entries: samples } = batch;
