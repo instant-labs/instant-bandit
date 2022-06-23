@@ -3,7 +3,6 @@ import { randomUUID } from "crypto";
 import { SessionsBackend, ValidatedRequest } from "../server-types";
 import { SessionDescriptor } from "../../types";
 import { exists, makeNewSession, markVariantInSession } from "../../utils";
-import { Site } from "../../models";
 
 
 export function getStubSessionsBackend(): SessionsBackend {

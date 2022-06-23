@@ -1,5 +1,4 @@
 import fetch, { Headers } from "node-fetch";
-import { randomUUID } from "crypto";
 import { exec } from "child_process";
 
 import { InstantBanditServer } from "../../../lib/server/server-types";
@@ -34,7 +33,7 @@ describe("failover", () => {
   });
 
   describe(siteUrl(), () => {
-    async function testLoadSite(siteName = DEFAULT_SITE.name) {
+    async function testLoadSite() {
       const resp = await testGet(siteUrl(), "demo");
       expect(resp.status).toBe(200);
       const site = await resp.json() as SiteMeta;
@@ -44,12 +43,12 @@ describe("failover", () => {
 
     it("can serve default site when sessions and metrics is down", async () => {
       await stopRedis();
-      await testLoadSite(DEFAULT_SITE.name);
+      await testLoadSite();
     });
 
     it("serves non-default sites when sessions and metrics is down", async () => {
       await stopRedis();
-      await testLoadSite("demo");
+      await testLoadSite();
     });
   });
 
@@ -84,15 +83,15 @@ describe("failover", () => {
     });
   }
 
-  async function testGet(url: string, sid?: string, payload: any = null) {
+  async function testGet(url: string, sid?: string, payload: unknown = null) {
     return testReq("GET", url, sid, payload);
   }
 
-  async function testPost(url: string, sid?: string, payload: any = null) {
+  async function testPost(url: string, sid?: string, payload: unknown = null) {
     return testReq("POST", url, sid, payload);
   }
 
-  async function testReq(method: string, url: string, sid?: string, payload: any = null) {
+  async function testReq(method: string, url: string, sid?: string, payload: unknown = null) {
     const requestHeaders = new Headers();
 
     if (exists(sid)) {
@@ -109,18 +108,6 @@ describe("failover", () => {
     });
 
     return resp;
-  }
-
-  interface TestResponse {
-    resp: Response
-    desc: string;
-    status: number;
-    statusText: string;
-    body: string;
-  }
-
-  function newSid() {
-    return randomUUID();
   }
 
   function siteUrl(site = DEFAULT_SITE.name) {

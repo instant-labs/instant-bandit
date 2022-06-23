@@ -69,7 +69,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
     get connected() { return connected; },
 
     async connect(): Promise<void> {
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<void>((resolve) => {
         if (connected) {
           resolve();
           return;
@@ -104,6 +104,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
 
               // Despite the error handler above, ioredis will still throw.
               // Suppress, because it's handled above.
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               .catch(err => void 0);
 
               resolve();

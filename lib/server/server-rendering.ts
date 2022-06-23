@@ -47,7 +47,7 @@ export async function serverSideRenderedSite(
     session = makeNewSession();
   }
 
-  const { loader, metrics, session: sessionProvider } = DEFAULT_BANDIT_OPTIONS.providers;
+  const { loader, metrics } = DEFAULT_BANDIT_OPTIONS.providers;
 
   let ctx: InstantBanditContext;
   if (!server.isBackendConnected(server.sessions)) {
