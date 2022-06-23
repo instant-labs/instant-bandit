@@ -108,7 +108,7 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
 
               // Despite the error handler above, ioredis will still throw.
               // Suppress, because it's handled above.
-              .catch(err => void 0)
+              .catch(err => void 0);
 
             if (!block) {
               resolve();
