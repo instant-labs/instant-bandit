@@ -29,7 +29,7 @@ export const DEFAULT_REDIS_OPTIONS: RedisBackendOptions = {
   retryStrategy(count: number) {
     const maxAttempts = parseInt(env.IB_REDIS_RETRY_COUNT + "");
     const interval = parseInt(env.IB_REDIS_RETRY_INTERVAL + "");
-    console.log(`Connecting to Redis attempt # ${count} out of ${maxAttempts}`);
+    console.info(`[IB] Connecting to Redis attempt # ${count} out of ${maxAttempts}`);
     if (count >= maxAttempts) {
       return null;
     } else {
@@ -89,28 +89,26 @@ export function getRedisBackend(initOptions: Options = {}): RedisBackend & Sessi
               .on("error", err => {
                 console.error(`[IB] Error connecting to Redis: ${err}`);
                 connected = false;
-
-                if (block) {
-                  reject(err);
-                }
                 return;
               })
               .on("close", () => {
-                console.log("[IB] Redis connection closed");
                 connected = false;
-                if (block) {
-                  reject();
-                }
+                console.log("[IB] Redis connection closed");
                 return;
               })
               .on("connect", () => {
                 connected = true;
+                console.log("[IB] Redis connection opened");
                 if (block) {
                   resolve();
                 }
                 return;
               })
-              .connect();
+              .connect()
+
+              // Despite the error handler above, ioredis will still throw.
+              // Suppress, because it's handled above.
+              .catch(err => void 0)
 
             if (!block) {
               resolve();

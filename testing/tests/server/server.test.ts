@@ -98,41 +98,6 @@ describe("server", () => {
         expect(disconnectedSessions).toBe(1);
       });
     });
-
-    describe("getSite", () => {
-      it("gets a site even when the metrics provider is down", async () => {
-        const backend = getRedisBackend({
-          path: "redis://nope:fake@localhost:5555",
-        });
-        server = buildInstantBanditServer({
-          ...config,
-          models: {
-            ...getStubModels(), async getSiteConfig() {
-              return DEFAULT_SITE;
-            }
-          },
-          metrics: backend,
-          sessions: backend,
-        });
-
-        await server.init();
-        await backend.disconnect();
-
-        const { client: redis } = backend;
-        await expect(() => redis.dbsize()).rejects.toThrow();
-
-        const { site } = await server.getSite({
-          sid: "",
-          siteName: "default",
-          headers: {},
-          origin: DEFAULT_ORIGIN,
-          session: null,
-        });
-
-        expect(exists(site)).toBe(true);
-        expect(site).toStrictEqual(DEFAULT_SITE);
-      });
-    });
   });
 
   function getStubSessions(): SessionsBackend {
