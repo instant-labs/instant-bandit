@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "es5",
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -26,9 +26,6 @@
   "exclude": [
     "jest.setup.ts",
     "next-env.d.ts",
-    "lib/db.ts",
-    "lib/algos",
-    "lib/server",
     "node_modules",
     "pages/_app.tsx",
     "pages/index.tsx",
