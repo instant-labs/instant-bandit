@@ -1,7 +1,7 @@
 import { IncomingMessage } from "http";
 import { InstantBanditServer } from "./server-types";
 import { HEADER_SESSION_ID } from "../constants";
-import { createBanditContext, DEFAULT_BANDIT_OPTIONS } from "../contexts";
+import { InstantBanditContext, createBanditContext, DEFAULT_BANDIT_OPTIONS } from "../contexts";
 import { SessionDescriptor } from "../types";
 import { exists, makeNewSession } from "../utils";
 import { validateUserRequest } from "./server-utils";
@@ -48,20 +48,56 @@ export async function serverSideRenderedSite(
   }
 
   const { loader, metrics, session: sessionProvider } = DEFAULT_BANDIT_OPTIONS.providers;
-  const ctx = createBanditContext();
+
+  let ctx: InstantBanditContext;
+  if (!server.isBackendConnected(server.sessions)) {
+    ctx = createBanditContext();
+  } else {
+
+    ctx = createBanditContext({
+      providers: {
+        loader,
+        metrics,
+
+        //
+        // Here we inject the session from the server's asynchronous session store into
+        // the InstantBandit component's *synchronous* store. This is done for SSR.
+        //
+        // In order to complete the render entirely on the server and avoid client-side
+        // hydration, the component needs to render synchronously in one pass.
+        //
+        session: () => {
+          return {
+            id: session.sid,
+            getOrCreateSession: () => session,
+            hasSeen() {
+              return false;
+            },
+            persistVariant() {
+              // We do this server side below
+              return;
+            },
+            save: () => session,
+          };
+        },
+      },
+    });
+  }
 
   // Fall back to default site if the metrics or sessions backends aren't connected
   const { site: siteConfig } = await server.getSite(validatedRequest);
-
-
   const site = await ctx.init(siteConfig);
   const { experiment, variant } = ctx;
 
   await server.sessions.markVariantSeen(session, site.name, experiment.id, variant.name)
     .catch(err => console.warn(`[IB]: Error marking variant '${variant.name}' seen: ${err}`));
 
+  // Allow the client to select if sessions is down
+  const defer = server.isBackendConnected(sessions) === false;
+
   return {
     site,
-    select: variant.name,
+    select: defer ? null : variant.name,
+    defer,
   };
 }
