@@ -6,7 +6,7 @@ import { getRedisBackend } from "../../../lib/server/backends/redis";
 import { DefaultMetrics, DEFAULT_ORIGIN } from "../../../lib/constants";
 import { makeKey, toNumber } from "../../../lib/server/server-utils";
 import { DEFAULT_EXPERIMENT, DEFAULT_SITE, DEFAULT_VARIANT } from "../../../lib/defaults";
-import { exists, makeNewSession } from "../../../lib/utils";
+import { exists } from "../../../lib/utils";
 import { MetricsBatch, MetricsSample } from "../../../lib/models";
 import { ValidatedRequest } from "../../../lib/server/server-types";
 import { MetricName } from "../../../lib/types";

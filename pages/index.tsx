@@ -6,7 +6,6 @@ import { Default } from "../components/Default";
 import { InstantBandit } from "../components/InstantBanditComponent";
 import { Variant } from "../components/Variant";
 import { useInstantBandit } from "../lib/hooks";
-import { HEADER_SESSION_ID } from "../lib/constants";
 import { getInternalDevServer } from "../lib/server/server-internal";
 import { serverSideRenderedSite } from "../lib/server/server-rendering";
 import { InstantBanditOptions } from "../lib/types";

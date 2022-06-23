@@ -7,10 +7,7 @@ import {
 } from "../../../lib/server/server-types";
 import { buildInstantBanditServer } from "../../../lib/server/server-core";
 import { SessionDescriptor } from "../../../lib/types";
-import { exists, makeNewSession } from "../../../lib/utils";
-import { getRedisBackend } from "../../../lib/server/backends/redis";
-import { DEFAULT_ORIGIN } from "../../../lib/constants";
-import { DEFAULT_SITE } from "../../../lib/defaults";
+import { makeNewSession } from "../../../lib/utils";
 
 
 describe("server", () => {
