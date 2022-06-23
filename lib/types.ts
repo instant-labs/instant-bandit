@@ -12,6 +12,7 @@ export type InstantBanditProps = {
   site?: Site
   debug?: boolean
   options?: InstantBanditOptions
+  timeout?: number
   onReady?: (ctx: InstantBanditContext) => void
   onError?: (err?: Error, ctx?: InstantBanditContext) => void
 };
