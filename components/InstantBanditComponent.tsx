@@ -46,6 +46,7 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
   });
 
   const {
+    defer,
     select,
     site: siteProp,
     siteName,
@@ -195,7 +196,7 @@ const InstantBanditComponent = (props: PropsWithChildren<InstantBanditProps>) =>
   // Skip the hydration render.
   // This decouples browser selection from full SSR selection and de-risks against rehydration
   // errors in general.
-  if (loadState.renders === 0) {
+  if (defer === true && loadState.renders === 0) {
     ++loadState.renders;
     setTimeout(() => setLoadState({ ...loadState }));
     return (
