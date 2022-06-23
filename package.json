@@ -31,7 +31,8 @@
     "lint": "yarn eslint .",
     "test": "jest --verbose",
     "clean": "rm -rf dist",
-    "pack:test": "yarn build && yarn pack --dry-run && tar tvf instantdomain-bandit-v0.1.0.tgz"
+    "pack:test": "yarn build && yarn pack --dry-run && tar tvf instantdomain-bandit-v0.1.0.tgz",
+    "prep": "tsc && yarn lint && yarn test"
   },
   "dependencies": {
     "ioredis": "^5.0.6",

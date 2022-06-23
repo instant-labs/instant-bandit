@@ -1,14 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { MetricsBatch } from "../../lib/models";
 import { getInternalDevServer } from "../../lib/server/server-internal";
-import { InstantBanditHeaders } from "../../server";
-import { validateUserRequest } from "../../server";
-import { getSessionIdFromHeaders } from "../../server";
-import { ServerSession } from "../../server";
-import { InstantBanditServer } from "../../server";
+import { InstantBanditHeaders, InstantBanditServer, ServerSession } from "../../lib/server/server-types";
+import { getSessionIdFromHeaders, validateUserRequest  } from "../../lib/server/server-utils";
 
 
-const MetricsEndpoint = createMetricsEndpoint(getInternalDevServer());
+const MetricsEndpoint = createMetricsEndpoint();
 export default MetricsEndpoint;
 
 /**
@@ -16,11 +13,14 @@ export default MetricsEndpoint;
  * Remember to return the resulting endpoint function as your module's default export.
  * See [metrics].ts.
  */
-export function createMetricsEndpoint(server: InstantBanditServer) {
+export function createMetricsEndpoint(server?: InstantBanditServer) {
 
   // This endpoint accepts POST requests bearing batches of metrics to ingest.
   // In development environments, shows site metrics on GET
   async function handleMetricsRequest(req: NextApiRequest, res: NextApiResponse) {
+    if (!server) {
+      server = getInternalDevServer();
+    }
     await server.init();
 
     // TODO: Respond to CORS preflights
