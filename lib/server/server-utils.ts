@@ -110,7 +110,7 @@ export async function getSessionIdFromHeaders(headers: InstantBanditHeaders): Pr
  * @returns 
  */
 export function validateClientReportedOrigin(allowedOrigins: Origins, origin: string | null | undefined): boolean {
-  if (env.IB_ENFORCE_ORIGIN_CHECK === "false") {
+  if (env.IB_ENFORCE_ORIGIN_CHECK !== "true") {
     return true;
   }
 
