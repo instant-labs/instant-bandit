@@ -21,14 +21,16 @@
     "server.ts",
     "lib",
     "components",
-    "pages"
+    "pages",
+    "pages/api/sites/[siteName].ts",
+    "pages/api/metrics.ts",
   ],
   "exclude": [
     "jest.setup.ts",
     "next-env.d.ts",
     "node_modules",
-    "pages/_app.tsx",
     "pages/index.tsx",
+    "components/Toolbar.tsx",
     "testing"
   ]
 }
