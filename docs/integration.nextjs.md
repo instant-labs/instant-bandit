@@ -24,7 +24,6 @@ docker-compose -f docker-compose.dev.yml up -d
 Here are some useful variables for configuring your environments:
 ```bash
 IB_BASE_API_URL="https://example.com"
-IB_ORIGINS_ALLOWLIST="https://staging.example.com,https://example.com"
 IB_REDIS_HOST="redis"
 IB_REDIS_PORT= "6379"
 IB_STATIC_SITES_PATH="./public/sites"
