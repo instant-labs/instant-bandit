@@ -1,6 +1,6 @@
 {
   "name": "@instantdomain/bandit",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -13,8 +13,11 @@
     "./server": "./dist/server.js"
   },
   "files": [
+    "server.d.ts",
     "dist/index.js",
+    "dist/index.d.ts",
     "dist/server.js",
+    "dist/server.d.ts",
     "dist/lib",
     "dist/pages/api/",
     "dist/components",
@@ -27,7 +30,7 @@
     "rct": "yarn -s dc exec -T redis-testing redis-cli",
     "dev": "NODE_OPTIONS='--inspect=localhost:9229' next dev && yarn dc up -d",
     "compile": "tsc -p tsconfig.publish.json",
-    "minify": "echo foo",
+    "minify": "swc ./dist -s false -d ./dist",
     "build": "yarn clean && yarn compile && yarn minify",
     "start": "next start",
     "lint": "yarn eslint .",

@@ -1,4 +1,4 @@
-import fetch, { Headers } from "node-fetch";
+import fetch, { BodyInit, Headers } from "node-fetch";
 import { exec } from "child_process";
 
 import { InstantBanditServer } from "../../../lib/server/server-types";
@@ -83,15 +83,15 @@ describe("failover", () => {
     });
   }
 
-  async function testGet(url: string, sid?: string, payload: unknown = null) {
+  async function testGet(url: string, sid?: string, payload?: BodyInit) {
     return testReq("GET", url, sid, payload);
   }
 
-  async function testPost(url: string, sid?: string, payload: unknown = null) {
+  async function testPost(url: string, sid?: string, payload?: BodyInit) {
     return testReq("POST", url, sid, payload);
   }
 
-  async function testReq(method: string, url: string, sid?: string, payload: unknown = null) {
+  async function testReq(method: string, url: string, sid?: string, payload?: BodyInit) {
     const requestHeaders = new Headers();
 
     if (exists(sid)) {
