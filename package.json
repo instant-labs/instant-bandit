@@ -16,6 +16,7 @@
     "dist/index.js",
     "dist/server.js",
     "dist/lib",
+    "dist/pages/api/",
     "dist/components",
     "docker-compose.dev.yml"
   ],
@@ -26,13 +27,13 @@
     "rct": "yarn -s dc exec -T redis-testing redis-cli",
     "dev": "NODE_OPTIONS='--inspect=localhost:9229' next dev && yarn dc up -d",
     "compile": "tsc -p tsconfig.publish.json",
-    "minify": "swc ./dist -s false -d ./dist",
+    "minify": "echo foo",
     "build": "yarn clean && yarn compile && yarn minify",
     "start": "next start",
     "lint": "yarn eslint .",
     "test": "jest --verbose",
     "clean": "rm -rf dist",
-    "pack:test": "yarn build && yarn pack --dry-run && tar tvf instantdomain-bandit-v0.1.0.tgz",
+    "pack:test": "yarn build && yarn pack --dry-run && tar tvf instantdomain-bandit-v*",
     "prep": "tsc && yarn lint && yarn test"
   },
   "dependencies": {
