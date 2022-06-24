@@ -14,7 +14,9 @@
   },
   "files": [
     "dist/index.js",
+    "dist/index.d.ts",
     "dist/server.js",
+    "dist/server.d.ts",
     "dist/lib",
     "dist/pages/api/",
     "dist/components",
