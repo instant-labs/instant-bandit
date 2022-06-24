@@ -13,6 +13,7 @@
     "./server": "./dist/server.js"
   },
   "files": [
+    "server.d.ts",
     "dist/index.js",
     "dist/index.d.ts",
     "dist/server.js",
