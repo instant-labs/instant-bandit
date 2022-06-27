@@ -1,9 +1,7 @@
 # Instant Bandit
-Instant Bandit is a small set of React components and server-side helpers for authoring and running multivariate tests in websites and apps. Using a "multi-armed bandit" algorithm, Instant Bandit will automatically present multiple variants that you define to subsets of your traffic. The conversion rate of each variant is continuously measured, and the most successful variant is presented to the majority of that traffic.
+Instant Bandit is a small set of React components and server-side helpers for authoring and running multi-armed bandit (MAB) experiments in websites and apps. Using an epsilon-greedy algorithm, Instant Bandit automatically presents multiple variants that you define to subsets of your traffic. The conversion rate of each variant is continuously measured, and the most successful variant is presented to the majority of your traffic.
 
-Unlike traditional A/B testing, where traffic is split evenly between two variants, a multi-armed bandit approach can optimize across N variants. This means you can author and test multiple variants at once while the system ensures that the most succesful variant receives the most traffic.
-
-Using this library, defining and deploying those variants is easy and requires little modification to your existing website or apps.
+Using this library, defining and deploying variants is easy and requires little modification to your existing website or apps.
 
 ## A Simple Example
 Here's an example of an existing page:
