@@ -16,19 +16,25 @@ import {
   SiteMeta,
   VariantMeta,
 } from "../models";
+import { RedisBackend, getRedisBackend } from "./backends/redis";
+import { bandit } from "../bandit";
 import { exists, getBaseUrl } from "../utils";
 import { getJsonSiteBackend } from "./backends/json-sites";
+import { getStubMetricsBackend } from "./backends/metrics";
+import { getStubSessionsBackend } from "./backends/sessions";
 import { normalizeOrigins } from "./server-utils";
 
-import { bandit } from "../bandit";
-import { getRedisBackend, RedisBackend } from "./backends/redis";
 
-
-
-export const DEFAULT_SERVER_OPTIONS: Partial<InstantBanditServerOptions> = {
+export const DEFAULT_SERVER_OPTIONS: InstantBanditServerOptions = {
   clientOrigins: (env.IB_ORIGINS_ALLOWLIST ?? ""),
-};
-
+  allowMetricsPayloads: false,
+  maxBatchItemLength: constants.METRICS_MAX_ITEM_LENGTH,
+  maxBatchLength: constants.METRICS_MAX_LENGTH,
+  metrics: getStubMetricsBackend(),
+  sessions: getStubSessionsBackend(),
+  models: getJsonSiteBackend(),
+} as const;
+Object.freeze(DEFAULT_SERVER_OPTIONS);
 
 /**
  * Provides framework-agnostic helper methods that expose configuration and handle
@@ -64,6 +70,7 @@ export function buildInstantBanditServer(initOptions?: Partial<InstantBanditServ
   let shutdownPromise: Promise<void> | null;
 
   return {
+    get options() { return options; },
     get metrics() { return metrics; },
     get models() { return models; },
     get sessions() { return sessions; },

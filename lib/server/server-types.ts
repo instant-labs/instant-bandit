@@ -13,6 +13,9 @@ export type InstantBanditServerOptions = {
   models: ModelsBackend
   sessions: SessionsBackend
   clientOrigins: string | string[]
+  allowMetricsPayloads: boolean
+  maxBatchItemLength: number
+  maxBatchLength: number
 };
 
 /**
@@ -20,6 +23,7 @@ export type InstantBanditServerOptions = {
  * providing configuration, metrics storage, and session handling.
  */
 export type InstantBanditServer = {
+  readonly options: InstantBanditServerOptions
   readonly origins: Origins
   readonly metrics: MetricsBackend
   readonly models: ModelsBackend
@@ -136,4 +140,13 @@ export type ConnectingBackendFunctions<TConnection = unknown> = {
   connected: boolean
   connect(): Promise<TConnection>
   disconnect(): Promise<TConnection>
+};
+
+/**
+ * Options for decoding metrics batches
+ */
+export type MetricsDecodeOptions = {
+  maxBatchLength: number
+  maxBatchItemLength: number
+  allowMetricsPayloads: boolean
 };

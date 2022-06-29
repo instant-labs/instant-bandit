@@ -1,8 +1,47 @@
 import { useEffect, useLayoutEffect } from "react";
 
 import * as constants from "./constants";
+import { MetricsBatch } from "./models";
 import { SessionDescriptor } from "./types";
 
+
+/**
+ * Encodes a batch of metrics entries as ND-JSON lines.
+ * The first line is the "header" and represents the batch metadata.
+ * Subsequent lines represents the batch entries.
+ * The field `payload` is set to 1` based on the existence of a payload object.
+ * If a payload is present, it is represented by the next line.
+ * @param batch 
+ */
+export function encodeMetricsBatch(batch: MetricsBatch): string {
+  const { site, experiment, variant, entries } = batch;
+  const sep = "\n";
+
+  const header = JSON.stringify({
+    site,
+    experiment,
+    variant,
+  });
+
+  const lines = entries.map(entry => {
+    const { name, ts, payload } = entry;
+    const hasPayload = exists(payload);
+    const translated = {
+      ts,
+      name,
+      payload: void 0 as (undefined | 1),
+    };
+
+    if (hasPayload) {
+      translated.payload = 1;
+    }
+
+    const encoded = JSON.stringify(translated);
+    return !hasPayload ? encoded : (encoded + sep + JSON.stringify(payload));
+  });
+
+  return [header, ...lines].join(sep);
+}
 
 export function makeNewSession(sid = "") {
   const session: SessionDescriptor = {

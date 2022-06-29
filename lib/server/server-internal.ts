@@ -1,6 +1,6 @@
 import env from "./environment";
 import { InstantBanditServer, InstantBanditServerOptions } from "./server-types";
-import { buildInstantBanditServer } from "./server-core";
+import { buildInstantBanditServer, DEFAULT_SERVER_OPTIONS } from "./server-core";
 import { getJsonSiteBackend } from "./backends/json-sites";
 import { getRedisBackend } from "./backends/redis";
 
@@ -9,11 +9,13 @@ const redis = getRedisBackend();
 const json = getJsonSiteBackend();
 
 const DEFAULT_DEV_SERVER_OPTIONS: Partial<InstantBanditServerOptions> = {
-    clientOrigins: (env.IB_ORIGINS_ALLOWLIST ?? env.IB_BASE_API_URL),
-    sessions: redis,
-    metrics: redis,
-    models: json,
-};
+  ...DEFAULT_SERVER_OPTIONS,
+  clientOrigins: (env.IB_ORIGINS_ALLOWLIST ?? env.IB_BASE_API_URL),
+  sessions: redis,
+  metrics: redis,
+  models: json,
+} as const;
+Object.freeze(DEFAULT_DEV_SERVER_OPTIONS);
 
 /**
  * This server helper intended is intended for use by the Instant Bandit repo.

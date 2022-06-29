@@ -1,8 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
+
+import { InstantBanditHeaders, InstantBanditServer, MetricsDecodeOptions, ServerSession, ValidatedRequest } from "../../lib/server/server-types";
 import { MetricsBatch } from "../../lib/models";
 import { getInternalDevServer } from "../../lib/server/server-internal";
-import { InstantBanditHeaders, InstantBanditServer, ServerSession } from "../../lib/server/server-types";
-import { emitCookie, getSessionIdFromHeaders, validateUserRequest } from "../../lib/server/server-utils";
+import { decodeMetricsBatch, emitCookie, getSessionIdFromHeaders, validateUserRequest } from "../../lib/server/server-utils";
+import { exists } from "../../lib/utils";
+import { METRICS_MAX_ITEM_LENGTH, METRICS_MAX_LENGTH } from "../../lib/constants";
 
 
 const MetricsEndpoint = createMetricsEndpoint();
@@ -23,8 +26,9 @@ export function createMetricsEndpoint(server?: InstantBanditServer) {
     }
     await server.init();
 
-    const { metrics, origins, sessions } = server;
+    const { metrics, options, origins, sessions } = server;
     const { method, headers } = req;
+    const { allowMetricsPayloads, maxBatchLength, maxBatchItemLength } = options;
 
     if (server.isBackendConnected(metrics) === false) {
       res.status(503).end();
@@ -35,19 +39,43 @@ export function createMetricsEndpoint(server?: InstantBanditServer) {
     const needsSession = (!sid || sid === "");
 
     if (method === "POST") {
-      const batch = req.body as MetricsBatch;
-      const validatedReq = await validateUserRequest({
-        allowedOrigins: origins,
-        headers,
-        url: req.url,
-        allowNoSession: true,
-        siteName: batch.site,
-      });
+
+      // Bail early if we outright know content is too long
+      const contentLength = req.headers["content-length"];
+      if (exists(contentLength) && parseInt(contentLength) > maxBatchLength) {
+        console.warn(`[IB] Recived metrics payload larger than ${maxBatchLength} bytes`);
+        res.status(400).end();
+        return;
+      }
+
+      const batchText = req.body;
+      const decodeOptions: MetricsDecodeOptions = {
+        allowMetricsPayloads: !!allowMetricsPayloads,
+        maxBatchLength: maxBatchLength ?? METRICS_MAX_LENGTH,
+        maxBatchItemLength: maxBatchItemLength ?? METRICS_MAX_ITEM_LENGTH,
+      };
+
+      let batch: MetricsBatch;
+      let validatedReq: ValidatedRequest;
+      try {
+        batch = decodeMetricsBatch(batchText, decodeOptions);
+        validatedReq = await validateUserRequest({
+          allowedOrigins: origins,
+          headers,
+          url: req.url,
+          allowNoSession: true,
+          siteName: batch.site,
+        });
+      } catch (err) {
+        console.warn(`[IB] Error handling incoming metrics: ${err}`);
+        res.status(400).end();
+        return;
+      }
 
       const session = await sessions.getOrCreateSession(validatedReq);
       validatedReq.session = session as ServerSession;
 
-      await metrics.ingestBatch(validatedReq, req.body);
+      await metrics.ingestBatch(validatedReq, batch);
 
       // Grant a session if the request needs one (is new), or if we created a new one
       if (needsSession || session.sid !== sid) {

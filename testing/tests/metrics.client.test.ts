@@ -5,11 +5,12 @@
 import fetchMock from "jest-fetch-mock";
 
 import { InstantBanditContext, createBanditContext } from "../../lib/contexts";
-import { MetricsBatch, MetricsSample } from "../../lib/models";
+import { MetricsSample } from "../../lib/models";
+import { MetricsDecodeOptions } from "../../lib/server/server-types";
 import { MetricsProvider, MetricsSinkOptions } from "../../lib/types";
+import { decodeMetricsBatch } from "../../lib/server/server-utils";
 import { getHttpMetricsSink } from "../../lib/providers/metrics";
 import { exists } from "../../lib/utils";
-import { TEST_SITE_AB } from "../sites";
 import { DEFAULT_SITE } from "../../lib/defaults";
 
 
@@ -27,7 +28,6 @@ describe("metrics (client)", () => {
     flushInterval: 10,
   };
 
-  const TEST_SITE = TEST_SITE_AB;
 
   beforeAll(() => {
     fetchMock.enableMocks();
@@ -55,6 +55,12 @@ describe("metrics (client)", () => {
     payload: "button.get-started",
   };
 
+  const TEST_DECODE_OPTS: MetricsDecodeOptions = {
+    allowMetricsPayloads: true,
+    maxBatchItemLength: 1024,
+    maxBatchLength: 100 * 1024,
+  };
+
   async function flushed() {
     return new Promise<void>((resolve, reject) => {
       jest.spyOn(metrics, "flush").mockImplementationOnce(async () => {
@@ -70,7 +76,7 @@ describe("metrics (client)", () => {
       fetchMock.mockResponseOnce(async req => {
         ++fetches;
         if (req.body) {
-          json = JSON.parse(req.body.toString());
+          json = decodeMetricsBatch(req.body.toString(), TEST_DECODE_OPTS);
         }
         return "{}";
       });
@@ -127,7 +133,7 @@ describe("metrics (client)", () => {
       await metrics.flush(ctx, true);
       const body = await sendBeaconContent;
       expect(exists(body));
-      const batch = JSON.parse(body) as MetricsBatch;
+      const batch = decodeMetricsBatch(body, TEST_DECODE_OPTS);
       expect(batch.entries.length).toBe(1);
     });
 

@@ -11,14 +11,14 @@ import { makeNewSession } from "../../../lib/utils";
 
 
 describe("server", () => {
-  const TEST_CONFIG: InstantBanditServerOptions = {
+  const TEST_CONFIG: Partial<InstantBanditServerOptions> = {
     clientOrigins: [],
     metrics: getStubMetrics(),
     models: getStubModels(),
     sessions: getStubSessions(),
   };
 
-  let config: InstantBanditServerOptions = TEST_CONFIG;
+  let config = TEST_CONFIG;
   let server = buildInstantBanditServer(config);
 
   beforeEach(async () => {
@@ -36,7 +36,7 @@ describe("server", () => {
       connectedModels = 0, disconnectedModels = 0;
       connectedSessions = 0, disconnectedSessions = 0;
 
-      config = Object.assign(TEST_CONFIG, {
+      config = Object.assign({}, TEST_CONFIG, {
         metrics: {
           async connect() { ++connectedMetrics; },
           async disconnect() { ++disconnectedMetrics; },

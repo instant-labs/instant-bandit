@@ -30,6 +30,10 @@ export const PROBABILITY_PRECISION = 4;
 export const UUID_LENGTH = 36;
 export const MAX_STORAGE_KEY_LENGTH = 256;
 export const MAX_STORAGE_VALUE_LENGTH = 1024;
+export const METRICS_MAX_LENGTH = 512 * 1024;
+export const METRICS_MAX_ITEM_LENGTH = 1024;
+export const METRICS_PAYLOAD_IGNORED = { error: "ignored" } as const;
+export const METRICS_PAYLOAD_SIZE_ERR = { error: "size" } as const;
 
 /**
  * Metrics tracked by Instant Bandit by default
