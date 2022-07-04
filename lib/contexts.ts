@@ -3,11 +3,12 @@ import React from "react";
 import * as constants from "./constants";
 import {
   InstantBanditOptions,
+  Metric,
   MetricsProvider,
   SessionProvider,
   SiteProvider,
 } from "./types";
-import { Experiment, Site, Variant } from "./models";
+import { Experiment, MetricsSample, Site, Variant } from "./models";
 import { getLocalStorageSessionProvider } from "./providers/session";
 import { getSiteProvider } from "./providers/site";
 import { DEFAULT_SITE_PROVIDER_OPTIONS } from "./providers/site";
@@ -24,9 +25,11 @@ export interface InstantBanditContext {
   metrics: MetricsProvider
   session: SessionProvider
 
-  init: (site: Site) => Promise<Site>
-  load: (siteName?: string, variant?: string) => Promise<Site>
-  select: (variant?: Variant | string) => Promise<Site>
+  init(site: Site): Promise<Site>
+  load(siteName?: string, variant?: string): Promise<Site>
+  select(variant?: Variant | string): Promise<Site>
+  incrementMetric(metric: constants.DefaultMetrics | string)
+  recordEvent(name: string, payload: Metric)
 }
 
 
@@ -50,16 +53,42 @@ export function createBanditContext(options?: Partial<InstantBanditOptions>):
     get experiment() { return loader.experiment; },
     get variant() { return loader.variant; },
 
-    load: async (variant?: string) => {
+    async load(variant?: string) {
       return await loader.load(ctx, variant);
     },
-    init: async (site: Site, select?: string) => {
+
+    async init(site: Site, select?: string) {
       return await loader.init(ctx, site, select);
     },
-    select: async (variant: string) => {
+
+    async select(variant: string) {
       loader.select(ctx, variant);
       session.persistVariant(ctx, loader.experiment.id, loader.variant.name);
       return loader.model;
+    },
+
+    /**
+     * Increments a metric for the currently selected variant in the current experiment.
+     */
+    incrementMetric(metric: constants.DefaultMetrics | string) {
+      metrics.sinkEvent(ctx, metric);
+    },
+
+    /**
+     * Records an event that will be sent to the server in the next metrics batch.
+     * Payloads will only be accepted if the server has been configured to allow them.
+     * Payloads sent to a server that does not allow them will silently ignore them, but
+     * will keep the messages.
+     * 
+     * Events will be automatically prefixed with "evt.component.".
+     */
+    recordEvent(name: string, payload?: Metric) {
+      const sample: MetricsSample = {
+        ts: new Date().getTime(),
+        name: `evt.component.${name}`,
+        payload,
+      };
+      metrics.sink(ctx, sample);
     },
   };
 
