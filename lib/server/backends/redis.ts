@@ -25,6 +25,10 @@ import { UUID_LENGTH } from "../../constants";
 export const DEFAULT_REDIS_OPTIONS: RedisBackendOptions = {
   lazyConnect: true,
   disconnectWaitDuration: 50,
+  host: env.IB_REDIS_HOST,
+  port: env.IB_REDIS_PORT,
+  username: env.IB_REDIS_USERNAME,
+  password: env.IB_REDIS_PASSWORD,
 
   retryStrategy(count: number) {
     const maxAttempts = parseInt(env.IB_REDIS_RETRY_COUNT + "");
@@ -37,6 +41,7 @@ export const DEFAULT_REDIS_OPTIONS: RedisBackendOptions = {
     }
   },
 };
+Object.freeze(DEFAULT_REDIS_OPTIONS);
 
 export type RedisBackendOptions = RedisOptions & {
   disconnectWaitDuration: number,
