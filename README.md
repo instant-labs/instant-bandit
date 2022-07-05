@@ -1,12 +1,15 @@
 # Instant Bandit
-Instant Bandit is a small set of React components and server-side helpers for authoring and running multi-armed bandit (MAB) experiments in websites and apps. Using an epsilon-greedy algorithm, Instant Bandit automatically presents multiple variants that you define to subsets of your traffic. The conversion rate of each variant is continuously measured, and the most successful variant is presented to the majority of your traffic.
+Instant Bandit is a small set of React components and server-side helpers for authoring and running multi-armed bandit (MAB) experiments in websites and apps.
 
-Using this library, defining and deploying variants is easy and requires little modification to your existing website or apps.
+Using an epsilon-greedy algorithm, Instant Bandit automatically presents multiple variants that you define to subsets of your traffic. The conversion rate of each variant is continually measured, and the most successful variant is presented to the majority of your traffic.
+
+Using this library, defining and deploying variants is easy and requires little modification to existing websites or apps.
+
 
 ## A Simple Example
 Here's an example of an existing page:
 
-```TSX
+```tsx
 <Page>
   <Header>Welcome!</Header>
   <Content>
@@ -18,7 +21,7 @@ Here's an example of an existing page:
 
 To add Instant Bandit to this page, you drop in the `InstantBandit` component and define your variants underneath it in JSX using the `Variant` and `Default` components, like so:
 
-```TSX
+```tsx
 <Page>
   <Header>Welcome!</Header>
   <Content>
@@ -46,7 +49,7 @@ To add Instant Bandit to this page, you drop in the `InstantBandit` component an
 </Page>
 ```
 
-Here, we're testing 3 coloured variants of the `<SignUpButton />` component to see if button colour has any effect on conversion rate.
+Here, we're testing 3 colored variants of the `<SignUpButton />` component to see if button color has any effect on conversion rate.
 
 Note the use of the `<Default />` component. If metadata about the experiment and variants can't be loaded, the default component - the original button - will be displayed. Specifying a default is a good practice.
 
@@ -58,7 +61,7 @@ When the Instant Bandit mounts, it immediately looks for a block of configuratio
   "name": "default",
   "experiments": [
     {
-      "id": "default",
+      "id": "home-text-length",
       "variants": [
         {
           "name": "A",
@@ -84,19 +87,22 @@ The probabilities for each variant are updated on the fly by the server, based o
 
 Thanks to this, we can be sure that the best variant is consistently shown the most frequently, while still giving other variants the chance to shine. Rather than waste a significant portion of traffic on variants that don't resonate with visitors, such as in traditional A/B testing, Instant Bandit allows you to optimize conversions without wasting large amounts of impressions on things that don't stick.
 
+
 # Tracking Conversions
 In order to measure conversions and other metrics, Instant Bandit offers a convenient React hook: `useInstantBandit`. In our example, the code for `SignUpButton` can be augmented like so:
 
 ```TS
-const { metrics } = useInstantBandit();
+const { incrementMetric } = useInstantBandit();
 
-// inside of the click handler:
-metrics.sinkEvent(ctx, "conversions");
+// Inside of your click handler:
+incrementMetric(DefaultMetrics.CONVERSIONS);
+
 ```
 
 That's it! The `useInstantBandit` hook knows which variant is being displayed, and the "conversions" metric is automatically updated for the correct variant when a user hits the SignUpButton presented to them.
 
-# The Backend
+
+## The Backend
 Instant Bandit requires a backend exposing two endpoints: One to serve site configurations with probabilities inlined, and another to ingest metrics. By default, these are `/api/sites/[site name]` and `/api/metrics`.
 
 This package includes helper functions to implement those endpoints in any Node.js-based web application, as well as an example of each implemented as Next.js API routes. See `/api/sites/[siteName].ts` and `/api/metrics.ts` in this repository.
@@ -116,7 +122,8 @@ When using server-side rendering, no CLS or flickering is exposed to the user. F
 
 Doing so will invoke the request for site configuration, and when the UI loads the request will already be in flight or completed with a response in the local cache.
 
-# Installation & Requirements
+
+## Installation & Requirements
 Clone this repo and run `yarn` to install dependencies and then `yarn dev` to run the development environment.
 
 The development environment requires _Docker Compose_, and will run a Redis server locally.
