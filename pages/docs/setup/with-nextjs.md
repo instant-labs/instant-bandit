@@ -49,7 +49,7 @@ import { server } from "../lib/server";
 const siteName = "default";
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { req, res } = context;
-  const { site, select, defer } = await serverSideRenderedSite(server, siteName, req, res);
+  const { site, select, defer } = await serverSideRenderedSite(server, siteName, req);
 
   return {
     props: {
@@ -62,7 +62,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 };
 ```
 
-Here, the SSR helper is providing us with a pre-initialized site, with the last probabilities backed into it.
+Here, the SSR helper is providing us with a pre-initialized `site` object, with the latest probabilities backed into it.
 
 We're also relaying:
 - the `siteName` in case a non-default one is used
@@ -70,7 +70,7 @@ We're also relaying:
 - the `defer` flag, in case the component should perform its own variant selection client-side
 
 > **Note:** The SSR helper sets `defer` to `true` if the sessions or metrics backends are unavailable.
-> This forces client-side rendering in the case what SSR can't be fulfilled.
+> This forces client-side rendering in the case where SSR can't be fulfilled.
 
 Be sure to pass the props to `InstantBandit`:
 ```tsx

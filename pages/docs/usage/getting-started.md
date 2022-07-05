@@ -1,12 +1,12 @@
 # Getting Started
 Here are the steps to add Instant Bandit to a new or existing app:
-1. Set up a Redis instance for development against
+1. Set up a Redis instance in your development environment
 2. Configure an `InstantBanditServer` object to persist sessions and analytics in Redis
 3. Set up endpoints for serving [site models](../configuration/models.md#site) and [ingesting metrics](../setup/metrics-endpoint.md)
-4. Author our first experiment
+4. Author your first experiment
 
-## Step 1: Environment and Server Setup
-Instant Bandit requires some server-side functionality around serving configuration models, persisting anonymous sessions, and collecting basic usage metrics.
+## Step 1: Environment and Backend Setup
+Instant Bandit requires some server-side functionality for serving configuration models, persisting anonymous sessions, and collecting basic usage metrics.
 
 ### The Backend
 By default, Instant Bandit uses Redis to handle persistence of sessions and metrics.
@@ -73,10 +73,10 @@ See [Server Configuration](../configuration/server.md) for more information.
 Instant Bandit comes with a framework-agnostic server helper suitable for any NodeJS backend.
 This helper object bears your server-side configuration, as well as the "providers" you specify.
 
-Providers are groups of related functions that handle technology specific concerns around obtaining configuration, working with sessions, and handling metrics.
+_Providers_ are groups of related functions that handle technology specific concerns around obtaining configuration, working with sessions, and handling metrics.
 
 > **Note:** You can extend Instant Bandit by creating your own providers to talk to different external systems.
-> You can read more about extending Instant Bandit in the section [Extensibility](../internals/extensibility.md)
+> You can read more about extending Instant Bandit in the section [Extensibility](../internals/extensibility.md).
 
 
 By default, sessions and metrics are both handled by the included Redis provider, which must be configured to connect to your Redis instance.
@@ -114,7 +114,7 @@ const serverOptions: Partial<InstantBanditServerOptions> = {
 // Create and export an instance of your server helper
 export const server = getBanditServer(serverOptions);
 
-// Call `shutdown` where your process exits, e.g.
+// Call `shutdown` where your process exits
 process.on("SIGTERM", () => server.shutdown().finally(() => console.log(`Server shut down`)));
 ```
 
@@ -136,7 +136,7 @@ To set up these endpoints, see [The Site Endpoint](../setup/site-endpoint.md) an
 For an overview of the _Site_ model see [here](../configuration/models.md).
 
 
-## Define an Experiment
+## Create a Site Configuration
 Once you've set up endpoints for site configs and metrics, we'll create a _site_ config and add an experiment and some variants to test.
 Create the folder _public/sites_ and add _default.json_:
 
@@ -161,16 +161,17 @@ Create the folder _public/sites_ and add _default.json_:
   ]
 }
 ```
+Once you've saved this file, you should be able to request it directly via the site endpoint, i.e. `/api/sites/default`.
 
-With this configuration, Instant Bandit will present variants in the `my-experiment-1` experiment until it is marked inactive with `inactive: true` on the experiment.
+With this site configuration, Instant Bandit will present variants in the `my-experiment-1` experiment until it is marked inactive with `inactive: true` on the experiment.
 
 When the experiment is marked inactive, there will be no active experiments.
-Internally, the `InstantBandit` component will fall back to a built-in site/experiment/variant named "default", "default", and "default", respectively.
+Internally, the `InstantBandit` component will fall back to a built-in site/experiment/variant named `default`, `default`, and `default`, respectively.
 
 This is known as [The Invariant](../internals/invariant.md) and simply represents your website or app in an unmodified state, i.e. without Instant Bandit.
 
 > **Note:** When there is no active experiment, or when configuration is unavailable, or when an error occurs, Instant Bandit will always fall back to the invariant.
-> Any metrics captured will be recorded against that variant.
+> Any metrics captured will be recorded against that site/experiment/variant combination.
 
 
 ## Step 4: Author Your First Experiment
@@ -182,7 +183,7 @@ import { InstantBandit, Default, Variant } from "@instantdomain/bandit";
 
 
 <InstantBandit>
-  <Default><span>Welcome</span></Default>
+  <Default>Welcome</Default>
   <Variant name="home-content-short">
     Lorem
   </Variant>
@@ -204,6 +205,9 @@ New users will see one of the variants, which will be stored in their session fo
 Every time the `InstantBandit` component mounts, it will increment an `exposures` counter for the current variant.
 
 When a new user clicks the `SignUpButton`, a call via the `useInstantBandit` hook will increment a `conversions` counter, also associated with the user's variant.
+
+> **Note:** It's up to implementers to increment `conversions` based on your definition of a conversion.
+> Instant Bandits makes this easy. See [The Metrics API](./working-with-metrics.md#the-metrics-api) for a simple example.
 
 Using these metrics, Instant Bandit will expose better performing variants to more traffic, while reserving allocations for the other variants.
 

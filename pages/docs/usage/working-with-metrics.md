@@ -58,7 +58,7 @@ This means that components that record metrics events do not have to concern the
 
 
 ## Scope
-Analytics are always tracked against a variant.
+Analytics are always tracked against a variant in a "metrics bucket".
 This includes `exposures` and `conversions` and any custom metrics that you record.
 
 When there's no active experiment or variants running, metrics are tracked against a built-in default called [the invariant](../internals/invariant.md).
@@ -115,8 +115,8 @@ redis-cli hgetall default:default:default:metrics
 
 
 ## Statistical Significance
-Deciding when to complete an experiment is up to the operators of the software.
+Deciding when to complete an experiment is up to you.
 
-Generally speaking, you should end experiments when they've reach statistical significance that meets your criteria.
+Generally speaking, you should end experiments when they've reached statistical significance that meets your criteria.
 
-A simple policy for when to halt an experiment is simply to halt when a certain number of exposures is reached, or when the metrics reach a clear target, such as a certain percentage improvement over the baseline and a large enough sample set.
+A simple policy for when to halt an experiment is to halt when a certain number of exposures is reached, or when the metrics reach a clear target, such as a certain percentage improvement over the baseline and a large enough sample set.
