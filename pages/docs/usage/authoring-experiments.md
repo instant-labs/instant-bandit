@@ -61,7 +61,7 @@ First, a primer for the `InstantBandit` component:
   - It loads a configuration model called a "site" (see above)
   - It looks for the first active experiment in the site
   - It falls back to a built-in site + experiment + variant all named `default` if nothing is active
-  - It selects variants from the active experiment to present to new vistors
+  - It selects variants from the active experiment to present to new visitors
   - It does so based on probabilities computed for each variant
   - The metrics `exposures` and `conversions` are used to assess variant performance
   - It provides a React Context bearing the active experiment and selected variant for the user
@@ -120,7 +120,7 @@ Content within a `Variant` component is only presented when the `name` prop matc
 In this example, the contents of the variant will only be displayed when the `InstantBandit` user's variant matches the name prop `some-variant`.
 If it doesn't match, nothing will be shown (aside from the always-present text above).
 
-That's not super useful: we need to express all of our variants in order to compare them equally.
+Showing only one variant isn't very useful. We need to express all of our variants in order to test them.
 
 
 ### Multiple Variants
@@ -148,7 +148,7 @@ However, if our site config is missing, or some catastrophic error occurs, we wo
 
 
 ### Enter Default
-Enter the default component:
+Enter the `Default` component:
 
 ```tsx
 <InstantBandit>
@@ -208,7 +208,7 @@ Using the `Default` component and adding `default` to your experiment, you speci
 ## Placement
 How and where `InstantBandit`, `Variant`, and `Default` are placed depends on a few factors, such as page lifecycle and loading performance.
 
-Apps using client-side rendering (CSR) have slightly different constraints than server-side rendered apps (SSR).
+Apps using client-side rendering (CSR) have slightly different considerations than server-side rendered apps (SSR).
 
 A few things should be considered when choosing where to place the `InstantBandit` component.
 
@@ -223,7 +223,7 @@ For example, if your app has 5 pages, and you're running an experiment one 1 of 
 You _can_ wrap entire apps in `InstantBandit`, but you probably only want to do that if the component is remounted on navigation events.
 
 > **Note:** A quick and easy test to verify that `exposures` is getting incremented correctly is to navigate through some pages in your development environment, and check your metrics.
-> A conceptual navigation to and from a page with a running experiment in it should increment the `exposures` metric for the variant you see.
+> Navigating between pages with and without a running experiment in them should increment the `exposures` metric correctly.
 
 ### SSR Performance
 In SSR, the performance impact of Instant Bandit is essentially 0, aside from a round-trip to Redis to fetch a user's session.
@@ -302,11 +302,11 @@ Variants that perform well will be given more exposure to your traffic, but any 
 
 Over time and with enough traffic, your best performing variant should become apparent.
 
-> **Note:** Be sure to allow for statistical signifance - your variants should have enough time and traffic to provide you with meaningful numbers.
-> One variant may pull away earlier on, but later with enough of a sample size, the true winner may emerge.
+> **Note:** Be sure to allow for statistical significance. Your variants should have enough time and traffic to provide you with meaningful statistics.
+> One variant may pull ahead earlier on, but later, with enough of a sample size, the true winner may emerge.
 > Defining the criteria for choosing a winner and terminating the experiment ahead of time is a good idea.
 
-Retrieving and analyzing metrics is currently done manually and you can see examples of how to do so in [Working with Metrics](./working-with-metrics.md), as well as some Redis commands in [Tips](./tips.md).
+Retrieving and analyzing metrics is currently done manually and you can see examples of how to do so in [Working with Metrics](./working-with-metrics.md), as well as some Redis commands to do so in [Tips](./tips.md).
 
 
 
