@@ -70,8 +70,12 @@ export function createBanditContext(options?: Partial<InstantBanditOptions>):
     /**
      * Increments a metric for the currently selected variant in the current experiment.
      */
-    incrementMetric(metric: constants.DefaultMetrics | string) {
-      metrics.sinkEvent(ctx, metric);
+    incrementMetric(name: constants.DefaultMetrics | string) {
+      const sample: MetricsSample = {
+        ts: new Date().getTime(),
+        name: name,
+      };
+      metrics.sink(ctx, sample);
     },
 
     /**
@@ -80,15 +84,16 @@ export function createBanditContext(options?: Partial<InstantBanditOptions>):
      * Payloads sent to a server that does not allow them will silently ignore them, but
      * will keep the messages.
      * 
-     * Events will be automatically prefixed with "evt.component.".
+     * Events will be automatically prefixed with "evt.component." to indicate that they came
+     * from the component API.
      */
     recordEvent(name: string, payload?: Metric) {
-      const sample: MetricsSample = {
+      const event: MetricsSample = {
         ts: new Date().getTime(),
         name: `evt.component.${name}`,
         payload,
       };
-      metrics.sink(ctx, sample);
+      metrics.sink(ctx, event);
     },
   };
 
