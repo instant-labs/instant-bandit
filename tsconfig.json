@@ -28,9 +28,10 @@
     "**/*.tsx"
   ],
   "exclude": [
-    "**/dist",
-    "**/node_modules",
+    "dist/**",
+    "node_modules/**",
     "server.ts",
+    "server.d.ts",
     "index.ts",
   ]
 }

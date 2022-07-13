@@ -5,15 +5,95 @@ import * as constants from "../constants";
 import {
   ClientSuppliedOrigin,
   InstantBanditHeaders,
+  MetricsDecodeOptions,
   Origins,
   RequestValidationArgs,
   ValidatedRequest,
 } from "./server-types";
-import { MetricsBatch } from "../models";
+import { MetricsBatch, MetricsSample } from "../models";
 import { SessionDescriptor } from "../types";
 import { exists, getCookie, makeNewSession } from "../utils";
 import { DEFAULT_SITE } from "../defaults";
 
+
+/**
+ * Decodes an encoded `MetricsBatch` from text/plain ND-JSON
+ */
+export function decodeMetricsBatch(text: string, options: MetricsDecodeOptions) {
+  const { allowMetricsPayloads, maxBatchItemLength, maxBatchLength } = options;
+  if (text.length > maxBatchLength) {
+    throw new Error(`Invalid metrics batch length`);
+  }
+
+  const lines = text.split("\n");
+  const [headerRaw, ...itemsRaw] = lines;
+  const entries: MetricsSample[] = [];
+
+  if (headerRaw.length > maxBatchItemLength) {
+    throw new Error(`Invalid metrics batch header`);
+  }
+
+  const header = JSON.parse(headerRaw) as MetricsBatch;
+  allowKeys(header, ["site", "experiment", "variant"]);
+
+  for (let i = 0; i < itemsRaw.length; ++i) {
+    const itemRaw = itemsRaw[i];
+    if (itemRaw.length > maxBatchItemLength) {
+      throw new Error(`Batch item exceeds max length`);
+    }
+
+    const item = JSON.parse(itemRaw) as MetricsSample;
+    allowKeys(item, ["ts", "name", "payload"]);
+
+    const { payload: payloadFlag } = item;
+    if (payloadFlag === 1) {
+      ++i;
+      const payloadRaw = itemsRaw[i];
+
+      // In the interests of fault tolerance, we'll simply drop payloads and leave an error object
+      if (payloadRaw.length > maxBatchItemLength) {
+        console.warn(`Batch item payload too large. Item: '${itemRaw}'`);
+        item.payload = constants.METRICS_PAYLOAD_SIZE_ERR;
+      } else {
+        if (!allowMetricsPayloads) {
+          console.warn(`[IB] Received metrics payload for item '${itemRaw}'...ignoring`);
+          item.payload = constants.METRICS_PAYLOAD_IGNORED;
+        } else {
+          const payload = JSON.parse(payloadRaw);
+          item.payload = payload;
+        }
+      }
+    }
+
+    entries.push(item);
+  }
+
+  const { site, experiment, variant } = header;
+  const batch: MetricsBatch = {
+    site,
+    experiment,
+    variant,
+    entries,
+  };
+
+  return batch;
+}
+
+/**
+ * Ensures that an object contains only the given keys
+ * @param obj 
+ * @param allowed 
+ * @returns 
+ */
+export function allowKeys<T>(obj: T, allowed: (keyof T)[], maxLength = constants.MAX_STORAGE_VALUE_LENGTH) {
+  Object.keys(obj).forEach(key => {
+    if ((<string[]>allowed).includes(key) && obj[key].toString().length <= maxLength) {
+      return true;
+    } else {
+      throw new Error(`Invalid key '${key.toString()}'`);
+    }
+  });
+}
 
 /**
  * Emits a cookie for the session including any configured settings for cookies
@@ -136,7 +216,6 @@ export function validateMetricsBatch(req: ValidatedRequest, batch: MetricsBatch)
 
   return batch;
 }
-
 
 /**
  * Generates a cryptographic quality random identifier

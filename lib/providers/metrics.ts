@@ -3,7 +3,7 @@ import { DEFAULT_OPTIONS } from "../defaults";
 import { InstantBanditContext } from "../contexts";
 import { Metric, MetricsProvider, MetricsSinkOptions, SessionDescriptor, TimerLike } from "../types";
 import { MetricsBatch, MetricsSample } from "../models";
-import { env, exists, getCookie } from "../utils";
+import { encodeMetricsBatch, env, exists, getCookie } from "../utils";
 
 
 
@@ -123,9 +123,9 @@ export function getHttpMetricsSink(initOptions?: Partial<MetricsSinkOptions>): M
 // Note: sendBeacon is synchronous (fire and forget), and will return `true` even in the case server error
 export function sendBatchViaBeacon(url: URL, batch: MetricsBatch) {
   const blob = new Blob(
-    [JSON.stringify(batch)],
+    [encodeMetricsBatch(batch)],
     {
-      type: "application/json; charset=UTF-8",
+      type: "application/text; charset=UTF-8",
     }
   );
   return navigator.sendBeacon(url + "", blob);
@@ -137,10 +137,10 @@ export async function sendBatchViaFetch(url: URL, sessionId: string, batch: Metr
     method: "POST",
     headers: {
       "Accept": "application/json",
-      "Content-Type": "application/json",
+      "Content-Type": "text/plain; charset=UTF-8",
       [constants.HEADER_SESSION_ID]: sessionId,
     },
-    body: JSON.stringify(batch),
+    body: encodeMetricsBatch(batch),
   });
 
   const { status, statusText } = resp;
