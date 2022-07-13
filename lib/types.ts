@@ -5,13 +5,10 @@ import { InstantBanditContext } from "./contexts";
 
 
 export type InstantBanditProps = {
-  preserveSession?: boolean
-  probabilities?: ProbabilityDistribution | null
   siteName?: string
   select?: string
   site?: Site
   defer?: boolean
-  debug?: boolean
   options?: InstantBanditOptions
   timeout?: number
   onReady?: (ctx: InstantBanditContext) => void

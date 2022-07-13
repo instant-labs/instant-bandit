@@ -3,6 +3,7 @@ import { GetServerSideProps } from "next";
 import { ReactNode, useCallback } from "react";
 
 import { Default } from "../components/Default";
+import { DefaultMetrics } from "../lib/constants";
 import { InstantBandit } from "../components/InstantBanditComponent";
 import { Variant } from "../components/Variant";
 import { useInstantBandit } from "../lib/hooks";
@@ -60,12 +61,14 @@ export default function Home(serverSideProps: InstantBanditOptions) {
 }
 
 export function SignUpButton(props: { children?: ReactNode }) {
-  const ctx = useInstantBandit();
-  const { metrics, variant } = ctx;
-
+  const { incrementMetric, variant } = useInstantBandit();
   const onClick = useCallback(() => {
-    metrics.sinkEvent(ctx, "conversions");
-  }, [ctx, metrics]);
+
+    // Increment the conversions metric.
+    // Instant Bandit will record this against the current variant.
+    incrementMetric(DefaultMetrics.CONVERSIONS);
+
+  }, [incrementMetric]);
 
   return (
     <button className={styles[variant.name]} onClick={onClick}>{props.children}</button>
