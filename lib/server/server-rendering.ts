@@ -14,7 +14,7 @@ import { validateUserRequest } from "./server-utils";
 export async function serverSideRenderedSite(
   server: InstantBanditServer,
   siteName: string,
-  req: IncomingMessage & { cookies: { [key: string]: string } },
+  req: IncomingMessage & {cookies: Partial<{[key: string]: string}>},
 ) {
   await server.init();
 
