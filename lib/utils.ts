@@ -159,7 +159,7 @@ export function getCookie(cookieName, str = ""): string | null {
  * @returns 
  */
 export function getBaseUrl() {
-  return env(constants.VARNAME_BASE_URL) ?? constants.DEFAULT_BASE_URL;
+  return env(constants.VARNAME_BASE_URL) || constants.DEFAULT_BASE_URL;
 }
 
 export const isBrowserEnvironment =
