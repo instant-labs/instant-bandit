@@ -1,6 +1,6 @@
 import * as constants from "./constants";
 import { SiteMeta } from "./models";
-import { deepFreeze, env } from "./utils";
+import { deepFreeze, getBaseUrl } from "./utils";
 
 
 export type BaseOptions = {
@@ -8,7 +8,7 @@ export type BaseOptions = {
 };
 
 export const DEFAULT_OPTIONS: BaseOptions = {
-  baseUrl: env(constants.VARNAME_BASE_URL) ?? constants.DEFAULT_BASE_URL,
+  baseUrl: getBaseUrl(),
 };
 
 /**
