@@ -97,7 +97,7 @@ export async function serverSideRenderedSite(
 
   return {
     site,
-    select: defer ? null : variant.name,
+    select: defer ? undefined : variant.name,
     defer,
   };
 }

@@ -9,7 +9,7 @@ export type InstantBanditProps = {
   select?: string
   site?: Site
   defer?: boolean
-  options?: InstantBanditOptions
+  options?: Partial<InstantBanditOptions>
   timeout?: number
   onReady?: (ctx: InstantBanditContext) => void
   onError?: (err?: Error, ctx?: InstantBanditContext) => void
