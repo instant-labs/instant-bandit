@@ -75,22 +75,22 @@ Register handlers for the server shutdown signals in your [\_document.js/tsx](ht
 ```TS
 import {server} from '../lib/server'
 
+
+if (process.env.NEXT_MANUAL_SIG_HANDLE) {
+  process.on('SIGINT', () => {
+    console.info('Received SIGINT, exiting...');
+    server.shutdown();
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.info('Received SIGTERM, exiting...');
+    server.shutdown();
+    process.exit(0);
+  });
+}
+
 export default function Document() {
-
-  if (process.env.NEXT_MANUAL_SIG_HANDLE) {
-    process.on('SIGINT', () => {
-      console.info('Received SIGINT, exiting...');
-      server.shutdown();
-      process.exit(0);
-    });
-
-    process.on('SIGTERM', () => {
-      console.info('Received SIGTERM, exiting...');
-      server.shutdown();
-      process.exit(0);
-    });
-  }
-
 // ... Rest of your custom _document
 }
 ```
