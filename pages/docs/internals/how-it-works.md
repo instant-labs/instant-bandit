@@ -125,7 +125,7 @@ Example:
 These probabilities are used by the component to select which variant to show to a new visitor.
 In this experiment, a new visitor has an 80% chance of seeing the variant `button-blue`.
 
-Probabilities are computed by the [MAB algorithm](./multi-armed-bandits.md) based on the conversion rate of the variant and are updated continuously.
+Probabilities are computed by the [MAB algorithm](./multi-armed-bandits.md) based on the conversion rate of the variant and are updated continually.
 
 ## Fetching Site Configuration
 During client-side rendering (CSR), sites are fetched (by default) from the sites endpoint, e.g. _/api/sites/default_.

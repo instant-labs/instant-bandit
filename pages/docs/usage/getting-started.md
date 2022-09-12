@@ -42,29 +42,10 @@ Instant Bandit needs to know a couple of things:
   2. How to connect to other systems, such as the Redis backend
 
 Instant Bandit configuration can be expressed in code.
+
 For convenience, certain commonly used settings pull their default values from environment variables.
 
-```bash
-# This tells Instant Bandit where it's being hosted.
-# Required for server-side rendering.
-IB_BASE_API_URL="https://example.com"
-
-# These are the default Redis connection options.
-# Set them here, or in code if you have existing vars.
-IB_REDIS_HOST=redis
-IB_REDIS_PORT=6379
-IB_REDIS_USERNAME=
-IB_REDIS_PASSWORD=
-
-
-# This path is for the default models backend to load JSON files from.
-# Your server must have read access to the filesystem in this path.
-# You only need to set this if you put your JSON somewhere other than 
-# the default value of "./public/sites"
-IB_STATIC_SITES_PATH="./path/to/json/configs"
-```
-
-See [Server Configuration](../configuration/server.md) for more information.
+See the section below on how to configure your server, as well as [Server Configuration](../configuration/server.md) for more information.
 
 > **Next.js Tip:** If you use Next.js's `basePath` setting in your next.config file to host your Next.js on sub-paths like `/my-nextjs-base-path`, include that value in the base URL specified above, e.g. _https://example.com/my-next-base-path_.
 
@@ -213,9 +194,12 @@ Using these metrics, Instant Bandit will expose better performing variants to mo
 
 ## Running It
 Run your app! You will be presented with one of your configured variants.
+
+If you examine `localStorage` in your browser, you should a simple JSON object bearing the variant which has been bound to you.
+
 If you don't see one of your variants, check your browser and server consoles.
 
-See [Tips](./tips.md#troubleshooting) for troubleshooting tips.
+See [Tips](./tips.md#troubleshooting) for more tips.
 
 > **Note:** Any time Instant Bandit runs into an error that would stop it from potentially displaying your site or parts of your site, it falls back to an built-in configuration and presents your site as-is. Any metrics captured during this time are tracked against that default config.
 

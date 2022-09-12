@@ -24,9 +24,10 @@ The full set of options can be seen in the type `InstantBanditServerOptions`.
 
 
 ## Environment Variables
-For convenience, certain configuration options default to environment variables.
+For convenience, certain configuration options default to environment variables when not set in code.
+For example, if you don't pass a `host` property for your Redis backend, the `IB_REDIS_HOST` environment variable is examined.
 
-If a particular option defaults to an environment variable, and the variable is not set, an inbuilt default value is used.
+If the environment variable isn't set, an hardcode default value is used.
 
 Setting the environment variables is not required.
 

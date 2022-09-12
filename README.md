@@ -1,10 +1,13 @@
 # Instant Bandit
-Instant Bandit is a small set of React components and server-side helpers for authoring and running multi-armed bandit (MAB) experiments in websites and apps.
+Instant Bandit is a small set of React components and server-side helpers for declaratively authoring multivariate tests.
 
-Using an epsilon-greedy algorithm, Instant Bandit automatically presents multiple variants that you define to subsets of your traffic. The conversion rate of each variant is continually measured, and the most successful variant is presented to the majority of your traffic.
+Using an epsilon-greedy [Multi-armed bandit algorithm](https://en.wikipedia.org/wiki/Multi-armed_bandit), Instant Bandit automatically presents variants of your app/website to new visitors, and binds that variant to them on repeat visits.
+
+The conversion rate of each variant is continually measured, and the most successful variant at any given moment is assigned the highest probability to be chosen for new visitors.
 
 Using this library, defining and deploying variants is easy and requires little modification to existing websites or apps.
 
+You can find more in-depth documentation [here](./pages/docs/index.md).
 
 ## A Simple Example
 Here's an example of an existing page:
@@ -86,7 +89,7 @@ When the Instant Bandit component mounts, it looks for a block of configuration 
 }
 ```
 
-Experiments in a site have variants, and continously balance the probability that a new visitor should see each one.
+Experiments in a site have variants, and continually balance the probability that a new visitor should see each one.
 
 The probabilities for each variant are updated on the fly by the server, based on conversion rate, which is defined by you.
 
@@ -94,7 +97,7 @@ This is the "multi-armed bandit" part. If variant A's conversion rate begins exc
 
 Thanks to this, we can be sure that the best variant is consistently shown the most frequently, while still giving other variants the chance to shine.
 
-Rather than waste a significant portion of traffic on variants that don't resonate with visitors, such as in traditional A/B testing, Instant Bandit allows you to optimize conversions without wasting large amounts of impressions on things that don't perform well.
+Rather than waste a significant portion of traffic on variants that don't resonate with visitors, such as in traditional A/B testing, Instant Bandit allows you to optimize conversions without using up impressions on things that don't perform well.
 
 
 # Tracking Conversions

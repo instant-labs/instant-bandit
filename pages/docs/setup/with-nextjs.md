@@ -1,5 +1,5 @@
 # Instant Bandit with Next.js
-Instant Bandit pairs well with Next.js, particular with Next's Server-side Rendering (SSR) capabilities.
+Instant Bandit pairs well with Next.js, particularly with Next's Server-side Rendering (SSR) capabilities.
 
 This article has some integration tips and notes for Next.js.
 
@@ -9,7 +9,7 @@ The Instant Bandit package ships with Next.js endpoints you can import directly.
 
 Import the endpoints and pass them an instance of the server you created, and your server is ready to go.
 
-> Tip:: You can change the endpoint locations via configuration settings `sitePath` and `metricsPath`.
+> Tip: You can change the endpoint locations via configuration settings `sitePath` and `metricsPath`.
 
 
 ### Sites Endpoint
@@ -76,3 +76,39 @@ Be sure to pass the props to `InstantBandit`:
 ```tsx
  <InstantBandit {...serverSideProps}>...</InstantBandit>
 ```
+
+
+## Graceful Server Shutdown
+
+If using the default Next.js server, you'll need to enable **[Manual Graceful shutdowns](https://nextjs.org/docs/deployment#manual-graceful-shutdowns)** in order to ensure that your Instant Bandit server closes all open connections and shuts down gracefully when your Next.js server exits.
+
+You'll need to have the env variable `NEXT_MANUAL_SIG_HANDLE` set to `true`.
+
+> **Note**: Next.js server won't read this variable from .env, it must be available in your environment on server start.
+
+Register handlers for the server shutdown signals in your [\_document.js/tsx](https://nextjs.org/docs/advanced-features/custom-document) file to shutdown the server you created above:
+
+```TS
+import {server} from '../lib/server'
+
+
+if (process.env.NEXT_MANUAL_SIG_HANDLE) {
+  process.on('SIGINT', () => {
+    console.info('Received SIGINT, exiting...');
+    server.shutdown();
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.info('Received SIGTERM, exiting...');
+    server.shutdown();
+    process.exit(0);
+  });
+}
+
+export default function Document() {
+// ... Rest of your custom _document
+}
+```
+
+If using a custom server for Next.js, be sure to register listeners for `SIGTERM` and `SIGINT` and call `server.shutdown()` to gracefully shutdown the Instant Bandit server as defined above.
