@@ -1,18 +1,39 @@
 # Server Configuration
 The `InstantBanditServer` helper object accepts configuration options at creation time.
-If you're working with server-side rendering, you'll need to set a `baseUrl` to resolve paths on the server.
 
-By default, it's pulled from the `IB_BASE_API_URL`:
-```
-IB_BASE_API_URL="https://example.com"
+Configuration options are set in code when you create the server, here's an example:
+
+```TS
+// set up your backends for analytics/sessions
+// the default Redis backend does both
+const redis = getRedisBackend({
+    host: "your-redis-server",
+    port: 6379,
+});
+const json = getJsonSiteBackend();
+
+const defaultOptions: Partial<InstantBanditServerOptions> = {
+    sessions: redis,
+    metrics: redis,
+    models: json,
+};
+export const server = getBanditServer(defaultOptions);
 ```
 
-> **Next.js Tip:** Next.js will perform SSR by default when it can, so setting this is necessary unless forcing CSR.
+The full set of options can be seen in the type `InstantBanditServerOptions`.
+
+
+## Environment Variables
+For convenience, certain configuration options default to environment variables.
+
+If a particular option defaults to an environment variable, and the variable is not set, an inbuilt default value is used.
+
+Setting the environment variables is not required.
+
+See `environment.ts` for the full set.
 
 
 ## InstantBanditServer Options
-See the type `InstantBanditServerOptions` for the full set of options.
-
 
 ### `allowMetricsPayloads`
 Set this to `true` if you wish to accept payloads on custom metrics events. Default: `false`
@@ -30,6 +51,17 @@ Maximum total size of metrics batches, including items and payloads, when decode
 Advanced implementers can override specific functionality on the server side and use Instant Bandit with other databases and analytics platforms.
 
 See [Extensibility](../internals/extensibility.md) for more information.
+
+
+## Server-side Rendering
+If you're using SSR, you'll need to set a `baseUrl` to resolve paths on the server.
+
+You can set this in code when the server helper is created.
+
+If it's not set in code, the `IB_BASE_API_URL` will be checked.
+
+
+> **Next.js Tip:** Next.js will perform SSR by default when it can, so setting this is necessary unless forcing CSR.
 
 
 ### Redis Backend
@@ -53,4 +85,4 @@ IB_REDIS_PASSWORD
 A `retryStrategy` option allows you to specify reconnect behavior.
 By default, Instant Bandit provides one that will try to reconnect a specific number of times on a specific interval.
 
-The number of attempts can be set by the environment variable `IB_REDIS_RETRY_COUNT` and the interval by `IB_REDIS_RETRY_INTERVAL`.
+The number of attempts can be set in code or by the environment variable `IB_REDIS_RETRY_COUNT` and the interval by `IB_REDIS_RETRY_INTERVAL`.

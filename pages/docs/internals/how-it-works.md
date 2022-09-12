@@ -22,7 +22,7 @@ Once a variant is selected for a user, it is bound to them and they will continu
 
 
 ## Sites, Experiments, and Variants
-An `InstantBandit` component consumes a configuration model known as a _Site_. A site conceptually maps to a website or app.
+An `InstantBandit` component consumes a configuration model known as a _Site_. A _Site_ conceptually maps to a website or app.
 
 _Sites_ have _Experiments_, and experiments have _Variants_.
 
@@ -83,8 +83,6 @@ For new visitors, a variant from the active experiment will be chosen based on a
 For returning users, their sessions will be examined and the previously chosen variant will be presented.
 
 
-
-
 ## Metrics
 The [multi-armed bandit algorithm](./multi-armed-bandits.md) is informed by two metrics: `exposures` and `conversions`.
 
@@ -124,7 +122,7 @@ Example:
   ]
 }
 ```
-These probabilities are used by the component to select which variant to show to a new user.
+These probabilities are used by the component to select which variant to show to a new visitor.
 In this experiment, a new visitor has an 80% chance of seeing the variant `button-blue`.
 
 Probabilities are computed by the [MAB algorithm](./multi-armed-bandits.md) based on the conversion rate of the variant and are updated continuously.
