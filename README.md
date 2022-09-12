@@ -28,6 +28,7 @@ To add Instant Bandit to this page, you drop in the `InstantBandit` component an
     <p>... content ...</p>
 
     <InstantBandit>
+
       <Default>
         <SignUpButton />
       </Default>
@@ -43,18 +44,22 @@ To add Instant Bandit to this page, you drop in the `InstantBandit` component an
       <Variant name="C">
         <SignUpButton color="blue" />
       </Variant>
+
     </InstantBandit>
 
   </Content>
 </Page>
 ```
 
-Here, we're testing 3 colored variants of the `<SignUpButton />` component to see if button color has any effect on conversion rate.
+Here, we're testing 3 coloured variants of the `<SignUpButton />` component to see if button colour has any effect on conversion rate.
 
-Note the use of the `<Default />` component. If metadata about the experiment and variants can't be loaded, the default component - the original button - will be displayed. Specifying a default is a good practice.
+Note the use of the `<Default />` component.
+If the current experiment ends, new visitors will see the default, i.e. the original.
+
+If metadata about the experiment and variants can't be loaded for some reason, such as a network error, the default will be used as a fallback.
 
 ## How it Works
-When the Instant Bandit mounts, it immediately looks for a block of configuration called a "site". A _Site_ is a block of JSON that defines the experiments and variants. It looks like this:
+When the Instant Bandit component mounts, it looks for a block of configuration called a _Site_. A site is a block of JSON that defines the experiments and variants. It looks like this:
 
 ```JSON
 {
@@ -81,11 +86,15 @@ When the Instant Bandit mounts, it immediately looks for a block of configuratio
 }
 ```
 
-A Site configuration describes the variants to test, and the probability that a visitor should see each one. When a new visitor views your site for the first time, one of these variants is chosen at random using the specified probability. Here, there is an 80% chance that a new user will see variant B.
+Experiments in a site have variants, and continously balance the probability that a new visitor should see each one.
 
-The probabilities for each variant are updated on the fly by the server, based on conversion rate. This is the "multi-armed bandit" part. If variant A's conversion rate begins exceeding variant B's conversion rate, the probabilities will be automatically updated, and A will begin to receive the majority of traffic.
+The probabilities for each variant are updated on the fly by the server, based on conversion rate, which is defined by you.
 
-Thanks to this, we can be sure that the best variant is consistently shown the most frequently, while still giving other variants the chance to shine. Rather than waste a significant portion of traffic on variants that don't resonate with visitors, such as in traditional A/B testing, Instant Bandit allows you to optimize conversions without wasting large amounts of impressions on things that don't stick.
+This is the "multi-armed bandit" part. If variant A's conversion rate begins exceeding variant B's conversion rate, the probabilities will be automatically updated, and A will begin to receive the majority of traffic.
+
+Thanks to this, we can be sure that the best variant is consistently shown the most frequently, while still giving other variants the chance to shine.
+
+Rather than waste a significant portion of traffic on variants that don't resonate with visitors, such as in traditional A/B testing, Instant Bandit allows you to optimize conversions without wasting large amounts of impressions on things that don't perform well.
 
 
 # Tracking Conversions
@@ -94,23 +103,23 @@ In order to measure conversions and other metrics, Instant Bandit offers a conve
 ```TS
 const { incrementMetric } = useInstantBandit();
 
-// Inside of your click handler:
+// call this when a user converts
 incrementMetric(DefaultMetrics.CONVERSIONS);
 
 ```
 
-That's it! The `useInstantBandit` hook knows which variant is being displayed, and the "conversions" metric is automatically updated for the correct variant when a user hits the SignUpButton presented to them.
+That's it! The `useInstantBandit` hook knows which variant is being displayed, and the `conversions` metric is automatically updated for the correct experiment and variant when a user hits the SignUpButton presented to them.
 
 
 ## The Backend
-Instant Bandit requires a backend exposing two endpoints: One to serve site configurations with probabilities inlined, and another to ingest metrics. By default, these are `/api/sites/[site name]` and `/api/metrics`.
+Instant Bandit requires a backend exposing two endpoints: One to serve site configurations and variant probabilities, and another to ingest anonymous metrics. By default, these are `/api/sites/[site name]` and `/api/metrics`.
 
 This package includes helper functions to implement those endpoints in any Node.js-based web application, as well as an example of each implemented as Next.js API routes. See `/api/sites/[siteName].ts` and `/api/metrics.ts` in this repository.
 
-An instance of Redis is used as the default backend store for metrics, and one is configured in this repository. Implementors can replace Redis with their data store of choice, e.g. Postgres, GraphQL, MongoDB, etc.
+An instance of Redis is used as the default backend store for metrics, and one is configured in this repository. Implementers can easily replace Redis with their data store of choice, e.g. Postgres, GraphQL, MongoDB, etc.
 
 # Performance and SEO
-Instant Bandit loads quickly and minimizes or completely eliminates flickering and cumulative layout shift (CLS), both of which hurt the end user's experience and also can impact SEO.
+Instant Bandit loads quickly and minimizes or completely eliminates flickering and _Cumulative Layout Shift_ (CLS), both of which degrade the end user's experience and can impact SEO.
 
 Instant Bandit supports server-side rendering (SSR). In order to use SSR, e.g. in Next.js, the site configuration is obtained server-side, and passed in via properties using `getServerSideProps`. See `index.tsx` in this repo for an example.
 
