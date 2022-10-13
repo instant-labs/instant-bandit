@@ -47,7 +47,7 @@ const onClick = useCallback(() => {
 ```
 
 The call to `incrementMetric` is here is contextual.
-When placed inside of an `InstantBandit` component's subtree, the invocation will track the event against the user's variant in the currently active experiment.
+When placed inside of an `InstantBandit` component's subtree, the invocation will track the event against the visitors's variant in the currently active experiment.
 
 When no experiment is active, or the component is used outside of an `InstantBandit` subtree, the event is tracked against a default experiment and variant.
 

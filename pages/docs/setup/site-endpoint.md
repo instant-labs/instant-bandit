@@ -47,4 +47,4 @@ const responseJson = JSON.stringify(site);
 If your endpoint returns an error, the `InstantBandit` component will simply show the built-in default, aka the [invariant](../internals/invariant.md).
 This is just your regular site, with no experimental variants shown.
 
-If your sites endpoint fails, users will just see your existing site with no experimental variations.
+If your sites endpoint fails, visitors will just see your existing site with no experimental variations.

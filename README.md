@@ -111,7 +111,7 @@ incrementMetric(DefaultMetrics.CONVERSIONS);
 
 ```
 
-That's it! The `useInstantBandit` hook knows which variant is being displayed, and the `conversions` metric is automatically updated for the correct experiment and variant when a user hits the SignUpButton presented to them.
+That's it! The `useInstantBandit` hook knows which variant is being displayed, and the `conversions` metric is automatically updated for the correct experiment and variant when a visitor hits the SignUpButton presented to them.
 
 
 ## The Backend

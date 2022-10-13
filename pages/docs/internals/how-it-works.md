@@ -18,7 +18,7 @@ The existing marketing copy is specified as a default, and will be used if the c
 
 When a new visitor sees this page, a variant will be selected based on a probability computed by a [multi-armed bandit algorithm](./multi-armed-bandits.md), or _MAB_.
 
-Once a variant is selected for a user, it is bound to them and they will continue to see it on subsequent page views. The other ones will not render, and will not create any elements.
+Once a variant is selected for a visitor, it is bound to them and they will continue to see it on subsequent page views. The other ones will not render, and will not create any elements.
 
 
 ## Sites, Experiments, and Variants
@@ -76,11 +76,11 @@ In the above example, two experiments are expressed. The first one will be used,
 
 
 ## Presentation
-When an `InstantBandit` component loads for a new visitor, it will select a variant from the currently active experiment based on these probabilities, and `Variant` and `Default` components expressed in its subtree will present their children (or not) based on the user's variant.
+When an `InstantBandit` component loads for a new visitor, it will select a variant from the currently active experiment based on these probabilities, and `Variant` and `Default` components expressed in its subtree will present their children (or not) based on the visitor's variant.
 
 For new visitors, a variant from the active experiment will be chosen based on a probability attached to the variant itself.
 
-For returning users, their sessions will be examined and the previously chosen variant will be presented.
+For returning visitors, their sessions will be examined and the previously chosen variant will be presented.
 
 
 ## Metrics
@@ -132,6 +132,7 @@ During client-side rendering (CSR), sites are fetched (by default) from the site
 During server-side rendering (SSR), sites are served in memory to the `InstantBandit` component rendering server-side.
 
 In CSR, the component has to wait for a HTTP response before rendering the active variant.
+
 In SSR, the component has access to the active variant on the server, and it is available immediately at render time.
 
 See the [SSR section](../setup/server-side-rendering.md) and [Tips](../tips#performance) for more information around CSR vs SSR.
@@ -149,13 +150,13 @@ Once configuration is obtained (either the desired config, or the invariant), th
 ## Selection
 During this brief initialization phase, "selection" occurs.
 
-A "selection" is the binding between a user and a variant for a given experiment.
+A "selection" is the binding between a visitor and a variant for a given experiment.
 
 For a new vistor, the `InstantBandit` component will select a variant from the currently active experiment.
 The active experiment in a site is considered the first experiment not flagged as inactive, or the default experiment if none can be found.
 
 The vistor will be assigned a variant sampled from the the probability distribution computed by the MAB algorithm and expressed in the site JSON.
-Selections are stored in the user's anonymous session in their browser, by default via `LocalStorage`.
+Selections are stored in the visitor's anonymous session in their browser, by default via `LocalStorage`.
 
 Upon subsequent views, the selection process observes the viewer's session, respecting any existing selections.
 
@@ -164,11 +165,11 @@ Upon subsequent views, the selection process observes the viewer's session, resp
 A "new visitor" is simply a visitor without an Instant Bandit session.
 
 When the `InstantBandit` component mounts and selects a variant from the active experiment, it reports it to the server.
-This creates a new session for the user on both the server and the client.
+This creates a new session for the visitor on both the server and the client.
 
-A session identifier, or _SID_ is held by the user in the form of a 1st-party cookie from your domain.
+A session identifier, or _SID_ is held by the visitor in the form of a 1st-party cookie from your domain.
 
-Sessions are completely anonymous and contain only the information about which variant(s) have been selected for that user.
+Sessions are completely anonymous and contain only the information about which variant(s) have been selected for that visitor.
 
 Sessions are stored on the server in the configured "sessions backend", which is a Redis-based implementation by default.
 Sessions are also stored client-side, by default in `LocalStorage` in their browser.
@@ -179,7 +180,7 @@ Sessions are also stored client-side, by default in `LocalStorage` in their brow
 The server-side session is considered the source of truth.
 However, if the sessions backend is unavailable, the client can use the local session and respect existing selections.
 
-When metrics are recorded, the metrics endpoint will return the user's session to them.
+When metrics are recorded, the metrics endpoint will return the visitor's session to them.
 This overwrites the local session.
 
 
@@ -219,7 +220,7 @@ This all happens in a single `onLayoutEffect` cycle, which helps eliminate/mitig
 Authors of CSR websites/apps should be aware that rendering will happen after the HTTP response for the site configuration completes.
 This means that the `InstantBandit` component and its children will "pop in" asynchronously, and this should be considered when placing the component.
 
-See [Performance Tips](../tips.md#performance) for information about how to optimie performance in CSR.
+See [Performance Tips](../tips.md#performance) for information about how to optimize performance in CSR.
 
 
 ## Context
@@ -264,12 +265,11 @@ This keeps things simple, as components that record metrics need not concern the
 
 In the case of no active experiment, or some error preventing the site config from loading, the `exposures` and `conversions` metrics in our example will simply be tracked against the invariant.
 
-See [Working with Metrics](./working-with-metrics.md) for information on capturing and analyzingmetrics.
+See [Working with Metrics](./working-with-metrics.md) for information on capturing and analyzing metrics.
 
 
 ## Returning Visitors
-Returning visitors who haved previously been exposed to a variant will see the same variant they did
-before, and any further `exposures` or `conversions` from them will be tracked against their current variant.
+Returning visitors who have previously been exposed to a variant will see the same variant they did before, and any further `exposures` or `conversions` from them will be tracked against their current variant.
 
 
 ## Experiment Lifecycle
@@ -280,9 +280,27 @@ When you feel that you've obtained statistical significance based on the observe
 You should then mark the experiment as inactive like so:
 
 ```json
+{
+  "id": "buttons-colors-1",
+  "inactive": "true",
+  "variants": [
+    {
+      "name": "button-green",
+      "prob": 0.1
+    },
+    {
+      "name": "button-blue",
+      "prob": 0.8
+    },
+    {
+      "name": "button-orange",
+      "prob": 0.1
+    }
+  ]
+}
 ```
 
-You can leave it in the site configuration as a historical
+This essentially "archives" the experiment and future tooling can consider it when providing analytics.
 
 
 ## Summary

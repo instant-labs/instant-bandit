@@ -38,7 +38,7 @@ Prefetching will ensure that the site model request is at least in flight while 
 
 #### Timeouts
 
-Consider setting the `timeout` prop on the `InstantBandit` component somewhere close to your mean configuration response time. Upon timeout, the component will present the default site/experiment/variant, aka "the invariant". Any captured metrics will be tracked against the [invariant](../internals/invariant.md), so no analytics will be lost. The affected user simply won't see the current experiment's variants.
+Consider setting the `timeout` prop on the `InstantBandit` component somewhere close to your mean configuration response time. Upon timeout, the component will present the default site/experiment/variant, aka "the invariant". Any captured metrics will be tracked against the [invariant](../internals/invariant.md), so no analytics will be lost. The affected visitor simply won't see the current experiment's variants.
 
 #### Placeholders
 The `InstantBandit` component exposes an `onReady` callback you can use to remove custom placeholder elements, e.g. space filling shims to maintain layout.

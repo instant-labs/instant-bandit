@@ -181,11 +181,11 @@ import { InstantBandit, Default, Variant } from "@instantdomain/bandit";
 
 In this example we're testing some new marketing copy in our `HomePage` component.
 
-New users will see one of the variants, which will be stored in their session for return visits.
+New visitors will see one of the variants, which will be stored in their session for return visits.
 
 Every time the `InstantBandit` component mounts, it will increment an `exposures` counter for the current variant.
 
-When a new user clicks the `SignUpButton`, a call via the `useInstantBandit` hook will increment a `conversions` counter, also associated with the user's variant.
+When a new visitor clicks the `SignUpButton`, a call via the `useInstantBandit` hook will increment a `conversions` counter, also associated with the visitor's variant.
 
 > **Note:** It's up to implementers to increment `conversions` based on your definition of a conversion.
 > Instant Bandits makes this easy. See [The Metrics API](./working-with-metrics.md#the-metrics-api) for a simple example.

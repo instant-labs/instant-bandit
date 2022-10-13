@@ -1,5 +1,5 @@
 # Configuration
-Instant Bandit consumes a simple configuration model to decide what to present to users.
+Instant Bandit consumes a simple configuration model to decide what to present to visitors.
 This model is intended to be easy to understand, and suitable for management tools to build upon.
 
 
@@ -91,7 +91,7 @@ If the variant "button-blue" has a better conversion rate than "button-green", t
 
 
 ## Metrics
-As users interact with your website/app, two metrics will be recorded: `exposures`, and `conversions`.
+As visitors interact with your website/app, two metrics will be recorded: `exposures`, and `conversions`.
 
 These metrics are tracked in "metrics buckets".
 Internally, each variant has a metrics bucket, like so:

@@ -2,7 +2,7 @@
 Instant Bandit works by selectively showing or hiding elements of your user interface.
 It does this by consuming a simple [configuration model](../configuration/models.md), and selecting _Variants_ listed within that configuration.
 
-Variants are expressed in your user interface via the `Variant` and `Default` components, and using these two components inside of an `InstantBandit` component is how you express your experiments.
+Variants are expressed in your interface via the `Variant` and `Default` components, and using these two components inside of an `InstantBandit` component is how you express your experiments.
 
 These experiments can be tiny textual changes, or entirely new versions of pages.
 
@@ -64,7 +64,7 @@ First, a primer for the `InstantBandit` component:
   - It selects variants from the active experiment to present to new visitors
   - It does so based on probabilities computed for each variant
   - The metrics `exposures` and `conversions` are used to assess variant performance
-  - It provides a React Context bearing the active experiment and selected variant for the user
+  - It provides a React Context bearing the active experiment and selected variant for the visitor
   - The Context is available via the hook `useInstantBandit`
 
 ## Metrics and Probabilities Primer
@@ -74,17 +74,17 @@ Notes about metrics and probabilities:
   - This includes the fallback `default` when no experiment is active
   - Probabilities are computed on the server based on the metrics and via the [MAB](../internals/multi-armed-bandits.md)
   - Probabilities are injected in the site JSON by the server
-  - New users will see 1 variant from the active experiment
+  - New visitors will see 1 variant from the active experiment
   - That "selected" variant is sampled randomly using those probabilities
-  - Returning users see the initial variant that was "selected" for them on their first visit
+  - Returning visitors see the initial variant that was "selected" for them on their first visit
 
 ## InstantBandit and Friends
 `InstantBandit` itself doesn't actually deal with presentation, other than hiding its children until it's initialized, and carefully rendering them in one pass when ready to go.
 
-The act of hiding or showing the correct variants for a user is done by two helper components: `Variant` and `Default`.
+The act of hiding or showing the correct variants for a visitor is done by two helper components: `Variant` and `Default`.
 
 When the component initializes, it will cause any `Variant` and `Default` components to mount.
-At that time, they will decide whether or not to display their children, based on the current experiment and variant selected for the user.
+At that time, they will decide whether or not to display their children, based on the current experiment and variant selected for the visitor.
 
 
 ## Visibility Rules
@@ -117,7 +117,7 @@ Content within a `Variant` component is only presented when the `name` prop matc
 
 </InstantBandit>
 ```
-In this example, the contents of the variant will only be displayed when the `InstantBandit` user's variant matches the name prop `some-variant`.
+In this example, the contents of the variant will only be displayed when the `InstantBandit` visitor's variant matches the name prop `some-variant`.
 If it doesn't match, nothing will be shown (aside from the always-present text above).
 
 Showing only one variant isn't very useful. We need to express all of our variants in order to test them.
@@ -226,7 +226,7 @@ You _can_ wrap entire apps in `InstantBandit`, but you probably only want to do 
 > Navigating between pages with and without a running experiment in them should increment the `exposures` metric correctly.
 
 ### SSR Performance
-In SSR, the performance impact of Instant Bandit is essentially 0, aside from a round-trip to Redis to fetch a user's session.
+In SSR, the performance impact of Instant Bandit is essentially 0, aside from a round-trip to Redis to fetch a visitor's session.
 
 Cumulative layout shift is non-existent, and the `InstantBandit` component will render immediately, given a populated `site` prop.
 

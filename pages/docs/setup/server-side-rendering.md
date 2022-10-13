@@ -11,7 +11,7 @@ The SSR helper is called `serverSideRenderedSite` and does the following:
 3. Returns a `defer` flag set to `true` if the sessions endpoint is unavailable for some reason
 
 > **Note:** The `defer` flag switches the `InstantBandit` component into client-side rendering in order to respect variant selection in the absence of server-side sessions.
-> Users have a copy of their session and the variants they are bound to stored in their browser.
+> Visitors have a copy of their session and the variants they are bound to stored in their browser.
 
 
 ## Enabling SSR

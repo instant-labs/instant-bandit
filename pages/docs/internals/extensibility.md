@@ -12,7 +12,7 @@ This guide focuses solely on them.
 ## Providers
 InstantBandit requires 3 things to function:
 - **Models**: Configurations that define the _sites_, _experiments_, and _variants_
-- **Sessions**: Anonymous blocks of data storing which variants a user is bound to
+- **Sessions**: Anonymous blocks of data storing which variants are bound to a visitor
 - **Metrics**: A way of ingesting "exposures", "conversions" and other metrics
 
 > **Tip**: The conversion rate of `conversions` divided by `exposures` is exactly what informs the multi-armed bandit algorithm when it assigns probabilities to each variant.

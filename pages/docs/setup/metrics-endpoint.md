@@ -28,9 +28,9 @@ See [Server Configuration](../configuration/server.md) for more information.
 
 
 ## Security
-All analytics platforms must expose a public endpoint to unauthenticated/unauthorized users.
+All analytics platforms must expose a public endpoint to unauthenticated/unauthorized visitors.
 
-Systems like _Google Analytics_ and Instant Bandit must accept incoming data from untrusted users in order to record events like page views and clicks, aka the `exposures` and `conversions` metrics required for the [MAB algorithm](../internals/multi-armed-bandits.md).
+Systems like _Google Analytics_ and Instant Bandit must accept incoming data from untrusted parties in order to record events like page views and clicks, aka the `exposures` and `conversions` metrics required for the [MAB algorithm](../internals/multi-armed-bandits.md).
 
 
 ### Vandalism

@@ -88,7 +88,7 @@ export type Providers = {
 };
 
 /**
- * Describes a user session and the Instant Bandit sites/experiments/variants presented to them.
+ * Describes a visitor session and the Instant Bandit sites/experiments/variants presented to them.
  */
 export type SessionDescriptor = {
   sid: string;
