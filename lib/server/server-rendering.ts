@@ -8,8 +8,6 @@ import { validateUserRequest } from "./server-utils";
 
 /**
  * Handles details around serving a site in a manner suitable for a full SSR render.
- * The selection is persisted in the server's session store, and a session ID is
- * returned to the user via cookie.
  */
 export async function serverSideRenderedSite(
   server: InstantBanditServer,

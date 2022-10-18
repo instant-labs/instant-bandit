@@ -2,6 +2,20 @@
   "name": "default",
   "experiments": [
     {
+      "id": "examples",
+      "variants": [
+        {
+          "name": "example-A"
+        },
+        {
+          "name": "example-B"
+        },
+        {
+          "name": "example-C"
+        }
+      ]
+    },
+    {
       "id": "default",
       "variants": [
         {
